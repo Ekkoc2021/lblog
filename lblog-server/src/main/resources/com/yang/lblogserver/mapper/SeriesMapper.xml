@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.mapper.SeriesMapper">
+
+    <resultMap id="BaseResultMap" type="com.yang.lblogserver.domain.Series">
+            <id property="id" column="id" />
+            <result property="title" column="title" />
+            <result property="slug" column="slug" />
+            <result property="description" column="description" />
+            <result property="coverImageUrl" column="cover_image_url" />
+            <result property="categoryId" column="category_id" />
+            <result property="isCompleted" column="is_completed" />
+            <result property="sortOrder" column="sort_order" />
+            <result property="createdBy" column="created_by" />
+            <result property="createdAt" column="created_at" />
+            <result property="updatedAt" column="updated_at" />
+            <result property="deletedAt" column="deleted_at" />
+            <result property="isDelelte" column="is_delelte" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,title,slug,description,cover_image_url,category_id,
+        is_completed,sort_order,created_by,created_at,updated_at,
+        deleted_at,is_delelte
+    </sql>
+</mapper>
