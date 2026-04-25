@@ -1,6 +1,5 @@
 package com.yang.lblogserver.domain;
 
-
 import java.util.Date;
 import lombok.Data;
 
@@ -8,7 +7,6 @@ import lombok.Data;
  * 文章元数据表
  * @TableName posts
  */
-
 @Data
 public class Posts {
     /**
@@ -52,9 +50,24 @@ public class Posts {
     private Long categoryId;
 
     /**
+     * 浏览量
+     */
+    private Integer viewCount;
+
+    /**
+     * 点赞数
+     */
+    private Integer likeCount;
+
+    /**
      * 发布时间
      */
     private Date publishedAt;
+
+    /**
+     * 评论数
+     */
+    private Integer commentCount;
 
     /**
      * 
@@ -96,7 +109,10 @@ public class Posts {
             && (this.getStatus() == null ? other.getStatus() == null : this.getStatus().equals(other.getStatus()))
             && (this.getAuthorId() == null ? other.getAuthorId() == null : this.getAuthorId().equals(other.getAuthorId()))
             && (this.getCategoryId() == null ? other.getCategoryId() == null : this.getCategoryId().equals(other.getCategoryId()))
+            && (this.getViewCount() == null ? other.getViewCount() == null : this.getViewCount().equals(other.getViewCount()))
+            && (this.getLikeCount() == null ? other.getLikeCount() == null : this.getLikeCount().equals(other.getLikeCount()))
             && (this.getPublishedAt() == null ? other.getPublishedAt() == null : this.getPublishedAt().equals(other.getPublishedAt()))
+            && (this.getCommentCount() == null ? other.getCommentCount() == null : this.getCommentCount().equals(other.getCommentCount()))
             && (this.getCreatedAt() == null ? other.getCreatedAt() == null : this.getCreatedAt().equals(other.getCreatedAt()))
             && (this.getUpdatedAt() == null ? other.getUpdatedAt() == null : this.getUpdatedAt().equals(other.getUpdatedAt()))
             && (this.getDeletedAt() == null ? other.getDeletedAt() == null : this.getDeletedAt().equals(other.getDeletedAt()))
@@ -115,7 +131,10 @@ public class Posts {
         result = prime * result + ((getStatus() == null) ? 0 : getStatus().hashCode());
         result = prime * result + ((getAuthorId() == null) ? 0 : getAuthorId().hashCode());
         result = prime * result + ((getCategoryId() == null) ? 0 : getCategoryId().hashCode());
+        result = prime * result + ((getViewCount() == null) ? 0 : getViewCount().hashCode());
+        result = prime * result + ((getLikeCount() == null) ? 0 : getLikeCount().hashCode());
         result = prime * result + ((getPublishedAt() == null) ? 0 : getPublishedAt().hashCode());
+        result = prime * result + ((getCommentCount() == null) ? 0 : getCommentCount().hashCode());
         result = prime * result + ((getCreatedAt() == null) ? 0 : getCreatedAt().hashCode());
         result = prime * result + ((getUpdatedAt() == null) ? 0 : getUpdatedAt().hashCode());
         result = prime * result + ((getDeletedAt() == null) ? 0 : getDeletedAt().hashCode());
@@ -137,7 +156,10 @@ public class Posts {
         sb.append(", status=").append(status);
         sb.append(", authorId=").append(authorId);
         sb.append(", categoryId=").append(categoryId);
+        sb.append(", viewCount=").append(viewCount);
+        sb.append(", likeCount=").append(likeCount);
         sb.append(", publishedAt=").append(publishedAt);
+        sb.append(", commentCount=").append(commentCount);
         sb.append(", createdAt=").append(createdAt);
         sb.append(", updatedAt=").append(updatedAt);
         sb.append(", deletedAt=").append(deletedAt);
