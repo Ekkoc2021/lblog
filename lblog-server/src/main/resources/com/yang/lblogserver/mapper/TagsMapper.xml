@@ -19,4 +19,32 @@
         id,name,slug,created_by,created_at,updated_at,
         deleted_at,is_delelte
     </sql>
+
+    <resultMap id="TagWithCountMap" type="com.yang.lblogserver.vo.TagVO">
+        <id property="id" column="id" />
+        <result property="name" column="name" />
+        <result property="slug" column="slug" />
+        <result property="postCount" column="post_count" />
+    </resultMap>
+
+    <select id="selectTagsWithCount" resultMap="TagWithCountMap">
+        SELECT t.id, t.name, t.slug, COUNT(pt.post_id) AS post_count
+        FROM tags t
+        LEFT JOIN post_tags pt ON t.id = pt.tag_id
+        LEFT JOIN posts p ON pt.post_id = p.id AND p.status = 1 AND p.is_delelte = 0 AND p.deleted_at IS NULL
+        WHERE t.is_delelte = 0 AND t.deleted_at IS NULL
+        GROUP BY t.id
+        ORDER BY post_count DESC, t.id ASC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectBatchIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM tags
+        WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
 </mapper>

@@ -17,6 +17,7 @@
             <result property="likeCount" column="like_count" />
             <result property="publishedAt" column="published_at" />
             <result property="commentCount" column="comment_count" />
+            <result property="commentEnable" column="comment_enable" />
             <result property="createdAt" column="created_at" />
             <result property="updatedAt" column="updated_at" />
             <result property="deletedAt" column="deleted_at" />
@@ -26,6 +27,49 @@
     <sql id="Base_Column_List">
         id,title,slug,excerpt,featured_image,status,
         author_id,category_id,view_count,like_count,published_at,
-        comment_count,created_at,updated_at,deleted_at,is_delelte
+        comment_count,comment_enable,created_at,updated_at,deleted_at,is_delelte
     </sql>
+
+    <sql id="where_condition">
+        WHERE p.status = 1 AND p.is_delelte = 0 AND p.deleted_at IS NULL
+        <if test="categoryId != null">
+            AND p.category_id = #{categoryId}
+        </if>
+        <if test="tagId != null">
+            AND p.id IN (SELECT pt.post_id FROM post_tags pt WHERE pt.tag_id = #{tagId})
+        </if>
+        <if test="seriesId != null">
+            AND p.id IN (SELECT sp.post_id FROM series_posts sp WHERE sp.series_id = #{seriesId})
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (p.title LIKE CONCAT('%', #{keyword}, '%') OR p.excerpt LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </sql>
+
+    <select id="selectPostList" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM posts p
+        <include refid="where_condition"/>
+        <choose>
+            <when test="sort == 'newest'">
+                ORDER BY p.published_at DESC
+            </when>
+            <when test="sort == 'hot'">
+                ORDER BY p.view_count DESC, p.published_at DESC
+            </when>
+            <otherwise>
+                ORDER BY p.published_at DESC, p.view_count DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectHotPosts" resultType="com.yang.lblogserver.vo.HotPostVO">
+        SELECT id, title, slug, view_count AS viewCount
+        FROM posts
+        WHERE status = 1 AND is_delelte = 0 AND deleted_at IS NULL
+        ORDER BY view_count DESC
+        LIMIT #{limit}
+    </select>
+
 </mapper>

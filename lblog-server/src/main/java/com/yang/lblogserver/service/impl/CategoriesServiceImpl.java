@@ -1,19 +1,23 @@
 package com.yang.lblogserver.service.impl;
 
-
+import com.yang.lblogserver.mapper.CategoriesMapper;
 import com.yang.lblogserver.service.CategoriesService;
+import com.yang.lblogserver.vo.CategoryVO;
 import org.springframework.stereotype.Service;
 
-/**
-* @author Administrator
-* @description 针对表【categories(分类表)】的数据库操作Service实现
-* @createDate 2026-04-25 00:26:05
-*/
+import java.util.List;
+
 @Service
-public class CategoriesServiceImpl implements CategoriesService{
+public class CategoriesServiceImpl implements CategoriesService {
 
+    private final CategoriesMapper categoriesMapper;
+
+    public CategoriesServiceImpl(CategoriesMapper categoriesMapper) {
+        this.categoriesMapper = categoriesMapper;
+    }
+
+    @Override
+    public List<CategoryVO> getCategoryList() {
+        return categoriesMapper.selectCategoriesWithCount();
+    }
 }
-
-
-
-

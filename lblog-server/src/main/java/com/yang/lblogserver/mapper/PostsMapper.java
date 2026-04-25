@@ -1,16 +1,20 @@
 package com.yang.lblogserver.mapper;
 
+import com.yang.lblogserver.domain.Posts;
+import com.yang.lblogserver.vo.HotPostVO;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
-/**
- * @author Administrator
- * @description 针对表【posts(文章元数据表)】的数据库操作Mapper
- * @createDate 2026-04-25 00:27:37
- * @Entity com.yang.lblogserver.domain.Posts
- */
+import java.util.List;
+
+@Mapper
 public interface PostsMapper {
 
+    List<Posts> selectPostList(@Param("sort") String sort,
+                               @Param("categoryId") Long categoryId,
+                               @Param("tagId") Long tagId,
+                               @Param("seriesId") Long seriesId,
+                               @Param("keyword") String keyword);
+
+    List<HotPostVO> selectHotPosts(@Param("limit") int limit);
 }
-
-
-
-

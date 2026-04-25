@@ -70,6 +70,11 @@ public class Posts {
     private Integer commentCount;
 
     /**
+     * 是否允许评论 0-不允许，1-允许
+     */
+    private Integer commentEnable;
+
+    /**
      * 
      */
     private Date createdAt;
@@ -113,6 +118,7 @@ public class Posts {
             && (this.getLikeCount() == null ? other.getLikeCount() == null : this.getLikeCount().equals(other.getLikeCount()))
             && (this.getPublishedAt() == null ? other.getPublishedAt() == null : this.getPublishedAt().equals(other.getPublishedAt()))
             && (this.getCommentCount() == null ? other.getCommentCount() == null : this.getCommentCount().equals(other.getCommentCount()))
+            && (this.getCommentEnable() == null ? other.getCommentEnable() == null : this.getCommentEnable().equals(other.getCommentEnable()))
             && (this.getCreatedAt() == null ? other.getCreatedAt() == null : this.getCreatedAt().equals(other.getCreatedAt()))
             && (this.getUpdatedAt() == null ? other.getUpdatedAt() == null : this.getUpdatedAt().equals(other.getUpdatedAt()))
             && (this.getDeletedAt() == null ? other.getDeletedAt() == null : this.getDeletedAt().equals(other.getDeletedAt()))
@@ -135,6 +141,7 @@ public class Posts {
         result = prime * result + ((getLikeCount() == null) ? 0 : getLikeCount().hashCode());
         result = prime * result + ((getPublishedAt() == null) ? 0 : getPublishedAt().hashCode());
         result = prime * result + ((getCommentCount() == null) ? 0 : getCommentCount().hashCode());
+        result = prime * result + ((getCommentEnable() == null) ? 0 : getCommentEnable().hashCode());
         result = prime * result + ((getCreatedAt() == null) ? 0 : getCreatedAt().hashCode());
         result = prime * result + ((getUpdatedAt() == null) ? 0 : getUpdatedAt().hashCode());
         result = prime * result + ((getDeletedAt() == null) ? 0 : getDeletedAt().hashCode());
@@ -160,6 +167,7 @@ public class Posts {
         sb.append(", likeCount=").append(likeCount);
         sb.append(", publishedAt=").append(publishedAt);
         sb.append(", commentCount=").append(commentCount);
+        sb.append(", commentEnable=").append(commentEnable);
         sb.append(", createdAt=").append(createdAt);
         sb.append(", updatedAt=").append(updatedAt);
         sb.append(", deletedAt=").append(deletedAt);

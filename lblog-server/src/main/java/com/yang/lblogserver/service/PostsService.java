@@ -1,11 +1,15 @@
 package com.yang.lblogserver.service;
 
+import com.yang.lblogserver.common.PageResult;
+import com.yang.lblogserver.vo.HotPostVO;
+import com.yang.lblogserver.vo.PostVO;
 
-/**
- * @author Administrator
- * @description 针对表【posts(文章元数据表)】的数据库操作Service
- * @createDate 2026-04-25 00:27:37
- */
+import java.util.List;
+
 public interface PostsService {
 
+    PageResult<PostVO> getPostList(int page, int pageSize, String sort,
+                                   Long categoryId, Long tagId, Long seriesId, String keyword);
+
+    List<HotPostVO> getHotPosts(int limit);
 }

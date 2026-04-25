@@ -12,4 +12,14 @@
     <sql id="Base_Column_List">
         post_id,tag_id
     </sql>
+
+    <select id="selectByPostIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM post_tags
+        WHERE post_id IN
+        <foreach collection="list" item="postId" open="(" separator="," close=")">
+            #{postId}
+        </foreach>
+    </select>
+
 </mapper>

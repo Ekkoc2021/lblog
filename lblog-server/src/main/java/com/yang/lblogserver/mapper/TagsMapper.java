@@ -1,18 +1,16 @@
 package com.yang.lblogserver.mapper;
 
 import com.yang.lblogserver.domain.Tags;
+import com.yang.lblogserver.vo.TagVO;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 
-/**
- * @author Administrator
- * @description 针对表【tags(标签表)】的数据库操作Mapper
- * @createDate 2026-04-25 00:27:44
- * @Entity com.yang.lblogserver.domain.Tags
- */
+@Mapper
 public interface TagsMapper {
 
+    List<TagVO> selectTagsWithCount(@Param("limit") int limit);
+
+    List<Tags> selectBatchIds(List<Long> ids);
 }
-
-
-
-

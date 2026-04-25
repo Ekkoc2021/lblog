@@ -1,11 +1,10 @@
 package com.yang.lblogserver.service;
 
+import com.yang.lblogserver.vo.TagVO;
 
-/**
- * @author Administrator
- * @description 针对表【tags(标签表)】的数据库操作Service
- * @createDate 2026-04-25 00:27:44
- */
+import java.util.List;
+
 public interface TagsService {
 
+    List<TagVO> getTagList(int limit);
 }

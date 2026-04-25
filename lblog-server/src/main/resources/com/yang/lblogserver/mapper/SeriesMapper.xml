@@ -25,4 +25,34 @@
         is_completed,sort_order,created_by,created_at,updated_at,
         deleted_at,is_delelte
     </sql>
+
+    <resultMap id="SeriesWithCountMap" type="com.yang.lblogserver.vo.SeriesVO">
+        <id property="id" column="id" />
+        <result property="title" column="title" />
+        <result property="slug" column="slug" />
+        <result property="description" column="description" />
+        <result property="coverImageUrl" column="cover_image_url" />
+        <result property="categoryId" column="category_id" />
+        <result property="isCompleted" column="is_completed" />
+        <result property="sortOrder" column="sort_order" />
+        <result property="postCount" column="post_count" />
+    </resultMap>
+
+    <select id="selectSeriesWithCount" resultMap="SeriesWithCountMap">
+        SELECT s.id, s.title, s.slug, s.description, s.cover_image_url,
+               s.category_id, s.is_completed, s.sort_order,
+               COUNT(sp.post_id) AS post_count
+        FROM series s
+        LEFT JOIN series_posts sp ON s.id = sp.series_id
+        LEFT JOIN posts p ON sp.post_id = p.id AND p.status = 1 AND p.is_delelte = 0 AND p.deleted_at IS NULL
+        WHERE s.is_delelte = 0 AND s.deleted_at IS NULL
+        <if test="categoryId != null">
+            AND s.category_id = #{categoryId}
+        </if>
+        GROUP BY s.id, s.title, s.slug, s.description, s.cover_image_url,
+                 s.category_id, s.is_completed, s.sort_order
+        ORDER BY s.sort_order ASC
+        LIMIT #{limit}
+    </select>
+
 </mapper>

@@ -1,11 +1,10 @@
 package com.yang.lblogserver.service;
 
+import com.yang.lblogserver.vo.CategoryVO;
 
-/**
-* @author Administrator
-* @description 针对表【categories(分类表)】的数据库操作Service
-* @createDate 2026-04-25 00:26:05
-*/
+import java.util.List;
+
 public interface CategoriesService {
 
+    List<CategoryVO> getCategoryList();
 }

@@ -1,11 +1,10 @@
 package com.yang.lblogserver.service;
 
+import com.yang.lblogserver.vo.SeriesVO;
 
-/**
- * @author Administrator
- * @description 针对表【series(专栏表)】的数据库操作Service
- * @createDate 2026-04-25 00:27:39
- */
+import java.util.List;
+
 public interface SeriesService {
 
+    List<SeriesVO> getSeriesList(int limit, Long categoryId);
 }
