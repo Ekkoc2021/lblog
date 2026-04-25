@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn compile *)",
+      "Bash(java *)",
+      "Bash(mvn *)",
+      "Bash(JAVA_HOME=\"D:/ProgramFile/dev/java/jdk-17.0.16\" mvn compile -q)",
+      "Bash(curl -s http://localhost:8099/iblogserver/api/v1/posts?page=1\\\\&pageSize=10)",
+      "Bash(curl *)",
+      "Bash(python3 -m json.tool)",
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);[print\\(f'  {p[\\\\\"id\\\\\"]}: {p[\\\\\"title\\\\\"]} \\(viewCount={p[\\\\\"viewCount\\\\\"]}\\)'\\) for p in d['data']['list']]\")",
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);[print\\(f'  {p[\\\\\"id\\\\\"]}: {p[\\\\\"title\\\\\"]} \\(publishedAt={p[\\\\\"publishedAt\\\\\"]}\\)'\\) for p in d['data']['list']]\")",
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);[print\\(f'  {p[\\\\\"id\\\\\"]}: {p[\\\\\"title\\\\\"]}'\\) for p in d['data']['list']]\")",
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\(f'  total={d[\\\\\"data\\\\\"][\\\\\"total\\\\\"]}'\\);[print\\(f'  {p[\\\\\"id\\\\\"]}: {p[\\\\\"title\\\\\"]}'\\) for p in d['data']['list']]\")"
+    ]
+  }
+}

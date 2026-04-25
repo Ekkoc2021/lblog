@@ -18,4 +18,12 @@
         id,post_id,body,format,created_at,updated_at,
         is_delelte
     </sql>
+
+    <select id="selectByPostId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM post_contents
+        WHERE post_id = #{postId} AND is_delelte = 0
+        LIMIT 1
+    </select>
+
 </mapper>

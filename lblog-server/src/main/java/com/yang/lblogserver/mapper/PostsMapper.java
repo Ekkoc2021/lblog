@@ -17,4 +17,14 @@ public interface PostsMapper {
                                @Param("keyword") String keyword);
 
     List<HotPostVO> selectHotPosts(@Param("limit") int limit);
+
+    Posts selectById(@Param("id") Long id);
+
+    Posts selectBySlug(@Param("slug") String slug);
+
+    int incrementViewCount(@Param("id") Long id);
+
+    int incrementLikeCount(@Param("id") Long id);
+
+    int decrementLikeCount(@Param("id") Long id);
 }

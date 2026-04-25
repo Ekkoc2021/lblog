@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.mapper.LikeRecordsMapper">
+
+    <insert id="insert">
+        INSERT INTO like_records (post_id, visitor_id, created_at)
+        VALUES (#{postId}, #{visitorId}, NOW())
+    </insert>
+
+    <delete id="deleteByPostIdAndVisitorId">
+        DELETE FROM like_records
+        WHERE post_id = #{postId} AND visitor_id = #{visitorId}
+    </delete>
+
+    <select id="existsByPostIdAndVisitorId" resultType="int">
+        SELECT COUNT(1) FROM like_records
+        WHERE post_id = #{postId} AND visitor_id = #{visitorId}
+        LIMIT 1
+    </select>
+
+</mapper>

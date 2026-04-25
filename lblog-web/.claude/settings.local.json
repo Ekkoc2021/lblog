@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm -v)",
+      "Bash(npm create *)",
+      "Bash(cp -r E:/workspace/java/lblog/lblog-web-temp/* E:/workspace/java/lblog/lblog-web/)",
+      "Bash(cp E:/workspace/java/lblog/lblog-web-temp/.gitignore E:/workspace/java/lblog/lblog-web/)",
+      "Bash(cp E:/workspace/java/lblog/lblog-web-temp/.eslintrc.cjs E:/workspace/java/lblog/lblog-web/)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(npm ls *)",
+      "Read(//e/workspace/java/lblog/**)",
+      "Bash(xargs -I{} sh -c 'echo \"--- {} ---\"; ls -la \"{}\"')",
+      "Bash(java -version)",
+      "Bash(mvn -version)",
+      "Bash(D:/ProgramFile/dev/java/jdk-17.0.16/bin/java *)",
+      "Bash(JAVA_HOME=\"D:/ProgramFile/dev/java/jdk-17.0.16\" mvn spring-boot:run *)",
+      "Bash(curl -s http://localhost:8099/iblogserver/api/v1/posts?page=1\\\\&pageSize=1)",
+      "Bash(curl *)",
+      "Bash(jobs -l)",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //F //PID 39584)",
+      "Bash(taskkill //F //PID 40328)",
+      "Bash(taskkill //F //PID 33272)",
+      "Bash(taskkill //F //PID 17064)",
+      "Bash(mvn compile *)",
+      "Bash(javac -version)"
+    ]
+  }
+}

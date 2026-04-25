@@ -72,4 +72,28 @@
         LIMIT #{limit}
     </select>
 
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM posts
+        WHERE id = #{id} AND is_delelte = 0 AND deleted_at IS NULL
+    </select>
+
+    <select id="selectBySlug" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM posts
+        WHERE slug = #{slug} AND status = 1 AND is_delelte = 0 AND deleted_at IS NULL
+    </select>
+
+    <update id="incrementViewCount">
+        UPDATE posts SET view_count = view_count + 1 WHERE id = #{id}
+    </update>
+
+    <update id="incrementLikeCount">
+        UPDATE posts SET like_count = like_count + 1 WHERE id = #{id}
+    </update>
+
+    <update id="decrementLikeCount">
+        UPDATE posts SET like_count = like_count - 1 WHERE id = #{id} AND like_count > 0
+    </update>
+
 </mapper>

@@ -1,3 +1,17 @@
+这是一个个人博客项目。
+
+lblog-server：博客后台，技术栈主要是Spring boot
+
+- spring boot 3+
+- mybatis
+
+lblog-web：博客前台，技术栈主要是React
+
+- React
+- anti design
+
+# lblog-server
+
 ## 数据库设计
 
 核心内容
@@ -93,28 +107,27 @@ CREATE TABLE `series` (
 
 -- 5. 文章元数据表
 CREATE TABLE `posts` (
-                         `id` bigint NOT NULL AUTO_INCREMENT,
-                         `title` varchar(255) NOT NULL COMMENT '文章标题',
-                         `slug` varchar(255) NOT NULL COMMENT 'URL标识',
-                         `excerpt` text COMMENT '摘要',
-                         `featured_image` varchar(500) DEFAULT NULL COMMENT '特色图片',
-                         `status` tinyint NOT NULL DEFAULT 0 COMMENT '0-草稿，1-已发布，2-私密',
-                         `author_id` bigint DEFAULT NULL COMMENT '作者用户ID',
-                         `category_id` bigint DEFAULT NULL COMMENT '所属分类ID',
-                         `view_count` int NOT NULL DEFAULT 0 COMMENT '浏览量',
-                         `like_count` int NOT NULL DEFAULT 0 COMMENT '点赞数',
-                         `published_at` datetime DEFAULT NULL COMMENT '发布时间',
-                         `comment_count` int NOT NULL DEFAULT 0 COMMENT '评论数',
-                         `comment_enable` int NOT NULL DEFAULT 0 COMMENT '是否允许评论',
-                         `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                         `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                         `deleted_at` datetime DEFAULT NULL COMMENT '软删除时间',
-                         `is_delelte` int DEFAULT 0 COMMENT '是否删除',
-                         PRIMARY KEY (`id`),
-                         UNIQUE KEY `uk_slug` (`slug`),
-                         KEY `idx_author_id` (`author_id`),
-                         KEY `idx_category_id` (`category_id`),
-                         KEY `idx_status_published` (`status`, `published_at`)
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL COMMENT '文章标题',
+  `slug` varchar(255) NOT NULL COMMENT 'URL标识',
+  `excerpt` text COMMENT '摘要',
+  `featured_image` varchar(500) DEFAULT NULL COMMENT '特色图片',
+  `status` tinyint NOT NULL DEFAULT 0 COMMENT '0-草稿，1-已发布，2-私密',
+  `author_id` bigint DEFAULT NULL COMMENT '作者用户ID',
+  `category_id` bigint DEFAULT NULL COMMENT '所属分类ID',
+  `view_count` int NOT NULL DEFAULT 0 COMMENT '浏览量',
+  `like_count` int NOT NULL DEFAULT 0 COMMENT '点赞数',
+  `published_at` datetime DEFAULT NULL COMMENT '发布时间',
+  `comment_count` int NOT NULL DEFAULT 0 COMMENT '评论数',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `deleted_at` datetime DEFAULT NULL COMMENT '软删除时间',
+  `is_delelte` int DEFAULT 0 COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_slug` (`slug`),
+  KEY `idx_author_id` (`author_id`),
+  KEY `idx_category_id` (`category_id`),
+  KEY `idx_status_published` (`status`, `published_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='文章元数据表';
 
 -- 6. 文章内容表（添加时间字段）
@@ -146,16 +159,80 @@ CREATE TABLE `series_posts` (
   PRIMARY KEY (`series_id`, `post_id`),
   KEY `idx_post_id` (`post_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='专栏文章关联表';
-
--- 9 点赞防刷
-CREATE TABLE `like_records` (
-                                `id` bigint NOT NULL AUTO_INCREMENT,
-                                `post_id` bigint NOT NULL COMMENT '文章ID',
-                                `visitor_id` varchar(64) NOT NULL COMMENT '浏览器指纹',
-                                `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                PRIMARY KEY (`id`),
-                                UNIQUE KEY `uk_post_visitor` (`post_id`, `visitor_id`),
-                                KEY `idx_post_id` (`post_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='点赞记录表';
 ```
+
+# lblog-web
+
+进入项目目录
+
+```
+  cd E:\workspace\java\lblog\lblog-web
+```
+
+安装依赖（首次）
+
+```
+  npm install
+```
+
+启动开发服务器
+
+```
+  npm run dev
+```
+
+构建生产版本
+
+```
+  npm run build
+```
+
+  对接后端接口
+
+  当前前端使用的是 mock 数据，对接后端只需两步：
+
+  1. 配置后端地址
+
+  创建 .env 文件指定后端 API 地址：
+
+```
+ VITE_API_BASE_URL=http://localhost:8080/api/v1
+```
+
+  2. 修改 services/api.ts
+
+  把 mock 实现替换为真实 HTTP 请求。需要先安装 axios：
+
+  npm install axios
+
+  然后把 src/services/api.ts 改为类似这样：
+
+  import axios from 'axios';
+
+  const request = axios.create({
+    baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
+    timeout: 10000,
+  });
+
+  // 响应拦截，提取 data
+  request.interceptors.response.use(res => res.data);
+
+  export async function getPosts(params) {
+    return request.get('/posts', { params });
+  }
+
+  export async function getCategories() {
+    return request.get('/categories');
+  }
+
+  export async function getTags(params) {
+    return request.get('/tags', { params });
+  }
+
+  export async function getSeries(params) {
+    return request.get('/series', { params });
+  }
+
+  接口路径和响应格式按 425/2首页接口文档.md 中定义的来，前后端保持一致即可。核心就是：mock
+  函数的入参和返回值不变，只换内部实现，页面代码无需改动。
 

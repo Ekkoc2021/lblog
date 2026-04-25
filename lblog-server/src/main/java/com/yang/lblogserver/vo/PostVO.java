@@ -35,6 +35,8 @@ public class PostVO {
     private Integer likeCount;
     @Schema(description = "评论数")
     private Integer commentCount;
+    @Schema(description = "是否允许评论: 0-不允许, 1-允许")
+    private Integer commentEnable;
     @Schema(description = "作者信息")
     private AuthorVO author;
     @Schema(description = "分类信息")
@@ -70,6 +72,8 @@ public class PostVO {
     public void setLikeCount(Integer likeCount) { this.likeCount = likeCount; }
     public Integer getCommentCount() { return commentCount; }
     public void setCommentCount(Integer commentCount) { this.commentCount = commentCount; }
+    public Integer getCommentEnable() { return commentEnable; }
+    public void setCommentEnable(Integer commentEnable) { this.commentEnable = commentEnable; }
     public AuthorVO getAuthor() { return author; }
     public void setAuthor(AuthorVO author) { this.author = author; }
     public CategoryVO getCategory() { return category; }
