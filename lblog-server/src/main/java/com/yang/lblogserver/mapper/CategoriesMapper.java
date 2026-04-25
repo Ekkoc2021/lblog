@@ -13,4 +13,16 @@ public interface CategoriesMapper {
     List<CategoryVO> selectCategoriesWithCount(@Param("limit") Integer limit);
 
     List<Categories> selectBatchIds(List<Long> ids);
+
+    // ---- Admin ----
+
+    int insertCategory(Categories category);
+
+    int updateCategory(Categories category);
+
+    int softDeleteCategory(@Param("id") Long id);
+
+    int countPostsByCategoryId(@Param("categoryId") Long categoryId);
+
+    Categories selectById(@Param("id") Long id);
 }

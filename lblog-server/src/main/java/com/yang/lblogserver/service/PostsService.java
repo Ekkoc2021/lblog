@@ -2,6 +2,7 @@ package com.yang.lblogserver.service;
 
 import com.yang.lblogserver.common.PageResult;
 import com.yang.lblogserver.vo.*;
+import com.yang.lblogserver.vo.admin.*;
 
 import java.util.List;
 
@@ -12,6 +13,8 @@ public interface PostsService {
 
     List<HotPostVO> getHotPosts(int limit);
 
+    StatisticsVO getStatistics();
+
     PostDetailVO getPostBySlug(String slug);
 
     void reportView(Long id);
@@ -21,4 +24,18 @@ public interface PostsService {
     LikeResponseVO unlikePost(Long postId, String visitorId);
 
     LikeStatusVO getLikeStatus(Long postId, String visitorId);
+
+    // ---- Admin ----
+
+    PageResult<PostVO> getAdminPostList(int page, int pageSize, Integer status, String keyword);
+
+    PostDetailVO getAdminPostById(Long id);
+
+    Long createPost(CreatePostRequest req, Long authorId);
+
+    void updatePost(Long id, UpdatePostRequest req);
+
+    void deletePost(Long id);
+
+    boolean checkSlug(String slug, Long excludeId);
 }

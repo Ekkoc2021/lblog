@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Layout, Input, Typography, Avatar, Popover, Button, Divider, message } from 'antd';
-import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
+import { UserOutlined, LogoutOutlined, FileTextOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useSearchHistory } from '../hooks/useSearchHistory';
 import { useAuth } from '../contexts/AuthContext';
@@ -12,7 +12,6 @@ const { Text } = Typography;
 
 const navItems = [
   { key: '/', label: '首页' },
-  { key: '/editor', label: '内容创作' },
 ];
 
 interface MainLayoutProps {
@@ -57,12 +56,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   };
 
   const handleNavClick = (key: string) => {
-    if (key === '/editor' && !isAuthenticated) {
-      afterLoginRef.current = key;
-      setLoginModalVisible(true);
-    } else {
-      navigate(key);
-    }
+    navigate(key);
   };
 
   const handleLogout = () => {
@@ -228,23 +222,26 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               arrow={false}
               content={
                 <div style={{ width: 220, padding: 4 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <Avatar icon={<UserOutlined />} style={{ background: '#1e80ff' }} />
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>站长</div>
-                      <div style={{ color: '#999', fontSize: 12 }}>admin</div>
-                      <div style={{ color: '#bbb', fontSize: 11, marginTop: 2 }}>admin@lblog.com</div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <Avatar icon={<UserOutlined />} style={{ background: '#1e80ff' }} />
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 14 }}>站长</div>
+                        <div style={{ color: '#999', fontSize: 12 }}>admin</div>
+                        <div style={{ color: '#bbb', fontSize: 11, marginTop: 2 }}>admin@lblog.com</div>
+                      </div>
                     </div>
+                    <Button type="text" size="small" disabled style={{ color: '#999', marginTop: 2 }}>设置</Button>
                   </div>
                   <Divider style={{ margin: '10px 0' }} />
                   <div style={{ display: 'flex', gap: 8 }}>
                     <Button
                       type="text"
-                      icon={<UserOutlined />}
-                      disabled
+                      icon={<FileTextOutlined />}
                       style={{ flex: 1, paddingLeft: 8 }}
+                      onClick={() => { setLoginModalVisible(false); navigate('/admin/posts'); }}
                     >
-                      个人设置
+                      创作中心
                     </Button>
                     <Button
                       type="text"
@@ -273,10 +270,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           )}
         </div>
       </Header>
-      <Content style={{ padding: '20px 0' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-          {children}
-        </div>
+      <Content style={{ padding: location.pathname.startsWith('/admin') ? 0 : '20px 0' }}>
+        {location.pathname.startsWith('/admin') ? (
+          children
+        ) : (
+          <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
+            {children}
+          </div>
+        )}
       </Content>
       <Footer style={{ textAlign: 'center', background: '#f4f5f5', color: '#999' }}>
         LBlog ©{new Date().getFullYear()} — Powered by React + Ant Design

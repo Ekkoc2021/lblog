@@ -2,6 +2,7 @@ package com.yang.lblogserver.mapper;
 
 import com.yang.lblogserver.domain.Users;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -9,4 +10,7 @@ import java.util.List;
 public interface UsersMapper {
 
     List<Users> selectBatchIds(List<Long> ids);
+
+    // TODO: 后续可改为 Optional
+    Users findByUsername(@Param("username") String username);
 }

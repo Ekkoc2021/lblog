@@ -13,4 +13,14 @@ public interface TagsMapper {
     List<TagVO> selectTagsWithCount(@Param("limit") int limit);
 
     List<Tags> selectBatchIds(List<Long> ids);
+
+    // ---- Admin ----
+
+    int insertTag(Tags tag);
+
+    int updateTag(Tags tag);
+
+    int softDeleteTag(@Param("id") Long id);
+
+    Tags selectById(@Param("id") Long id);
 }

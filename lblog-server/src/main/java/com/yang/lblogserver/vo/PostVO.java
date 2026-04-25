@@ -43,6 +43,8 @@ public class PostVO {
     private CategoryVO category;
     @Schema(description = "标签列表")
     private List<TagVO> tags;
+    @Schema(description = "专栏信息")
+    private SeriesVO series;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -80,6 +82,8 @@ public class PostVO {
     public void setCategory(CategoryVO category) { this.category = category; }
     public List<TagVO> getTags() { return tags; }
     public void setTags(List<TagVO> tags) { this.tags = tags; }
+    public SeriesVO getSeries() { return series; }
+    public void setSeries(SeriesVO series) { this.series = series; }
 
     @Schema(description = "作者信息")
     public static class AuthorVO {

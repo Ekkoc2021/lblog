@@ -2,6 +2,7 @@ package com.yang.lblogserver.mapper;
 
 import com.yang.lblogserver.domain.PostTags;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -9,4 +10,10 @@ import java.util.List;
 public interface PostTagsMapper {
 
     List<PostTags> selectByPostIds(List<Long> postIds);
+
+    // ---- Admin ----
+
+    int deleteByPostId(@Param("postId") Long postId);
+
+    int insertBatch(List<PostTags> list);
 }

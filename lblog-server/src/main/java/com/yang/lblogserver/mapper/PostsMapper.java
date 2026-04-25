@@ -2,6 +2,7 @@ package com.yang.lblogserver.mapper;
 
 import com.yang.lblogserver.domain.Posts;
 import com.yang.lblogserver.vo.HotPostVO;
+import com.yang.lblogserver.vo.admin.StatisticsVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -27,4 +28,21 @@ public interface PostsMapper {
     int incrementLikeCount(@Param("id") Long id);
 
     int decrementLikeCount(@Param("id") Long id);
+
+    // ---- Admin ----
+
+    List<Posts> selectPostListAdmin(@Param("status") Integer status,
+                                    @Param("keyword") String keyword);
+
+    Posts selectByIdRaw(@Param("id") Long id);
+
+    int insertPost(Posts post);
+
+    int updatePost(Posts post);
+
+    int softDeletePost(@Param("id") Long id);
+
+    int countBySlug(@Param("slug") String slug, @Param("excludeId") Long excludeId);
+
+    StatisticsVO selectStatistics();
 }

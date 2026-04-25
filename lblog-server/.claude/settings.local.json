@@ -11,7 +11,13 @@
       "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);[print\\(f'  {p[\\\\\"id\\\\\"]}: {p[\\\\\"title\\\\\"]} \\(viewCount={p[\\\\\"viewCount\\\\\"]}\\)'\\) for p in d['data']['list']]\")",
       "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);[print\\(f'  {p[\\\\\"id\\\\\"]}: {p[\\\\\"title\\\\\"]} \\(publishedAt={p[\\\\\"publishedAt\\\\\"]}\\)'\\) for p in d['data']['list']]\")",
       "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);[print\\(f'  {p[\\\\\"id\\\\\"]}: {p[\\\\\"title\\\\\"]}'\\) for p in d['data']['list']]\")",
-      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\(f'  total={d[\\\\\"data\\\\\"][\\\\\"total\\\\\"]}'\\);[print\\(f'  {p[\\\\\"id\\\\\"]}: {p[\\\\\"title\\\\\"]}'\\) for p in d['data']['list']]\")"
+      "Bash(python3 -c \"import sys,json;d=json.load\\(sys.stdin\\);print\\(f'  total={d[\\\\\"data\\\\\"][\\\\\"total\\\\\"]}'\\);[print\\(f'  {p[\\\\\"id\\\\\"]}: {p[\\\\\"title\\\\\"]}'\\) for p in d['data']['list']]\")",
+      "Bash(javac -version)",
+      "Read(//usr/lib/**)",
+      "Read(//c/Program Files/**)",
+      "Bash(grep -v \"^$\")",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f'total={d[\\\\\"data\\\\\"][\\\\\"total\\\\\"]}, list_count={len\\(d[\\\\\"data\\\\\"][\\\\\"list\\\\\"]\\)}, first_title={d[\\\\\"data\\\\\"][\\\\\"list\\\\\"][0][\\\\\"title\\\\\"] if d[\\\\\"data\\\\\"][\\\\\"list\\\\\"] else \\\\\"none\\\\\"}'\\)\")",
+      "Bash(dd if=/dev/zero of=/tmp/test.jpg bs=1 count=1)"
     ]
   }
 }

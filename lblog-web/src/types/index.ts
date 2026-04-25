@@ -15,6 +15,7 @@ export interface Post {
   author?: User;
   category?: Category;
   tags?: Tag[];
+  series?: Series;
   viewCount?: number;
   likeCount?: number;
   commentCount?: number;
@@ -110,4 +111,55 @@ export interface ApiResponse<T> {
   code: number;
   message: string;
   data: T;
+}
+
+// ---- 管理端请求体 ----
+
+export interface CreatePostRequest {
+  title: string;
+  slug: string;
+  excerpt?: string;
+  body: string;
+  featuredImage?: string | null;
+  status: number;
+  categoryId?: number | null;
+  tagIds?: number[];
+  seriesId?: number | null;
+  commentEnable: number;
+}
+
+export interface UpdatePostRequest {
+  title?: string;
+  slug?: string;
+  excerpt?: string;
+  body?: string;
+  featuredImage?: string | null;
+  status?: number;
+  categoryId?: number | null;
+  tagIds?: number[];
+  seriesId?: number | null;
+  commentEnable?: number;
+}
+
+export interface CreateCategoryRequest {
+  name: string;
+  slug: string;
+  description?: string;
+  parentId?: number | null;
+  sortOrder?: number;
+}
+
+export interface CreateTagRequest {
+  name: string;
+  slug: string;
+}
+
+export interface CreateSeriesRequest {
+  title: string;
+  slug: string;
+  description?: string;
+  coverImageUrl?: string | null;
+  categoryId?: number | null;
+  isCompleted?: number;
+  sortOrder?: number;
 }

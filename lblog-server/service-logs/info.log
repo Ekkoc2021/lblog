@@ -289,3 +289,245 @@ Error starting ApplicationContext. To display the condition evaluation report re
 2026-04-25 14:47:46,701 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-tomcat-shutdown:] Graceful shutdown complete
 2026-04-25 14:47:46,705 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closing ...
 2026-04-25 14:47:46,711 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closed
+2026-04-25 17:40:30,132 INFO org.springframework.boot.StartupInfoLogger [t-main:] Starting LblogServerApplication using Java 17.0.16 with PID 40116 (E:\workspace\java\lblog\lblog-server\target\classes started by Administrator in E:\workspace\java\lblog\lblog-server)
+2026-04-25 17:40:30,136 INFO org.springframework.boot.SpringApplication [t-main:] No active profile set, falling back to 1 default profile: "default"
+2026-04-25 17:40:30,915 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat initialized with port 8099 (http)
+2026-04-25 17:40:30,931 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing ProtocolHandler ["http-nio-8099"]
+2026-04-25 17:40:30,933 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting service [Tomcat]
+2026-04-25 17:40:30,933 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting Servlet engine: [Apache Tomcat/10.1.48]
+2026-04-25 17:40:31,002 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing Spring embedded WebApplicationContext
+2026-04-25 17:40:31,002 INFO org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext [t-main:] Root WebApplicationContext: initialization completed in 840 ms
+2026-04-25 17:40:31,076 INFO com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure [t-main:] Init DruidDataSource
+2026-04-25 17:40:31,403 INFO com.alibaba.druid.pool.DruidDataSource [t-main:] {dataSource-1} inited
+2026-04-25 17:40:31,903 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting ProtocolHandler ["http-nio-8099"]
+2026-04-25 17:40:31,916 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat started on port 8099 (http) with context path '/iblogserver'
+2026-04-25 17:40:31,923 INFO org.springframework.boot.StartupInfoLogger [t-main:] Started LblogServerApplication in 2.095 seconds (process running for 2.914)
+2026-04-25 17:40:41,445 INFO org.apache.juli.logging.DirectJDKLog [t-1:] Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-25 17:40:41,445 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Initializing Servlet 'dispatcherServlet'
+2026-04-25 17:40:41,446 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Completed initialization in 0 ms
+2026-04-25 17:41:03,853 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-SpringApplicationShutdownHook:] Commencing graceful shutdown. Waiting for active requests to complete
+2026-04-25 17:41:03,964 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-tomcat-shutdown:] Graceful shutdown complete
+2026-04-25 17:41:03,967 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closing ...
+2026-04-25 17:41:03,971 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closed
+2026-04-25 17:45:32,967 INFO org.springframework.boot.StartupInfoLogger [t-main:] Starting LblogServerApplication using Java 17.0.16 with PID 41272 (E:\workspace\java\lblog\lblog-server\target\classes started by Administrator in E:\workspace\java\lblog\lblog-server)
+2026-04-25 17:45:32,976 INFO org.springframework.boot.SpringApplication [t-main:] No active profile set, falling back to 1 default profile: "default"
+2026-04-25 17:45:33,782 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat initialized with port 8099 (http)
+2026-04-25 17:45:33,798 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing ProtocolHandler ["http-nio-8099"]
+2026-04-25 17:45:33,800 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting service [Tomcat]
+2026-04-25 17:45:33,800 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting Servlet engine: [Apache Tomcat/10.1.48]
+2026-04-25 17:45:33,848 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing Spring embedded WebApplicationContext
+2026-04-25 17:45:33,849 INFO org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext [t-main:] Root WebApplicationContext: initialization completed in 838 ms
+2026-04-25 17:45:33,906 INFO com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure [t-main:] Init DruidDataSource
+2026-04-25 17:45:34,217 INFO com.alibaba.druid.pool.DruidDataSource [t-main:] {dataSource-1} inited
+2026-04-25 17:45:34,747 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting ProtocolHandler ["http-nio-8099"]
+2026-04-25 17:45:34,762 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat started on port 8099 (http) with context path '/iblogserver'
+2026-04-25 17:45:34,769 INFO org.springframework.boot.StartupInfoLogger [t-main:] Started LblogServerApplication in 2.094 seconds (process running for 2.898)
+2026-04-25 17:45:38,029 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-SpringApplicationShutdownHook:] Commencing graceful shutdown. Waiting for active requests to complete
+2026-04-25 17:45:38,140 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-tomcat-shutdown:] Graceful shutdown complete
+2026-04-25 17:45:38,142 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closing ...
+2026-04-25 17:45:38,147 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closed
+2026-04-25 18:03:27,381 INFO org.springframework.boot.StartupInfoLogger [t-main:] Starting LblogServerApplication using Java 17.0.16 with PID 45544 (E:\workspace\java\lblog\lblog-server\target\classes started by Administrator in E:\workspace\java\lblog\lblog-server)
+2026-04-25 18:03:27,385 INFO org.springframework.boot.SpringApplication [t-main:] No active profile set, falling back to 1 default profile: "default"
+2026-04-25 18:03:28,159 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat initialized with port 8099 (http)
+2026-04-25 18:03:28,172 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:03:28,173 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting service [Tomcat]
+2026-04-25 18:03:28,173 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting Servlet engine: [Apache Tomcat/10.1.48]
+2026-04-25 18:03:28,216 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing Spring embedded WebApplicationContext
+2026-04-25 18:03:28,217 INFO org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext [t-main:] Root WebApplicationContext: initialization completed in 805 ms
+2026-04-25 18:03:28,275 INFO com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure [t-main:] Init DruidDataSource
+2026-04-25 18:03:28,563 INFO com.alibaba.druid.pool.DruidDataSource [t-main:] {dataSource-1} inited
+2026-04-25 18:03:29,066 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:03:29,080 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat started on port 8099 (http) with context path '/iblogserver'
+2026-04-25 18:03:29,086 INFO org.springframework.boot.StartupInfoLogger [t-main:] Started LblogServerApplication in 1.975 seconds (process running for 2.724)
+2026-04-25 18:04:14,983 INFO org.apache.juli.logging.DirectJDKLog [t-1:] Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-25 18:04:14,983 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Initializing Servlet 'dispatcherServlet'
+2026-04-25 18:04:14,984 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Completed initialization in 1 ms
+2026-04-25 18:08:05,588 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-SpringApplicationShutdownHook:] Commencing graceful shutdown. Waiting for active requests to complete
+2026-04-25 18:08:05,710 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-tomcat-shutdown:] Graceful shutdown complete
+2026-04-25 18:08:09,458 INFO org.springframework.boot.StartupInfoLogger [t-main:] Starting LblogServerApplication using Java 17.0.16 with PID 22768 (E:\workspace\java\lblog\lblog-server\target\classes started by Administrator in E:\workspace\java\lblog\lblog-server)
+2026-04-25 18:08:09,462 INFO org.springframework.boot.SpringApplication [t-main:] No active profile set, falling back to 1 default profile: "default"
+2026-04-25 18:08:10,236 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat initialized with port 8099 (http)
+2026-04-25 18:08:10,246 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:08:10,247 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting service [Tomcat]
+2026-04-25 18:08:10,247 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting Servlet engine: [Apache Tomcat/10.1.48]
+2026-04-25 18:08:10,290 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing Spring embedded WebApplicationContext
+2026-04-25 18:08:10,290 INFO org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext [t-main:] Root WebApplicationContext: initialization completed in 800 ms
+2026-04-25 18:08:10,348 INFO com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure [t-main:] Init DruidDataSource
+2026-04-25 18:08:10,642 INFO com.alibaba.druid.pool.DruidDataSource [t-main:] {dataSource-1} inited
+2026-04-25 18:08:11,178 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:08:11,196 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat started on port 8099 (http) with context path '/iblogserver'
+2026-04-25 18:08:11,203 INFO org.springframework.boot.StartupInfoLogger [t-main:] Started LblogServerApplication in 2.011 seconds (process running for 2.759)
+2026-04-25 18:08:45,768 INFO org.apache.juli.logging.DirectJDKLog [t-1:] Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-25 18:08:45,768 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Initializing Servlet 'dispatcherServlet'
+2026-04-25 18:08:45,769 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Completed initialization in 1 ms
+2026-04-25 18:10:08,198 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-SpringApplicationShutdownHook:] Commencing graceful shutdown. Waiting for active requests to complete
+2026-04-25 18:10:08,315 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-tomcat-shutdown:] Graceful shutdown complete
+2026-04-25 18:10:08,318 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closing ...
+2026-04-25 18:10:08,323 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closed
+2026-04-25 18:10:12,519 INFO org.springframework.boot.StartupInfoLogger [t-main:] Starting LblogServerApplication using Java 17.0.16 with PID 44992 (E:\workspace\java\lblog\lblog-server\target\classes started by Administrator in E:\workspace\java\lblog\lblog-server)
+2026-04-25 18:10:12,529 INFO org.springframework.boot.SpringApplication [t-main:] No active profile set, falling back to 1 default profile: "default"
+2026-04-25 18:10:13,314 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat initialized with port 8099 (http)
+2026-04-25 18:10:13,327 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:10:13,328 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting service [Tomcat]
+2026-04-25 18:10:13,328 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting Servlet engine: [Apache Tomcat/10.1.48]
+2026-04-25 18:10:13,374 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing Spring embedded WebApplicationContext
+2026-04-25 18:10:13,374 INFO org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext [t-main:] Root WebApplicationContext: initialization completed in 814 ms
+2026-04-25 18:10:13,436 INFO com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure [t-main:] Init DruidDataSource
+2026-04-25 18:10:13,725 INFO com.alibaba.druid.pool.DruidDataSource [t-main:] {dataSource-1} inited
+2026-04-25 18:10:14,220 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:10:14,238 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat started on port 8099 (http) with context path '/iblogserver'
+2026-04-25 18:10:14,244 INFO org.springframework.boot.StartupInfoLogger [t-main:] Started LblogServerApplication in 2.002 seconds (process running for 2.748)
+2026-04-25 18:10:17,466 INFO org.apache.juli.logging.DirectJDKLog [t-1:] Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-25 18:10:17,466 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Initializing Servlet 'dispatcherServlet'
+2026-04-25 18:10:17,467 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Completed initialization in 1 ms
+2026-04-25 18:13:15,929 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-SpringApplicationShutdownHook:] Commencing graceful shutdown. Waiting for active requests to complete
+2026-04-25 18:13:16,043 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-tomcat-shutdown:] Graceful shutdown complete
+2026-04-25 18:13:16,047 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closing ...
+2026-04-25 18:13:16,051 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closed
+2026-04-25 18:13:19,704 INFO org.springframework.boot.StartupInfoLogger [t-main:] Starting LblogServerApplication using Java 17.0.16 with PID 7928 (E:\workspace\java\lblog\lblog-server\target\classes started by Administrator in E:\workspace\java\lblog\lblog-server)
+2026-04-25 18:13:19,707 INFO org.springframework.boot.SpringApplication [t-main:] No active profile set, falling back to 1 default profile: "default"
+2026-04-25 18:13:20,486 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat initialized with port 8099 (http)
+2026-04-25 18:13:20,500 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:13:20,501 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting service [Tomcat]
+2026-04-25 18:13:20,503 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting Servlet engine: [Apache Tomcat/10.1.48]
+2026-04-25 18:13:20,549 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing Spring embedded WebApplicationContext
+2026-04-25 18:13:20,550 INFO org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext [t-main:] Root WebApplicationContext: initialization completed in 813 ms
+2026-04-25 18:13:20,612 INFO com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure [t-main:] Init DruidDataSource
+2026-04-25 18:13:20,907 INFO com.alibaba.druid.pool.DruidDataSource [t-main:] {dataSource-1} inited
+2026-04-25 18:13:21,414 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:13:21,435 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat started on port 8099 (http) with context path '/iblogserver'
+2026-04-25 18:13:21,443 INFO org.springframework.boot.StartupInfoLogger [t-main:] Started LblogServerApplication in 2.017 seconds (process running for 2.771)
+2026-04-25 18:13:28,924 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-SpringApplicationShutdownHook:] Commencing graceful shutdown. Waiting for active requests to complete
+2026-04-25 18:13:56,949 INFO org.springframework.boot.StartupInfoLogger [t-main:] Starting LblogServerApplication using Java 17.0.16 with PID 38164 (E:\workspace\java\lblog\lblog-server\target\classes started by Administrator in E:\workspace\java\lblog\lblog-server)
+2026-04-25 18:13:56,954 INFO org.springframework.boot.SpringApplication [t-main:] No active profile set, falling back to 1 default profile: "default"
+2026-04-25 18:13:57,723 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat initialized with port 8099 (http)
+2026-04-25 18:13:57,735 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:13:57,737 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting service [Tomcat]
+2026-04-25 18:13:57,737 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting Servlet engine: [Apache Tomcat/10.1.48]
+2026-04-25 18:13:57,780 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing Spring embedded WebApplicationContext
+2026-04-25 18:13:57,780 INFO org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext [t-main:] Root WebApplicationContext: initialization completed in 792 ms
+2026-04-25 18:13:57,839 INFO com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure [t-main:] Init DruidDataSource
+2026-04-25 18:13:58,128 INFO com.alibaba.druid.pool.DruidDataSource [t-main:] {dataSource-1} inited
+2026-04-25 18:13:58,616 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:13:58,630 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat started on port 8099 (http) with context path '/iblogserver'
+2026-04-25 18:13:58,637 INFO org.springframework.boot.StartupInfoLogger [t-main:] Started LblogServerApplication in 1.989 seconds (process running for 2.749)
+2026-04-25 18:13:58,666 INFO org.apache.juli.logging.DirectJDKLog [t-1:] Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-25 18:13:58,666 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Initializing Servlet 'dispatcherServlet'
+2026-04-25 18:13:58,667 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Completed initialization in 1 ms
+2026-04-25 18:15:16,133 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-SpringApplicationShutdownHook:] Commencing graceful shutdown. Waiting for active requests to complete
+2026-04-25 18:15:16,249 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-tomcat-shutdown:] Graceful shutdown complete
+2026-04-25 18:15:16,253 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closing ...
+2026-04-25 18:15:16,257 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closed
+2026-04-25 18:15:20,675 INFO org.springframework.boot.StartupInfoLogger [t-main:] Starting LblogServerApplication using Java 17.0.16 with PID 39392 (E:\workspace\java\lblog\lblog-server\target\classes started by Administrator in E:\workspace\java\lblog\lblog-server)
+2026-04-25 18:15:20,679 INFO org.springframework.boot.SpringApplication [t-main:] No active profile set, falling back to 1 default profile: "default"
+2026-04-25 18:15:21,475 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat initialized with port 8099 (http)
+2026-04-25 18:15:21,484 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:15:21,486 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting service [Tomcat]
+2026-04-25 18:15:21,486 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting Servlet engine: [Apache Tomcat/10.1.48]
+2026-04-25 18:15:21,529 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing Spring embedded WebApplicationContext
+2026-04-25 18:15:21,530 INFO org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext [t-main:] Root WebApplicationContext: initialization completed in 818 ms
+2026-04-25 18:15:21,590 INFO com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure [t-main:] Init DruidDataSource
+2026-04-25 18:15:21,906 INFO com.alibaba.druid.pool.DruidDataSource [t-main:] {dataSource-1} inited
+2026-04-25 18:15:22,395 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:15:22,408 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat started on port 8099 (http) with context path '/iblogserver'
+2026-04-25 18:15:22,414 INFO org.springframework.boot.StartupInfoLogger [t-main:] Started LblogServerApplication in 2.023 seconds (process running for 2.757)
+2026-04-25 18:41:29,247 INFO org.apache.juli.logging.DirectJDKLog [t-1:] Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-25 18:41:29,247 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Initializing Servlet 'dispatcherServlet'
+2026-04-25 18:41:29,248 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Completed initialization in 1 ms
+2026-04-25 18:41:35,871 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-SpringApplicationShutdownHook:] Commencing graceful shutdown. Waiting for active requests to complete
+2026-04-25 18:41:40,903 INFO org.springframework.boot.StartupInfoLogger [t-main:] Starting LblogServerApplication using Java 17.0.16 with PID 46584 (E:\workspace\java\lblog\lblog-server\target\classes started by Administrator in E:\workspace\java\lblog\lblog-server)
+2026-04-25 18:41:40,907 INFO org.springframework.boot.SpringApplication [t-main:] No active profile set, falling back to 1 default profile: "default"
+2026-04-25 18:41:41,682 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat initialized with port 8099 (http)
+2026-04-25 18:41:41,696 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:41:41,697 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting service [Tomcat]
+2026-04-25 18:41:41,697 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting Servlet engine: [Apache Tomcat/10.1.48]
+2026-04-25 18:41:41,741 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing Spring embedded WebApplicationContext
+2026-04-25 18:41:41,741 INFO org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext [t-main:] Root WebApplicationContext: initialization completed in 802 ms
+2026-04-25 18:41:41,802 INFO com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure [t-main:] Init DruidDataSource
+2026-04-25 18:41:42,098 INFO com.alibaba.druid.pool.DruidDataSource [t-main:] {dataSource-1} inited
+2026-04-25 18:41:42,592 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:41:42,607 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat started on port 8099 (http) with context path '/iblogserver'
+2026-04-25 18:41:42,613 INFO org.springframework.boot.StartupInfoLogger [t-main:] Started LblogServerApplication in 1.987 seconds (process running for 2.732)
+2026-04-25 18:41:44,955 INFO org.apache.juli.logging.DirectJDKLog [t-1:] Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-25 18:41:44,955 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Initializing Servlet 'dispatcherServlet'
+2026-04-25 18:41:44,956 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Completed initialization in 1 ms
+2026-04-25 18:59:41,013 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-SpringApplicationShutdownHook:] Commencing graceful shutdown. Waiting for active requests to complete
+2026-04-25 18:59:41,149 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-tomcat-shutdown:] Graceful shutdown complete
+2026-04-25 18:59:41,153 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closing ...
+2026-04-25 18:59:41,158 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closed
+2026-04-25 18:59:43,741 INFO org.springframework.boot.StartupInfoLogger [t-main:] Starting LblogServerApplication using Java 17.0.16 with PID 9192 (E:\workspace\java\lblog\lblog-server\target\classes started by Administrator in E:\workspace\java\lblog\lblog-server)
+2026-04-25 18:59:43,744 INFO org.springframework.boot.SpringApplication [t-main:] No active profile set, falling back to 1 default profile: "default"
+2026-04-25 18:59:44,536 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat initialized with port 8099 (http)
+2026-04-25 18:59:44,549 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:59:44,550 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting service [Tomcat]
+2026-04-25 18:59:44,551 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting Servlet engine: [Apache Tomcat/10.1.48]
+2026-04-25 18:59:44,594 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing Spring embedded WebApplicationContext
+2026-04-25 18:59:44,594 INFO org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext [t-main:] Root WebApplicationContext: initialization completed in 820 ms
+2026-04-25 18:59:44,656 INFO com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure [t-main:] Init DruidDataSource
+2026-04-25 18:59:44,981 INFO com.alibaba.druid.pool.DruidDataSource [t-main:] {dataSource-1} inited
+2026-04-25 18:59:45,486 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting ProtocolHandler ["http-nio-8099"]
+2026-04-25 18:59:45,500 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat started on port 8099 (http) with context path '/iblogserver'
+2026-04-25 18:59:45,506 INFO org.springframework.boot.StartupInfoLogger [t-main:] Started LblogServerApplication in 2.042 seconds (process running for 2.793)
+2026-04-25 19:03:16,379 INFO org.apache.juli.logging.DirectJDKLog [t-1:] Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-25 19:03:16,379 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Initializing Servlet 'dispatcherServlet'
+2026-04-25 19:03:16,380 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Completed initialization in 1 ms
+2026-04-25 19:06:45,143 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-SpringApplicationShutdownHook:] Commencing graceful shutdown. Waiting for active requests to complete
+2026-04-25 19:06:45,254 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-tomcat-shutdown:] Graceful shutdown complete
+2026-04-25 19:06:45,256 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closing ...
+2026-04-25 19:06:45,260 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closed
+2026-04-25 19:06:55,929 INFO org.springframework.boot.StartupInfoLogger [t-main:] Starting LblogServerApplication using Java 17.0.16 with PID 41408 (E:\workspace\java\lblog\lblog-server\target\classes started by Administrator in E:\workspace\java\lblog\lblog-server)
+2026-04-25 19:06:55,933 INFO org.springframework.boot.SpringApplication [t-main:] No active profile set, falling back to 1 default profile: "default"
+2026-04-25 19:06:56,746 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat initialized with port 8099 (http)
+2026-04-25 19:06:56,761 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing ProtocolHandler ["http-nio-8099"]
+2026-04-25 19:06:56,765 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting service [Tomcat]
+2026-04-25 19:06:56,765 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting Servlet engine: [Apache Tomcat/10.1.48]
+2026-04-25 19:06:56,809 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing Spring embedded WebApplicationContext
+2026-04-25 19:06:56,810 INFO org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext [t-main:] Root WebApplicationContext: initialization completed in 844 ms
+2026-04-25 19:06:56,873 INFO com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure [t-main:] Init DruidDataSource
+2026-04-25 19:06:57,209 INFO com.alibaba.druid.pool.DruidDataSource [t-main:] {dataSource-1} inited
+2026-04-25 19:06:57,800 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting ProtocolHandler ["http-nio-8099"]
+2026-04-25 19:06:57,816 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat started on port 8099 (http) with context path '/iblogserver'
+2026-04-25 19:06:57,823 INFO org.springframework.boot.StartupInfoLogger [t-main:] Started LblogServerApplication in 2.197 seconds (process running for 3.001)
+2026-04-25 19:07:10,195 INFO org.apache.juli.logging.DirectJDKLog [t-1:] Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-25 19:07:10,195 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Initializing Servlet 'dispatcherServlet'
+2026-04-25 19:07:10,196 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Completed initialization in 1 ms
+2026-04-25 19:16:46,895 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-SpringApplicationShutdownHook:] Commencing graceful shutdown. Waiting for active requests to complete
+2026-04-25 19:16:47,007 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-tomcat-shutdown:] Graceful shutdown complete
+2026-04-25 19:16:47,010 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closing ...
+2026-04-25 19:16:47,014 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closed
+2026-04-25 19:16:51,264 INFO org.springframework.boot.StartupInfoLogger [t-main:] Starting LblogServerApplication using Java 17.0.16 with PID 46184 (E:\workspace\java\lblog\lblog-server\target\classes started by Administrator in E:\workspace\java\lblog\lblog-server)
+2026-04-25 19:16:51,268 INFO org.springframework.boot.SpringApplication [t-main:] No active profile set, falling back to 1 default profile: "default"
+2026-04-25 19:16:52,122 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat initialized with port 8099 (http)
+2026-04-25 19:16:52,132 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing ProtocolHandler ["http-nio-8099"]
+2026-04-25 19:16:52,134 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting service [Tomcat]
+2026-04-25 19:16:52,134 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting Servlet engine: [Apache Tomcat/10.1.48]
+2026-04-25 19:16:52,187 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing Spring embedded WebApplicationContext
+2026-04-25 19:16:52,188 INFO org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext [t-main:] Root WebApplicationContext: initialization completed in 884 ms
+2026-04-25 19:16:52,260 INFO com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure [t-main:] Init DruidDataSource
+2026-04-25 19:16:52,569 INFO com.alibaba.druid.pool.DruidDataSource [t-main:] {dataSource-1} inited
+2026-04-25 19:16:53,139 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting ProtocolHandler ["http-nio-8099"]
+2026-04-25 19:16:53,153 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat started on port 8099 (http) with context path '/iblogserver'
+2026-04-25 19:16:53,160 INFO org.springframework.boot.StartupInfoLogger [t-main:] Started LblogServerApplication in 2.174 seconds (process running for 2.965)
+2026-04-25 19:17:18,525 INFO org.apache.juli.logging.DirectJDKLog [t-1:] Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-25 19:17:18,525 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Initializing Servlet 'dispatcherServlet'
+2026-04-25 19:17:18,526 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Completed initialization in 1 ms
+2026-04-25 19:29:45,195 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-SpringApplicationShutdownHook:] Commencing graceful shutdown. Waiting for active requests to complete
+2026-04-25 19:29:45,309 INFO org.springframework.boot.web.embedded.tomcat.GracefulShutdown [t-tomcat-shutdown:] Graceful shutdown complete
+2026-04-25 19:29:45,311 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closing ...
+2026-04-25 19:29:45,315 INFO com.alibaba.druid.pool.DruidDataSource [t-SpringApplicationShutdownHook:] {dataSource-1} closed
+2026-04-25 19:29:48,169 INFO org.springframework.boot.StartupInfoLogger [t-main:] Starting LblogServerApplication using Java 17.0.16 with PID 42496 (E:\workspace\java\lblog\lblog-server\target\classes started by Administrator in E:\workspace\java\lblog\lblog-server)
+2026-04-25 19:29:48,174 INFO org.springframework.boot.SpringApplication [t-main:] No active profile set, falling back to 1 default profile: "default"
+2026-04-25 19:29:49,089 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat initialized with port 8099 (http)
+2026-04-25 19:29:49,107 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing ProtocolHandler ["http-nio-8099"]
+2026-04-25 19:29:49,111 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting service [Tomcat]
+2026-04-25 19:29:49,112 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting Servlet engine: [Apache Tomcat/10.1.48]
+2026-04-25 19:29:49,157 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Initializing Spring embedded WebApplicationContext
+2026-04-25 19:29:49,158 INFO org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext [t-main:] Root WebApplicationContext: initialization completed in 959 ms
+2026-04-25 19:29:49,226 INFO com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceAutoConfigure [t-main:] Init DruidDataSource
+2026-04-25 19:29:49,551 INFO com.alibaba.druid.pool.DruidDataSource [t-main:] {dataSource-1} inited
+2026-04-25 19:29:50,088 INFO org.apache.juli.logging.DirectJDKLog [t-main:] Starting ProtocolHandler ["http-nio-8099"]
+2026-04-25 19:29:50,106 INFO org.springframework.boot.web.embedded.tomcat.TomcatWebServer [t-main:] Tomcat started on port 8099 (http) with context path '/iblogserver'
+2026-04-25 19:29:50,112 INFO org.springframework.boot.StartupInfoLogger [t-main:] Started LblogServerApplication in 2.235 seconds (process running for 3.055)
+2026-04-25 19:30:05,373 INFO org.apache.juli.logging.DirectJDKLog [t-1:] Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-25 19:30:05,374 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Initializing Servlet 'dispatcherServlet'
+2026-04-25 19:30:05,374 INFO org.springframework.web.servlet.FrameworkServlet [t-1:] Completed initialization in 0 ms

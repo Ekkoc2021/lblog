@@ -26,4 +26,15 @@
         LIMIT 1
     </select>
 
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO post_contents (post_id, body, format, created_at, updated_at, is_delelte)
+        VALUES (#{postId}, #{body}, #{format}, NOW(), NOW(), 0)
+    </insert>
+
+    <update id="updateByPostId">
+        UPDATE post_contents
+        SET body = #{body}, updated_at = NOW()
+        WHERE post_id = #{postId}
+    </update>
+
 </mapper>

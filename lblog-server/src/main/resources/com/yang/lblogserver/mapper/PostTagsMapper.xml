@@ -22,4 +22,15 @@
         </foreach>
     </select>
 
+    <delete id="deleteByPostId">
+        DELETE FROM post_tags WHERE post_id = #{postId}
+    </delete>
+
+    <insert id="insertBatch">
+        INSERT INTO post_tags (post_id, tag_id) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.postId}, #{item.tagId})
+        </foreach>
+    </insert>
+
 </mapper>

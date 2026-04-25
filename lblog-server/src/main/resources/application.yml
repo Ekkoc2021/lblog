@@ -14,6 +14,14 @@ mybatis:
     map-underscore-to-camel-case: true # 驼峰转化
 
 spring:
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 10MB
+  web:
+    resources:
+      static-locations: classpath:/static/
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource #指定druid数据源
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -90,7 +98,9 @@ logging:
     org.apache.tomcat: INFO
     org.springframework: INFO
     com.chinamobile.cmss.bdpaas.resource.monitor: DEBUG
-    #特定包的SQL日志==>调试用
     com.yang.home.cipherkey.mapper: DEBUG
-    # mybatis核心日志
     org.mybatis: DEBUG
+
+# 自定义配置
+lblog:
+  upload-dir: E:/workspace/java/lblog/lblog-server/uploads

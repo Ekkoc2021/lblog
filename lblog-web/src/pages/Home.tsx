@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Tabs, Row, Col } from 'antd';
+import { Card, Tabs, Row, Col, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import type { Post } from '../types';
 import { getPosts } from '../services/api';
@@ -30,6 +30,7 @@ const Home: React.FC = () => {
         setTotal(res.data.total);
         setPage(pageNum);
       })
+      .catch((e: Error) => message.error(e.message))
       .finally(() => {
         setLoading(false);
         setLoadingMore(false);

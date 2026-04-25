@@ -8,4 +8,10 @@ import org.apache.ibatis.annotations.Param;
 public interface PostContentsMapper {
 
     PostContents selectByPostId(@Param("postId") Long postId);
+
+    // ---- Admin ----
+
+    int insert(PostContents contents);
+
+    int updateByPostId(PostContents contents);
 }

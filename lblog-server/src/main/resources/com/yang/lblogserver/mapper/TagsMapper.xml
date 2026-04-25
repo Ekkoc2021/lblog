@@ -47,4 +47,30 @@
         </foreach>
     </select>
 
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM tags
+        WHERE id = #{id} AND is_delelte = 0
+    </select>
+
+    <insert id="insertTag" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO tags (name, slug, created_by, created_at, updated_at, is_delelte)
+        VALUES (#{name}, #{slug}, #{createdBy}, NOW(), NOW(), 0)
+    </insert>
+
+    <update id="updateTag">
+        UPDATE tags
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="slug != null">slug = #{slug},</if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id} AND is_delelte = 0
+    </update>
+
+    <update id="softDeleteTag">
+        UPDATE tags SET is_delelte = 1, deleted_at = NOW()
+        WHERE id = #{id}
+    </update>
+
 </mapper>

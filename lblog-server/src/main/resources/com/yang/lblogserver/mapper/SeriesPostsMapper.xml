@@ -42,4 +42,40 @@
         ORDER BY sp.sort_order ASC
         LIMIT 1
     </select>
+
+    <!-- ========== Admin ========== -->
+
+    <delete id="deleteBySeriesId">
+        DELETE FROM series_posts WHERE series_id = #{seriesId}
+    </delete>
+
+    <delete id="deleteByPostId">
+        DELETE FROM series_posts WHERE post_id = #{postId}
+    </delete>
+
+    <insert id="insertBatch">
+        INSERT INTO series_posts (series_id, post_id, sort_order) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.seriesId}, #{item.postId}, #{item.sortOrder})
+        </foreach>
+    </insert>
+
+    <insert id="insert">
+        INSERT INTO series_posts (series_id, post_id, sort_order)
+        VALUES (#{seriesId}, #{postId}, #{sortOrder})
+    </insert>
+
+    <update id="updateSortOrder">
+        UPDATE series_posts SET sort_order = #{sortOrder}
+        WHERE series_id = #{seriesId} AND post_id = #{postId}
+    </update>
+
+    <select id="selectByPostIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM series_posts
+        WHERE post_id IN
+        <foreach collection="list" item="postId" open="(" separator="," close=")">
+            #{postId}
+        </foreach>
+    </select>
 </mapper>

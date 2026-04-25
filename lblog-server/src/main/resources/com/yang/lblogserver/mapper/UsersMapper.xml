@@ -34,4 +34,12 @@
         </foreach>
     </select>
 
+    <!-- TODO: 后续加上 is_delelte=0 软删除过滤 -->
+    <select id="findByUsername" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM users
+        WHERE username = #{username}
+        LIMIT 1
+    </select>
+
 </mapper>

@@ -7,6 +7,7 @@ import com.yang.lblogserver.domain.*;
 import com.yang.lblogserver.mapper.*;
 import com.yang.lblogserver.service.PostsService;
 import com.yang.lblogserver.vo.*;
+import com.yang.lblogserver.vo.admin.*;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -23,12 +24,14 @@ public class PostsServiceImpl implements PostsService {
     private final PostContentsMapper postContentsMapper;
     private final LikeRecordsMapper likeRecordsMapper;
     private final SeriesPostsMapper seriesPostsMapper;
+    private final SeriesMapper seriesMapper;
 
     public PostsServiceImpl(PostsMapper postsMapper, UsersMapper usersMapper,
                             CategoriesMapper categoriesMapper, PostTagsMapper postTagsMapper,
                             TagsMapper tagsMapper, PostContentsMapper postContentsMapper,
                             LikeRecordsMapper likeRecordsMapper,
-                            SeriesPostsMapper seriesPostsMapper) {
+                            SeriesPostsMapper seriesPostsMapper,
+                            SeriesMapper seriesMapper) {
         this.postsMapper = postsMapper;
         this.usersMapper = usersMapper;
         this.categoriesMapper = categoriesMapper;
@@ -37,6 +40,7 @@ public class PostsServiceImpl implements PostsService {
         this.postContentsMapper = postContentsMapper;
         this.likeRecordsMapper = likeRecordsMapper;
         this.seriesPostsMapper = seriesPostsMapper;
+        this.seriesMapper = seriesMapper;
     }
 
     @Override
@@ -252,5 +256,277 @@ public class PostsServiceImpl implements PostsService {
         } else {
             vo.setTags(Collections.emptyList());
         }
+    }
+
+    // ========== Admin ==========
+
+    @Override
+    public PageResult<PostVO> getAdminPostList(int page, int pageSize, Integer status, String keyword) {
+        PageHelper.startPage(page, pageSize);
+        List<Posts> posts = postsMapper.selectPostListAdmin(status, keyword);
+        PageInfo<Posts> pageInfo = new PageInfo<>(posts);
+
+        if (posts.isEmpty()) {
+            return PageResult.of(page, pageSize, 0, Collections.emptyList());
+        }
+
+        Set<Long> authorIds = posts.stream().map(Posts::getAuthorId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Set<Long> categoryIds = posts.stream().map(Posts::getCategoryId).filter(Objects::nonNull).collect(Collectors.toSet());
+        List<Long> postIds = posts.stream().map(Posts::getId).collect(Collectors.toList());
+
+        Map<Long, Users> userMap = authorIds.isEmpty() ? Collections.emptyMap() :
+                usersMapper.selectBatchIds(new ArrayList<>(authorIds)).stream()
+                        .collect(Collectors.toMap(Users::getId, u -> u));
+        Map<Long, Categories> catMap = categoryIds.isEmpty() ? Collections.emptyMap() :
+                categoriesMapper.selectBatchIds(new ArrayList<>(categoryIds)).stream()
+                        .collect(Collectors.toMap(Categories::getId, c -> c));
+
+        List<PostTags> postTagsList = postTagsMapper.selectByPostIds(postIds);
+        Set<Long> tagIds = postTagsList.stream().map(PostTags::getTagId).collect(Collectors.toSet());
+        Map<Long, Tags> tagMap = tagIds.isEmpty() ? Collections.emptyMap() :
+                tagsMapper.selectBatchIds(new ArrayList<>(tagIds)).stream()
+                        .collect(Collectors.toMap(Tags::getId, t -> t));
+
+        Map<Long, List<TagVO>> postTagMap = new HashMap<>();
+        for (PostTags pt : postTagsList) {
+            Tags tag = tagMap.get(pt.getTagId());
+            if (tag != null) {
+                TagVO tagVO = new TagVO();
+                tagVO.setId(tag.getId());
+                tagVO.setName(tag.getName());
+                tagVO.setSlug(tag.getSlug());
+                postTagMap.computeIfAbsent(pt.getPostId(), k -> new ArrayList<>()).add(tagVO);
+            }
+        }
+
+        // 查询专栏关联
+        List<SeriesPosts> seriesPostsList = seriesPostsMapper.selectByPostIds(postIds);
+        Map<Long, Series> seriesMap = new HashMap<>();
+        if (!seriesPostsList.isEmpty()) {
+            Set<Long> seriesIds = seriesPostsList.stream().map(SeriesPosts::getSeriesId).collect(Collectors.toSet());
+            if (!seriesIds.isEmpty()) {
+                seriesMap = seriesMapper.selectBatchIds(new ArrayList<>(seriesIds)).stream()
+                        .collect(Collectors.toMap(Series::getId, s -> s));
+            }
+        }
+        Map<Long, SeriesVO> postSeriesMap = new HashMap<>();
+        for (SeriesPosts sp : seriesPostsList) {
+            Series s = seriesMap.get(sp.getSeriesId());
+            if (s != null) {
+                SeriesVO svo = new SeriesVO();
+                svo.setId(s.getId());
+                svo.setTitle(s.getTitle());
+                svo.setSlug(s.getSlug());
+                postSeriesMap.put(sp.getPostId(), svo);
+            }
+        }
+
+        List<PostVO> voList = new ArrayList<>(posts.size());
+        for (Posts post : posts) {
+            PostVO vo = buildPostVO(post, userMap, catMap, postTagMap);
+            vo.setSeries(postSeriesMap.get(post.getId()));
+            voList.add(vo);
+        }
+
+        return PageResult.of(page, pageSize, pageInfo.getTotal(), voList);
+    }
+
+    @Override
+    public PostDetailVO getAdminPostById(Long id) {
+        Posts post = postsMapper.selectByIdRaw(id);
+        if (post == null) {
+            return null;
+        }
+
+        PostContents contents = postContentsMapper.selectByPostId(post.getId());
+        PostDetailVO vo = new PostDetailVO();
+        copyPostToVO(post, vo);
+        vo.setBody(contents != null ? contents.getBody() : null);
+
+        // 填充作者、分类、标签
+        assemblePostRelations(post, vo);
+
+        // 填充专栏
+        SeriesPosts seriesLink = seriesPostsMapper.selectByPostId(post.getId());
+        if (seriesLink != null) {
+            Series s = seriesMapper.selectById(seriesLink.getSeriesId());
+            if (s != null) {
+                SeriesVO svo = new SeriesVO();
+                svo.setId(s.getId());
+                svo.setTitle(s.getTitle());
+                svo.setSlug(s.getSlug());
+                vo.setSeries(svo);
+            }
+        }
+
+        return vo;
+    }
+
+    @Override
+    public Long createPost(CreatePostRequest req, Long authorId) {
+        Posts post = new Posts();
+        post.setTitle(req.getTitle());
+        post.setSlug(req.getSlug());
+        // 摘要：不传则从 body 截取前 200 字
+        String excerpt = req.getExcerpt();
+        if (excerpt == null || excerpt.isBlank()) {
+            excerpt = req.getBody().length() > 200
+                    ? req.getBody().substring(0, 200).replaceAll("[#*`>\\[\\]]", "").strip()
+                    : req.getBody().replaceAll("[#*`>\\[\\]]", "").strip();
+        }
+        post.setExcerpt(excerpt);
+        post.setFeaturedImage(req.getFeaturedImage());
+        post.setStatus(req.getStatus());
+        post.setAuthorId(authorId);
+        post.setCategoryId(req.getCategoryId());
+        post.setCommentEnable(req.getCommentEnable() != null ? req.getCommentEnable() : 1);
+
+        // 发布时自动设发布时间
+        if (req.getStatus() == 1) {
+            post.setPublishedAt(new Date());
+        }
+
+        postsMapper.insertPost(post);
+        Long postId = post.getId();
+
+        // 写入正文
+        PostContents contents = new PostContents();
+        contents.setPostId(postId);
+        contents.setBody(req.getBody());
+        contents.setFormat("markdown");
+        postContentsMapper.insert(contents);
+
+        // 写入标签关联
+        if (req.getTagIds() != null && !req.getTagIds().isEmpty()) {
+            List<PostTags> tagList = req.getTagIds().stream()
+                    .map(tagId -> {
+                        PostTags pt = new PostTags();
+                        pt.setPostId(postId);
+                        pt.setTagId(tagId);
+                        return pt;
+                    })
+                    .collect(Collectors.toList());
+            postTagsMapper.insertBatch(tagList);
+        }
+
+        // 写入专栏关联
+        if (req.getSeriesId() != null) {
+            SeriesPosts sp = new SeriesPosts();
+            sp.setSeriesId(req.getSeriesId());
+            sp.setPostId(postId);
+            sp.setSortOrder(0);
+            seriesPostsMapper.insert(sp);
+        }
+
+        return postId;
+    }
+
+    @Override
+    public void updatePost(Long id, UpdatePostRequest req) {
+        Posts post = postsMapper.selectByIdRaw(id);
+        if (post == null) {
+            throw new RuntimeException("文章不存在");
+        }
+
+        Posts update = new Posts();
+        update.setId(id);
+        update.setTitle(req.getTitle());
+        update.setSlug(req.getSlug());
+        update.setExcerpt(req.getExcerpt());
+        update.setFeaturedImage(req.getFeaturedImage());
+        update.setCategoryId(req.getCategoryId());
+        update.setCommentEnable(req.getCommentEnable());
+
+        // 如果从非发布变为发布，设发布时间
+        if (req.getStatus() != null && req.getStatus() == 1 && !Integer.valueOf(1).equals(post.getStatus())) {
+            update.setPublishedAt(new Date());
+        }
+        update.setStatus(req.getStatus());
+
+        postsMapper.updatePost(update);
+
+        // 更新正文
+        if (req.getBody() != null) {
+            PostContents contents = new PostContents();
+            contents.setPostId(id);
+            contents.setBody(req.getBody());
+            int affected = postContentsMapper.updateByPostId(contents);
+            if (affected == 0) {
+                contents.setFormat("markdown");
+                postContentsMapper.insert(contents);
+            }
+        }
+
+        // 更新标签（先删后插）
+        if (req.getTagIds() != null) {
+            postTagsMapper.deleteByPostId(id);
+            if (!req.getTagIds().isEmpty()) {
+                List<PostTags> tagList = req.getTagIds().stream()
+                        .map(tagId -> {
+                            PostTags pt = new PostTags();
+                            pt.setPostId(id);
+                            pt.setTagId(tagId);
+                            return pt;
+                        })
+                        .collect(Collectors.toList());
+                postTagsMapper.insertBatch(tagList);
+            }
+        }
+
+        // 更新专栏关联
+        if (req.getSeriesId() != null) {
+            seriesPostsMapper.deleteByPostId(id);
+            SeriesPosts sp = new SeriesPosts();
+            sp.setSeriesId(req.getSeriesId());
+            sp.setPostId(id);
+            sp.setSortOrder(0);
+            seriesPostsMapper.insert(sp);
+        }
+    }
+
+    @Override
+    public void deletePost(Long id) {
+        postsMapper.softDeletePost(id);
+        postTagsMapper.deleteByPostId(id);
+        seriesPostsMapper.deleteByPostId(id);
+    }
+
+    @Override
+    public boolean checkSlug(String slug, Long excludeId) {
+        return postsMapper.countBySlug(slug, excludeId) == 0;
+    }
+
+    @Override
+    public StatisticsVO getStatistics() {
+        StatisticsVO stats = postsMapper.selectStatistics();
+        if (stats == null) {
+            stats = new StatisticsVO();
+        }
+
+        // 分类分布
+        List<StatisticsVO.CategoryDist> catDist = categoriesMapper.selectCategoriesWithCount(null)
+                .stream()
+                .map(c -> {
+                    StatisticsVO.CategoryDist d = new StatisticsVO.CategoryDist();
+                    d.setName(c.getName());
+                    d.setCount(c.getPostCount() != null ? c.getPostCount() : 0);
+                    return d;
+                })
+                .collect(Collectors.toList());
+        stats.setCategoryDistribution(catDist);
+
+        // 标签分布
+        List<StatisticsVO.TagDist> tagDist = tagsMapper.selectTagsWithCount(100)
+                .stream()
+                .map(t -> {
+                    StatisticsVO.TagDist d = new StatisticsVO.TagDist();
+                    d.setName(t.getName());
+                    d.setCount(t.getPostCount() != null ? t.getPostCount() : 0);
+                    return d;
+                })
+                .collect(Collectors.toList());
+        stats.setTagDistribution(tagDist);
+
+        return stats;
     }
 }

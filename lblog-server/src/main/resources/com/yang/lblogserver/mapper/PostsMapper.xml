@@ -59,7 +59,7 @@
                 ORDER BY p.view_count DESC, p.published_at DESC
             </when>
             <otherwise>
-                ORDER BY p.published_at DESC, p.view_count DESC
+                ORDER BY p.like_count DESC, p.published_at DESC
             </otherwise>
         </choose>
     </select>
@@ -95,5 +95,74 @@
     <update id="decrementLikeCount">
         UPDATE posts SET like_count = like_count - 1 WHERE id = #{id} AND like_count > 0
     </update>
+
+    <!-- ========== Admin ========== -->
+
+    <select id="selectPostListAdmin" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM posts p
+        WHERE p.is_delelte = 0 AND p.deleted_at IS NULL
+        <if test="status != null">
+            AND p.status = #{status}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND p.title LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        ORDER BY p.updated_at DESC
+    </select>
+
+    <select id="selectByIdRaw" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM posts
+        WHERE id = #{id} AND is_delelte = 0 AND deleted_at IS NULL
+    </select>
+
+    <insert id="insertPost" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO posts (title, slug, excerpt, featured_image, status, author_id,
+                           category_id, view_count, like_count, comment_count, comment_enable,
+                           published_at, created_at, updated_at, is_delelte)
+        VALUES (#{title}, #{slug}, #{excerpt}, #{featuredImage}, #{status}, #{authorId},
+                #{categoryId}, 0, 0, 0, #{commentEnable},
+                #{publishedAt}, NOW(), NOW(), 0)
+    </insert>
+
+    <update id="updatePost">
+        UPDATE posts
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="slug != null">slug = #{slug},</if>
+            <if test="excerpt != null">excerpt = #{excerpt},</if>
+            <if test="featuredImage != null">featured_image = #{featuredImage},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="commentEnable != null">comment_enable = #{commentEnable},</if>
+            <if test="publishedAt != null">published_at = #{publishedAt},</if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id} AND is_delelte = 0
+    </update>
+
+    <update id="softDeletePost">
+        UPDATE posts SET deleted_at = NOW(), is_delelte = 1
+        WHERE id = #{id}
+    </update>
+
+    <select id="countBySlug" resultType="int">
+        SELECT COUNT(1) FROM posts
+        WHERE slug = #{slug} AND is_delelte = 0 AND deleted_at IS NULL
+        <if test="excludeId != null">
+            AND id != #{excludeId}
+        </if>
+    </select>
+
+    <select id="selectStatistics" resultType="com.yang.lblogserver.vo.admin.StatisticsVO">
+        SELECT
+            COUNT(1) AS postCount,
+            COALESCE(SUM(view_count), 0) AS viewCount,
+            COALESCE(SUM(like_count), 0) AS likeCount,
+            COALESCE(SUM(comment_count), 0) AS commentCount
+        FROM posts
+        WHERE is_delelte = 0 AND deleted_at IS NULL
+    </select>
 
 </mapper>

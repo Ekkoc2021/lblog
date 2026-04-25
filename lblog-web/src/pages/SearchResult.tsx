@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Row, Col, Spin, Typography } from 'antd';
+import { Card, Row, Col, Spin, Typography, message } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import type { Post } from '../types';
@@ -46,6 +46,7 @@ const SearchResult: React.FC = () => {
         setTotal(res.data.total);
         setPage(pageNum);
       })
+      .catch((e: Error) => message.error(e.message))
       .finally(() => {
         setLoading(false);
         setLoadingMore(false);

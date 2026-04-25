@@ -53,4 +53,40 @@
         </foreach>
     </select>
 
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM categories
+        WHERE id = #{id} AND is_delelte = 0
+    </select>
+
+    <insert id="insertCategory" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO categories (name, slug, description, parent_id, sort_order, created_by,
+                                created_at, updated_at, is_delelte)
+        VALUES (#{name}, #{slug}, #{description}, #{parentId}, #{sortOrder}, #{createdBy},
+                NOW(), NOW(), 0)
+    </insert>
+
+    <update id="updateCategory">
+        UPDATE categories
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="slug != null">slug = #{slug},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id} AND is_delelte = 0
+    </update>
+
+    <update id="softDeleteCategory">
+        UPDATE categories SET is_delelte = 1, deleted_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <select id="countPostsByCategoryId" resultType="int">
+        SELECT COUNT(1) FROM posts
+        WHERE category_id = #{categoryId} AND is_delelte = 0 AND deleted_at IS NULL
+    </select>
+
 </mapper>
