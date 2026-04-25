@@ -25,7 +25,20 @@
       "Bash(taskkill //F //PID 33272)",
       "Bash(taskkill //F //PID 17064)",
       "Bash(mvn compile *)",
-      "Bash(javac -version)"
+      "Bash(javac -version)",
+      "Bash(python3 -m json.tool)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('prev:', d['data'].get\\('prevPost'\\), 'next:', d['data'].get\\('nextPost'\\)\\)\")",
+      "Bash(python3 -c ' *)",
+      "Bash(npx vite *)",
+      "WebFetch(domain:localhost)",
+      "Bash(python -m json.tool)",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f'count: {len\\(d[\\\\\"data\\\\\"]\\)}'\\)\")",
+      "Bash(python3 *)",
+      "Bash(python *)",
+      "Bash(git checkout *)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(lsof -ti:5173)",
+      "Bash(xargs kill *)"
     ]
   }
 }

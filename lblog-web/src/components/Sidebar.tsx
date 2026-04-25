@@ -1,20 +1,24 @@
 import { Card, Tag, Space, Typography } from 'antd';
-import { FireOutlined, TagsOutlined, BookOutlined } from '@ant-design/icons';
-import type { Post, Tag as TagType, Series } from '../types';
+import { FireOutlined, TagsOutlined, BookOutlined, AppstoreOutlined } from '@ant-design/icons';
+import type { Post, Tag as TagType, Series, Category } from '../types';
 
 const { Text } = Typography;
 
 interface SidebarProps {
+  hotPosts?: Post[];
   posts: Post[];
   tags: TagType[];
+  categories: Category[];
   seriesList: Series[];
+  onCategoryClick?: (category: Category) => void;
   onTagClick?: (tag: TagType) => void;
   onSeriesClick?: (series: Series) => void;
   onPostClick?: (post: Post) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ posts, tags, seriesList, onTagClick, onSeriesClick, onPostClick }) => (
-  <>
+const Sidebar: React.FC<SidebarProps> = ({ hotPosts, posts, tags, categories, seriesList, onCategoryClick, onTagClick, onSeriesClick, onPostClick }) => {
+  const hotList = hotPosts || [...posts].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0)).slice(0, 5);
+  return (<>
     <Card
       title={
         <Space>
@@ -25,7 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({ posts, tags, seriesList, onTagClick, 
       style={{ borderRadius: 4 }}
       styles={{ body: { padding: '8px 16px' } }}
     >
-      {[...posts].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0)).slice(0, 5).map((post, index) => (
+      {hotList.map((post, index) => (
         <div
           key={post.id}
           style={{ padding: '8px 0', borderBottom: index < 4 ? '1px solid #f0f0f0' : 'none', borderRadius: 4, transition: 'background 0.2s', cursor: 'pointer' }}
@@ -41,6 +45,30 @@ const Sidebar: React.FC<SidebarProps> = ({ posts, tags, seriesList, onTagClick, 
           </div>
         </div>
       ))}
+    </Card>
+    <Card
+      title={
+        <Space>
+          <AppstoreOutlined style={{ color: '#52c41a' }} />
+          <span>热门分类</span>
+        </Space>
+      }
+      style={{ borderRadius: 4, marginTop: 16 }}
+      styles={{ body: { padding: 16 } }}
+    >
+      <Space wrap size={[8, 8]}>
+        {categories.map((cat: Category) => (
+          <Tag
+            key={cat.id}
+            style={{ cursor: 'pointer', borderRadius: 4, padding: '2px 10px', border: '1px solid #d9d9d9', transition: 'all 0.2s' }}
+            onMouseEnter={e => { e.currentTarget.style.color = '#52c41a'; e.currentTarget.style.borderColor = '#52c41a'; e.currentTarget.style.background = '#f6ffed'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = ''; e.currentTarget.style.borderColor = '#d9d9d9'; e.currentTarget.style.background = ''; }}
+            onClick={onCategoryClick ? () => onCategoryClick(cat) : undefined}
+          >
+            {cat.name}{cat.postCount !== undefined ? ` (${cat.postCount})` : ''}
+          </Tag>
+        ))}
+      </Space>
     </Card>
     <Card
       title={
@@ -103,5 +131,6 @@ const Sidebar: React.FC<SidebarProps> = ({ posts, tags, seriesList, onTagClick, 
     </Card>
   </>
 );
+};
 
 export default Sidebar;

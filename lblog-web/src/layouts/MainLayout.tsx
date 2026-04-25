@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Layout, Input, Button, Avatar, Typography } from 'antd';
-import { EditOutlined, UserOutlined } from '@ant-design/icons';
+import { useState, useEffect, useRef } from 'react';
+import { Layout, Input, Typography, Avatar, Popover, Button, Divider, message } from 'antd';
+import { UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useSearchHistory } from '../hooks/useSearchHistory';
+import { useAuth } from '../contexts/AuthContext';
+import LoginModal from '../components/LoginModal';
 
 const { Header, Content, Footer } = Layout;
 const { Search } = Input;
@@ -9,6 +12,7 @@ const { Text } = Typography;
 
 const navItems = [
   { key: '/', label: '首页' },
+  { key: '/editor', label: '内容创作' },
 ];
 
 interface MainLayoutProps {
@@ -19,7 +23,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
+  const { isAuthenticated, logout } = useAuth();
   const [searchValue, setSearchValue] = useState('');
+  const [loginModalVisible, setLoginModalVisible] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const blurTimerRef = useRef<number | null>(null);
+  const afterLoginRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (location.pathname === '/search') {
@@ -29,8 +39,36 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const handleSearch = (value: string) => {
     if (value.trim()) {
+      addToHistory(value.trim());
       navigate(`/search?q=${encodeURIComponent(value.trim())}`);
     }
+  };
+
+  const handleSearchFocus = () => {
+    if (blurTimerRef.current) {
+      clearTimeout(blurTimerRef.current);
+      blurTimerRef.current = null;
+    }
+    setShowHistory(true);
+  };
+
+  const handleSearchBlur = () => {
+    blurTimerRef.current = window.setTimeout(() => setShowHistory(false), 150);
+  };
+
+  const handleNavClick = (key: string) => {
+    if (key === '/editor' && !isAuthenticated) {
+      afterLoginRef.current = key;
+      setLoginModalVisible(true);
+    } else {
+      navigate(key);
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    message.success('已退出登录');
+    navigate('/');
   };
 
   return (
@@ -55,11 +93,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <Text strong style={{ fontSize: 20, color: '#1e80ff' }}>LBlog</Text>
           </div>
           {navItems.map(item => {
-            const isActive = location.pathname === item.key;
+            const isActive = item.key === '/' ? location.pathname === '/' : location.pathname.startsWith(item.key);
             return (
               <div
                 key={item.key}
-                onClick={() => navigate(item.key)}
+                onClick={() => handleNavClick(item.key)}
                 style={{
                   height: '100%',
                   display: 'flex',
@@ -92,17 +130,147 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             );
           })}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Search
-            placeholder="搜索文章"
-            allowClear
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
-            onSearch={handleSearch}
-            style={{ width: 200 }}
-          />
-          <Button type="primary" icon={<EditOutlined />}>写文章</Button>
-          <Avatar icon={<UserOutlined />} style={{ cursor: 'pointer' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginRight: 8 }}>
+          <div style={{ position: 'relative', width: 'clamp(160px, 25vw, 320px)' }}>
+            <Search
+              placeholder="搜索文章"
+              allowClear
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              onSearch={handleSearch}
+              onFocus={handleSearchFocus}
+              onBlur={handleSearchBlur}
+              style={{ width: '100%' }}
+            />
+            {showHistory && history.length > 0 && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                right: 0,
+                background: '#fff',
+                border: '1px solid #e8e8e8',
+                borderTop: 'none',
+                borderRadius: '0 0 6px 6px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                zIndex: 200,
+                maxHeight: 320,
+                overflow: 'auto',
+              }}>
+                {history.map((keyword) => (
+                  <div
+                    key={keyword}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setSearchValue(keyword);
+                      navigate(`/search?q=${encodeURIComponent(keyword)}`);
+                    }}
+                    style={{
+                      padding: '2px 16px',
+                      lineHeight: 1.6,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      fontSize: 13,
+                      color: '#333',
+                      transition: 'background 0.15s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#f5f5f5'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                  >
+                    <span>{keyword}</span>
+                    <span
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        removeFromHistory(keyword);
+                      }}
+                      style={{
+                        color: '#ccc',
+                        fontSize: 14,
+                        padding: '0 4px',
+                        lineHeight: 1,
+                        cursor: 'pointer',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.color = '#999'; }}
+                      onMouseLeave={e => { e.currentTarget.style.color = '#ccc'; }}
+                    >×</span>
+                  </div>
+                ))}
+                <div
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    clearHistory();
+                    setShowHistory(false);
+                  }}
+                  style={{
+                    padding: '3px 16px',
+                    textAlign: 'center',
+                    fontSize: 12,
+                    color: '#999',
+                    cursor: 'pointer',
+                    borderTop: '1px solid #f0f0f0',
+                    transition: 'color 0.15s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#1e80ff'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = '#999'; }}
+                >
+                  清空搜索历史
+                </div>
+              </div>
+            )}
+          </div>
+          {isAuthenticated ? (
+            <Popover
+              trigger="hover"
+              placement="bottomRight"
+              arrow={false}
+              content={
+                <div style={{ width: 220, padding: 4 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <Avatar icon={<UserOutlined />} style={{ background: '#1e80ff' }} />
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>站长</div>
+                      <div style={{ color: '#999', fontSize: 12 }}>admin</div>
+                      <div style={{ color: '#bbb', fontSize: 11, marginTop: 2 }}>admin@lblog.com</div>
+                    </div>
+                  </div>
+                  <Divider style={{ margin: '10px 0' }} />
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <Button
+                      type="text"
+                      icon={<UserOutlined />}
+                      disabled
+                      style={{ flex: 1, paddingLeft: 8 }}
+                    >
+                      个人设置
+                    </Button>
+                    <Button
+                      type="text"
+                      icon={<LogoutOutlined />}
+                      danger
+                      style={{ flex: 1, paddingLeft: 8 }}
+                      onClick={handleLogout}
+                    >
+                      退出登录
+                    </Button>
+                  </div>
+                </div>
+              }
+            >
+              <span style={{ display: 'inline-block' }}>
+                <Avatar
+                  icon={<UserOutlined />}
+                  style={{ background: '#1e80ff', cursor: 'pointer' }}
+                />
+              </span>
+            </Popover>
+          ) : (
+            <Button type="text" icon={<UserOutlined />} onClick={() => setLoginModalVisible(true)} style={{ color: '#555' }}>
+              登录
+            </Button>
+          )}
         </div>
       </Header>
       <Content style={{ padding: '20px 0' }}>
@@ -113,6 +281,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <Footer style={{ textAlign: 'center', background: '#f4f5f5', color: '#999' }}>
         LBlog ©{new Date().getFullYear()} — Powered by React + Ant Design
       </Footer>
+        <LoginModal
+          open={loginModalVisible}
+          onClose={() => setLoginModalVisible(false)}
+          onSuccess={() => {
+            const target = afterLoginRef.current;
+            afterLoginRef.current = null;
+            if (target) navigate(target);
+          }}
+        />
     </Layout>
   );
 };

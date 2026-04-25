@@ -185,6 +185,44 @@ const PostDetail: React.FC = () => {
         )}
       </Card>
 
+      {/* 上下篇导航 */}
+      {(post.prevPost || post.nextPost) && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginTop: 24 }}>
+          <div style={{ flex: 1, textAlign: 'left' }}>
+            {post.prevPost ? (
+              <Button
+                type="link"
+                style={{ padding: 0, height: 'auto', textAlign: 'left' }}
+                onClick={() => navigate(`/posts/${post.prevPost!.slug}`)}
+              >
+                <div>
+                  <div style={{ fontSize: 12, color: '#8a919f' }}>← 上一篇</div>
+                  <div style={{ fontSize: 14, color: '#1e80ff', lineHeight: 1.4, wordBreak: 'break-word' }}>
+                    {post.prevPost.title}
+                  </div>
+                </div>
+              </Button>
+            ) : null}
+          </div>
+          <div style={{ flex: 1, textAlign: 'right' }}>
+            {post.nextPost ? (
+              <Button
+                type="link"
+                style={{ padding: 0, height: 'auto', textAlign: 'right' }}
+                onClick={() => navigate(`/posts/${post.nextPost!.slug}`)}
+              >
+                <div>
+                  <div style={{ fontSize: 12, color: '#8a919f' }}>下一篇 →</div>
+                  <div style={{ fontSize: 14, color: '#1e80ff', lineHeight: 1.4, wordBreak: 'break-word' }}>
+                    {post.nextPost.title}
+                  </div>
+                </div>
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      )}
+
       <TableOfContents items={tocItems} />
     </div>
   );

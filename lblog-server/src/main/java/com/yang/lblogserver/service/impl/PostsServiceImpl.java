@@ -22,11 +22,13 @@ public class PostsServiceImpl implements PostsService {
     private final TagsMapper tagsMapper;
     private final PostContentsMapper postContentsMapper;
     private final LikeRecordsMapper likeRecordsMapper;
+    private final SeriesPostsMapper seriesPostsMapper;
 
     public PostsServiceImpl(PostsMapper postsMapper, UsersMapper usersMapper,
                             CategoriesMapper categoriesMapper, PostTagsMapper postTagsMapper,
                             TagsMapper tagsMapper, PostContentsMapper postContentsMapper,
-                            LikeRecordsMapper likeRecordsMapper) {
+                            LikeRecordsMapper likeRecordsMapper,
+                            SeriesPostsMapper seriesPostsMapper) {
         this.postsMapper = postsMapper;
         this.usersMapper = usersMapper;
         this.categoriesMapper = categoriesMapper;
@@ -34,6 +36,7 @@ public class PostsServiceImpl implements PostsService {
         this.tagsMapper = tagsMapper;
         this.postContentsMapper = postContentsMapper;
         this.likeRecordsMapper = likeRecordsMapper;
+        this.seriesPostsMapper = seriesPostsMapper;
     }
 
     @Override
@@ -109,6 +112,13 @@ public class PostsServiceImpl implements PostsService {
 
         // 填充作者、分类、标签
         assemblePostRelations(post, vo);
+
+        // 查询上下篇（同专栏内按 sort_order 排序）
+        SeriesPosts seriesLink = seriesPostsMapper.selectByPostId(post.getId());
+        if (seriesLink != null) {
+            vo.setPrevPost(seriesPostsMapper.selectPrevPost(seriesLink.getSeriesId(), seriesLink.getSortOrder()));
+            vo.setNextPost(seriesPostsMapper.selectNextPost(seriesLink.getSeriesId(), seriesLink.getSortOrder()));
+        }
 
         return vo;
     }

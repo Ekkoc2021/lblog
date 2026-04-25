@@ -41,6 +41,7 @@
         WHERE c.parent_id IS NULL AND c.is_delelte = 0 AND c.deleted_at IS NULL
         GROUP BY c.id, c.name, c.slug, c.parent_id, c.description, c.sort_order
         ORDER BY c.sort_order ASC
+        <if test="limit != null">LIMIT #{limit}</if>
     </select>
 
     <select id="selectBatchIds" resultMap="BaseResultMap">

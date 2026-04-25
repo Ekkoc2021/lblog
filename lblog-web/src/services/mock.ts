@@ -30,6 +30,16 @@ export const mockSeries: Series[] = [
   { id: 3, title: 'MySQL 调优实战', slug: 'mysql-tuning', description: 'MySQL性能调优系列', coverImageUrl: null, categoryId: 1, isCompleted: 0, sortOrder: 2, postCount: 5 },
 ];
 
+// 专栏文章关联 (series_id, post_id, sort_order)
+export const mockSeriesPosts: { seriesId: number; postId: number; sortOrder: number }[] = [
+  { seriesId: 1, postId: 1, sortOrder: 0 },
+  { seriesId: 1, postId: 6, sortOrder: 1 },
+  { seriesId: 2, postId: 2, sortOrder: 0 },
+  { seriesId: 2, postId: 5, sortOrder: 1 },
+  { seriesId: 3, postId: 3, sortOrder: 0 },
+  { seriesId: 3, postId: 8, sortOrder: 1 },
+];
+
 // 文章详情 - 正文内容
 export const mockPostBodies: Record<number, string> = {
   1: `## 概述

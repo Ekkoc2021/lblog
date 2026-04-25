@@ -47,10 +47,11 @@ public class HomeController {
         return ApiResponse.success(result);
     }
 
-    @Operation(summary = "获取分类列表", description = "导航栏及筛选使用，只返回顶级分类，含文章数量")
+    @Operation(summary = "获取分类列表", description = "按文章数量降序返回热门分类，含文章数量")
     @GetMapping("/categories")
-    public ApiResponse<List<CategoryVO>> getCategories() {
-        return ApiResponse.success(categoriesService.getCategoryList());
+    public ApiResponse<List<CategoryVO>> getCategories(
+            @Parameter(description = "返回数量") @RequestParam(name = "limit", defaultValue = "10") @Min(1) @Max(100) int limit) {
+        return ApiResponse.success(categoriesService.getCategoryList(limit));
     }
 
     @Operation(summary = "获取标签列表", description = "按文章数量降序返回热门标签")

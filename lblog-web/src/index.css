@@ -144,4 +144,5 @@ a {
 /* 平滑滚动 */
 html {
   scroll-behavior: smooth;
+  scrollbar-gutter: stable;
 }

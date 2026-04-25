@@ -1,16 +1,18 @@
 package com.yang.lblogserver.mapper;
 
 import com.yang.lblogserver.domain.SeriesPosts;
+import com.yang.lblogserver.vo.PrevNextPostVO;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
-
-/**
- * @author Administrator
- * @description 针对表【series_posts(专栏文章关联表)】的数据库操作Mapper
- * @createDate 2026-04-25 00:27:41
- * @Entity com.yang.lblogserver.domain.SeriesPosts
- */
+@Mapper
 public interface SeriesPostsMapper {
 
+    SeriesPosts selectByPostId(@Param("postId") Long postId);
+
+    PrevNextPostVO selectPrevPost(@Param("seriesId") Long seriesId, @Param("sortOrder") Integer sortOrder);
+
+    PrevNextPostVO selectNextPost(@Param("seriesId") Long seriesId, @Param("sortOrder") Integer sortOrder);
 }
 
 

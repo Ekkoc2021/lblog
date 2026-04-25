@@ -13,4 +13,33 @@
     <sql id="Base_Column_List">
         series_id,post_id,sort_order
     </sql>
+
+    <select id="selectByPostId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM series_posts
+        WHERE post_id = #{postId}
+        LIMIT 1
+    </select>
+
+    <select id="selectPrevPost" resultType="com.yang.lblogserver.vo.PrevNextPostVO">
+        SELECT p.id, p.title, p.slug
+        FROM posts p
+        JOIN series_posts sp ON p.id = sp.post_id
+        WHERE sp.series_id = #{seriesId}
+          AND sp.sort_order &lt; #{sortOrder}
+          AND p.status = 1 AND p.is_delelte = 0 AND p.deleted_at IS NULL
+        ORDER BY sp.sort_order DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectNextPost" resultType="com.yang.lblogserver.vo.PrevNextPostVO">
+        SELECT p.id, p.title, p.slug
+        FROM posts p
+        JOIN series_posts sp ON p.id = sp.post_id
+        WHERE sp.series_id = #{seriesId}
+          AND sp.sort_order &gt; #{sortOrder}
+          AND p.status = 1 AND p.is_delelte = 0 AND p.deleted_at IS NULL
+        ORDER BY sp.sort_order ASC
+        LIMIT 1
+    </select>
 </mapper>

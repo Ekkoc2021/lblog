@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface CategoriesService {
 
-    List<CategoryVO> getCategoryList();
+    List<CategoryVO> getCategoryList(int limit);
 }

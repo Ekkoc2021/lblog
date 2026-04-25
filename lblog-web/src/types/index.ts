@@ -33,6 +33,15 @@ export interface PostContent {
 export interface PostDetail extends Post {
   content?: PostContent;
   body?: string;
+  prevPost?: AdjacentPost | null;
+  nextPost?: AdjacentPost | null;
+}
+
+// 上下篇文章
+export interface AdjacentPost {
+  id: number;
+  title: string;
+  slug: string;
 }
 
 // 用户

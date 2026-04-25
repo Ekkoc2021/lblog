@@ -1,27 +1,22 @@
 import { useState, useEffect } from 'react';
 import { Card, Tabs, Row, Col } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import type { Post, Tag as TagType, Series } from '../types';
-import { getPosts, getTags, getSeries } from '../services/api';
+import type { Post } from '../types';
+import { getPosts } from '../services/api';
+import { useSiteData } from '../contexts/SiteDataContext';
 import ArticleList from '../components/ArticleList';
 import Sidebar from '../components/Sidebar';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { hotPosts, tags, categories, seriesList } = useSiteData();
   const [activeTab, setActiveTab] = useState('recommend');
   const [posts, setPosts] = useState<Post[]>([]);
-  const [tags, setTags] = useState<TagType[]>([]);
-  const [seriesList, setSeriesList] = useState<Series[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 10;
-
-  useEffect(() => {
-    getTags().then(res => setTags(res.data));
-    getSeries().then(res => setSeriesList(res.data));
-  }, []);
 
   const loadPosts = (pageNum: number, append: boolean) => {
     if (append) {
@@ -73,9 +68,15 @@ const Home: React.FC = () => {
       </Col>
       <Col xs={0} sm={0} md={7}>
         <Sidebar
-          posts={posts}
+          hotPosts={hotPosts}
+          posts={[]}
           tags={tags}
+          categories={categories}
           seriesList={seriesList}
+          onCategoryClick={(cat) => navigate(`/category/${cat.slug}`)}
+          onTagClick={(tag) => navigate(`/tag/${tag.slug}`)}
+          onSeriesClick={(s) => navigate(`/series/${s.slug}`)}
+          onPostClick={(post) => navigate(`/posts/${post.slug}`)}
         />
       </Col>
     </Row>

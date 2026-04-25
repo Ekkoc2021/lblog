@@ -17,7 +17,7 @@ public class CategoriesServiceImpl implements CategoriesService {
     }
 
     @Override
-    public List<CategoryVO> getCategoryList() {
-        return categoriesMapper.selectCategoriesWithCount();
+    public List<CategoryVO> getCategoryList(int limit) {
+        return categoriesMapper.selectCategoriesWithCount(limit);
     }
 }
