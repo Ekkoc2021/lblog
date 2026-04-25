@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { Card, Row, Col, Spin, Typography } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import type { Post, Tag as TagType, Series } from '../types';
-import { getPosts, getTags, getSeries } from '../services/api';
+import type { Post } from '../types';
+import { getPosts } from '../services/api';
+import { useSiteData } from '../contexts/SiteDataContext';
 import ArticleList from '../components/ArticleList';
 import Sidebar from '../components/Sidebar';
 import EmptyState from '../components/EmptyState';
@@ -20,19 +21,13 @@ const SearchResult: React.FC = () => {
   const navigate = useNavigate();
   const keyword = searchParams.get('q') || '';
 
+  const { tags, categories, seriesList, hotPosts } = useSiteData();
   const [posts, setPosts] = useState<Post[]>([]);
-  const [tags, setTags] = useState<TagType[]>([]);
-  const [seriesList, setSeriesList] = useState<Series[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 10;
-
-  useEffect(() => {
-    getTags().then(res => setTags(res.data));
-    getSeries().then(res => setSeriesList(res.data));
-  }, []);
 
   const loadPosts = (pageNum: number, append: boolean) => {
     if (!keyword.trim()) return;
@@ -126,9 +121,15 @@ const SearchResult: React.FC = () => {
       </Col>
       <Col xs={0} sm={0} md={7}>
         <Sidebar
+          hotPosts={hotPosts}
           posts={posts}
           tags={tags}
+          categories={categories}
           seriesList={seriesList}
+          onCategoryClick={(cat) => navigate(`/category/${cat.slug}`)}
+          onTagClick={(tag) => navigate(`/tag/${tag.slug}`)}
+          onSeriesClick={(s) => navigate(`/series/${s.slug}`)}
+          onPostClick={(post) => navigate(`/posts/${post.slug}`)}
         />
       </Col>
     </Row>
