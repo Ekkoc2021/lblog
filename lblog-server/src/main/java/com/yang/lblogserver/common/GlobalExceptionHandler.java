@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.stream.Collectors;
 
@@ -39,6 +40,14 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleIllegalArgument(IllegalArgumentException e) {
         return ApiResponse.error(400, e.getMessage());
+    }
+
+    // 后端纯接口
+    @ExceptionHandler(NoHandlerFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiResponse<Void> handleNoHandlerFound(NoHandlerFoundException e) {
+        // 可以选择不记录日志，或仅记录简要信息，因为这是正常的客户端错误
+        return ApiResponse.error(404, "请求的资源不存在");
     }
 
     @ExceptionHandler(Exception.class)

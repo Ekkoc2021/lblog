@@ -21,7 +21,8 @@ spring:
       max-request-size: 10MB
   web:
     resources:
-      static-locations: classpath:/static/
+      add-mappings: false
+#      static-locations: classpath:/static/
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource #指定druid数据源
     driver-class-name: com.mysql.cj.jdbc.Driver
