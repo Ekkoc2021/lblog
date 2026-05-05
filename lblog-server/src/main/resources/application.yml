@@ -105,3 +105,7 @@ logging:
 # 自定义配置
 lblog:
   upload-dir: E:/workspace/java/lblog/lblog-server/uploads
+  token:
+    access-token-expire-minutes: 120
+    refresh-token-expire-days: 7
+    token-byte-size: 32
