@@ -19,8 +19,8 @@ public class TagsServiceImpl implements TagsService {
     }
 
     @Override
-    public List<TagVO> getTagList(int limit) {
-        return tagsMapper.selectTagsWithCount(limit);
+    public List<TagVO> getTagList(int limit, Long createdBy) {
+        return tagsMapper.selectTagsWithCount(limit, createdBy);
     }
 
     // ---- Admin ----

@@ -1,7 +1,34 @@
-import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest } from '../types';
+import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest } from '../types';
 
 function getToken(): string | null {
-  return sessionStorage.getItem('lblog_token');
+  return sessionStorage.getItem('lblog_access_token');
+}
+
+function getRefreshToken(): string | null {
+  return sessionStorage.getItem('lblog_refresh_token');
+}
+
+function setTokens(accessToken: string, refreshToken: string): void {
+  sessionStorage.setItem('lblog_access_token', accessToken);
+  sessionStorage.setItem('lblog_refresh_token', refreshToken);
+}
+
+function clearTokens(): void {
+  sessionStorage.removeItem('lblog_access_token');
+  sessionStorage.removeItem('lblog_refresh_token');
+}
+
+// Token 刷新模块级状态
+let isRefreshing = false;
+let pendingRequests: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
+
+export async function refreshToken(): Promise<ApiResponse<TokenPairVO>> {
+  const token = getRefreshToken();
+  if (!token) throw new Error('No refresh token');
+  return request<TokenPairVO>('/api/v1/auth/refresh', {
+    method: 'POST',
+    body: JSON.stringify({ refreshToken: token }),
+  });
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
@@ -14,10 +41,74 @@ async function request<T>(path: string, options?: RequestInit): Promise<ApiRespo
 
   const res = await fetch(path, { ...options, headers });
 
-  // 401 统一处理
+  // 401 统一处理——自动续期
   if (res.status === 401) {
-    sessionStorage.removeItem('lblog_token');
-    throw new Error('未登录或 Token 已过期');
+    // 如果本身就是刷新请求，不触发刷新流程，直接清 token 抛异常
+    if (path.includes('/auth/refresh')) {
+      clearTokens();
+      throw new Error('Refresh token expired');
+    }
+
+    // 没有 token 说明是登录等公开接口的 401（密码错误），直接返回错误
+    if (!token) {
+      const json: ApiResponse<T> = await res.json();
+      throw new Error(json.message || '未登录或 Token 已过期');
+    }
+
+    // 并发控制：若正在刷新，排队等待
+    if (isRefreshing) {
+      return new Promise<ApiResponse<T>>((resolve, reject) => {
+        pendingRequests.push({
+          resolve: (newToken: string) => {
+            const newHeaders: Record<string, string> = {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${newToken}`,
+              ...(options?.headers as Record<string, string>),
+            };
+            fetch(path, { ...options, headers: newHeaders })
+              .then(async (r) => {
+                const j: ApiResponse<T> = await r.json();
+                if (j.code !== 0) throw new Error(j.message || '请求失败');
+                resolve(j);
+              })
+              .catch(reject);
+          },
+          reject,
+        });
+      });
+    }
+
+    // 开始刷新流程
+    isRefreshing = true;
+    try {
+      const refreshRes = await refreshToken();
+      const newToken = refreshRes.data.accessToken;
+      setTokens(newToken, refreshRes.data.refreshToken);
+
+      // 重放等待队列
+      const pending = [...pendingRequests];
+      pendingRequests = [];
+      pending.forEach((p) => p.resolve(newToken));
+
+      // 用新 token 重发当前请求
+      const newHeaders: Record<string, string> = {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${newToken}`,
+        ...(options?.headers as Record<string, string>),
+      };
+      const retryRes = await fetch(path, { ...options, headers: newHeaders });
+      const json: ApiResponse<T> = await retryRes.json();
+      if (json.code !== 0) throw new Error(json.message || '请求失败');
+      return json;
+    } catch (err) {
+      clearTokens();
+      const pending = [...pendingRequests];
+      pendingRequests = [];
+      pending.forEach((p) => p.reject(err));
+      throw err;
+    } finally {
+      isRefreshing = false;
+    }
   }
 
   const json: ApiResponse<T> = await res.json();
@@ -39,22 +130,17 @@ function buildQuery(params?: Record<string, string | number | boolean | undefine
 
 // ---- Auth ----
 
-interface LoginResponseData {
-  token: string;
-  user: {
-    id: number;
-    username: string;
-    nickname: string;
-    avatar: string | null;
-    email: string;
-    role: string;
-  };
-}
-
-export async function login(username: string, password: string): Promise<ApiResponse<LoginResponseData>> {
-  return request<LoginResponseData>('/api/v1/auth/login', {
+export async function login(username: string, password: string): Promise<ApiResponse<TokenPairVO>> {
+  return request<TokenPairVO>('/api/v1/auth/login', {
     method: 'POST',
     body: JSON.stringify({ username, password }),
+  });
+}
+
+export async function register(data: RegisterRequest): Promise<ApiResponse<TokenPairVO>> {
+  return request<TokenPairVO>('/api/v1/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(data),
   });
 }
 
@@ -64,6 +150,13 @@ export async function getCurrentUser(): Promise<ApiResponse<{ id: number; userna
 
 export async function logout(): Promise<ApiResponse<null>> {
   return request<null>('/api/v1/auth/logout', { method: 'POST' });
+}
+
+export async function changePassword(data: ChangePasswordRequest): Promise<ApiResponse<null>> {
+  return request<null>('/api/v1/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }
 
 // ---- 前台公共接口 ----
@@ -119,6 +212,30 @@ export async function unlikePost(postId: number, visitorId: string): Promise<Api
   });
 }
 
+// ---- 评论 ----
+
+export async function getComments(postId: number, params?: {
+  page?: number;
+  pageSize?: number;
+  sort?: string;
+}): Promise<ApiResponse<PageResult<Comment>>> {
+  return request<PageResult<Comment>>(`/api/v1/posts/${postId}/comments${buildQuery(params as Record<string, string | number | undefined>)}`);
+}
+
+export async function getCommentReplies(postId: number, rootId: number, params?: {
+  page?: number;
+  pageSize?: number;
+}): Promise<ApiResponse<PageResult<Comment>>> {
+  return request<PageResult<Comment>>(`/api/v1/posts/${postId}/comments/${rootId}/replies${buildQuery(params as Record<string, string | number | undefined>)}`);
+}
+
+export async function createComment(postId: number, data: CreateCommentRequest): Promise<ApiResponse<{ id: number }>> {
+  return request<{ id: number }>(`/api/v1/posts/${postId}/comments`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
 export async function getLikeStatus(postId: number, visitorId: string): Promise<ApiResponse<LikeStatus>> {
   return request<LikeStatus>(`/api/v1/posts/${postId}/like/status`, {
     headers: { 'X-Visitor-Id': visitorId } as Record<string, string>,
@@ -133,18 +250,18 @@ export async function getAdminPosts(params?: {
   pageSize?: number;
   status?: number;
   keyword?: string;
-}): Promise<ApiResponse<PageResult<Post>>> {
-  return request<PageResult<Post>>(`/api/v1/admin/posts${buildQuery(params as Record<string, string | number | undefined>)}`);
+}, signal?: AbortSignal): Promise<ApiResponse<PageResult<Post>>> {
+  return request<PageResult<Post>>(`/api/v1/author/posts${buildQuery(params as Record<string, string | number | undefined>)}`, { signal });
 }
 
 // 获取单篇文章（编辑用）
 export async function getAdminPostById(id: number): Promise<ApiResponse<PostDetail>> {
-  return request<PostDetail>(`/api/v1/admin/posts/${id}`);
+  return request<PostDetail>(`/api/v1/author/posts/${id}`);
 }
 
 // 创建文章
 export async function createPost(data: CreatePostRequest): Promise<ApiResponse<{ id: number }>> {
-  return request<{ id: number }>('/api/v1/admin/posts', {
+  return request<{ id: number }>('/api/v1/author/posts', {
     method: 'POST',
     body: JSON.stringify(data),
   });
@@ -152,7 +269,7 @@ export async function createPost(data: CreatePostRequest): Promise<ApiResponse<{
 
 // 更新文章
 export async function updatePost(id: number, data: UpdatePostRequest): Promise<ApiResponse<null>> {
-  return request<null>(`/api/v1/admin/posts/${id}`, {
+  return request<null>(`/api/v1/author/posts/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
@@ -160,70 +277,95 @@ export async function updatePost(id: number, data: UpdatePostRequest): Promise<A
 
 // 删除文章
 export async function deletePost(id: number): Promise<ApiResponse<null>> {
-  return request<null>(`/api/v1/admin/posts/${id}`, { method: 'DELETE' });
+  return request<null>(`/api/v1/author/posts/${id}`, { method: 'DELETE' });
 }
 
 // 校验 Slug
 export async function checkSlug(slug: string, excludeId?: number): Promise<ApiResponse<{ available: boolean }>> {
-  return request<{ available: boolean }>(`/api/v1/admin/posts/check-slug${buildQuery({ slug, excludeId })}`);
+  return request<{ available: boolean }>(`/api/v1/author/posts/check-slug${buildQuery({ slug, excludeId })}`);
 }
 
 // ---- 管理端 Category CRUD ----
 
+// 作者管理：分类列表
+export async function getAuthorCategories(params?: {
+  page?: number;
+  pageSize?: number;
+}): Promise<ApiResponse<PageResult<Category>>> {
+  return request<PageResult<Category>>(`/api/v1/author/categories${buildQuery(params as Record<string, string | number | undefined>)}`);
+}
+
 export async function createCategory(data: CreateCategoryRequest): Promise<ApiResponse<{ id: number }>> {
-  return request<{ id: number }>('/api/v1/admin/categories', {
+  return request<{ id: number }>('/api/v1/author/categories', {
     method: 'POST',
     body: JSON.stringify(data),
   });
 }
 
 export async function updateCategory(id: number, data: Partial<CreateCategoryRequest>): Promise<ApiResponse<null>> {
-  return request<null>(`/api/v1/admin/categories/${id}`, {
+  return request<null>(`/api/v1/author/categories/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
 }
 
 export async function deleteCategory(id: number): Promise<ApiResponse<null>> {
-  return request<null>(`/api/v1/admin/categories/${id}`, { method: 'DELETE' });
+  return request<null>(`/api/v1/author/categories/${id}`, { method: 'DELETE' });
 }
 
 // ---- 管理端 Tag CRUD ----
 
+// 作者管理：标签列表
+export async function getAuthorTags(params?: {
+  page?: number;
+  pageSize?: number;
+}): Promise<ApiResponse<PageResult<Tag>>> {
+  return request<PageResult<Tag>>(`/api/v1/author/tags${buildQuery(params as Record<string, string | number | undefined>)}`);
+}
+
 export async function createTag(data: CreateTagRequest): Promise<ApiResponse<{ id: number }>> {
-  return request<{ id: number }>('/api/v1/admin/tags', {
+  return request<{ id: number }>('/api/v1/author/tags', {
     method: 'POST',
     body: JSON.stringify(data),
   });
 }
 
 export async function updateTag(id: number, data: Partial<CreateTagRequest>): Promise<ApiResponse<null>> {
-  return request<null>(`/api/v1/admin/tags/${id}`, {
+  return request<null>(`/api/v1/author/tags/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
 }
 
 export async function deleteTag(id: number): Promise<ApiResponse<null>> {
-  return request<null>(`/api/v1/admin/tags/${id}`, { method: 'DELETE' });
+  return request<null>(`/api/v1/author/tags/${id}`, { method: 'DELETE' });
 }
 
 // ---- 管理端 Series CRUD ----
 
+// 作者管理：专栏列表
+export async function getAuthorSeries(params?: {
+  page?: number;
+  pageSize?: number;
+  categoryId?: number;
+}): Promise<ApiResponse<PageResult<Series>>> {
+  return request<PageResult<Series>>(`/api/v1/author/series${buildQuery(params as Record<string, string | number | undefined>)}`);
+}
+
 export async function createSeries(data: CreateSeriesRequest): Promise<ApiResponse<{ id: number }>> {
-  return request<{ id: number }>('/api/v1/admin/series', {
+  return request<{ id: number }>('/api/v1/author/series', {
     method: 'POST',
     body: JSON.stringify(data),
   });
 }
 
 export async function updateSeries(id: number, data: Partial<CreateSeriesRequest>): Promise<ApiResponse<null>> {
-  return request<null>(`/api/v1/admin/series/${id}`, {
+  return request<null>(`/api/v1/author/series/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
 }
 
 export async function deleteSeries(id: number): Promise<ApiResponse<null>> {
-  return request<null>(`/api/v1/admin/series/${id}`, { method: 'DELETE' });
+  return request<null>(`/api/v1/author/series/${id}`, { method: 'DELETE' });
 }

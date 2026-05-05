@@ -42,4 +42,23 @@
         LIMIT 1
     </select>
 
+    <select id="findByEmail" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM users
+        WHERE email = #{email}
+        LIMIT 1
+    </select>
+
+    <insert id="insertUser" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO users (username, password_hash, nickname, email, avatar, role, status,
+                           created_at, updated_at, is_delelte)
+        VALUES (#{username}, #{passwordHash}, #{nickname}, #{email}, #{avatar}, #{role}, #{status},
+                NOW(), NOW(), 0)
+    </insert>
+
+    <update id="updatePassword">
+        UPDATE users SET password_hash = #{passwordHash}
+        WHERE id = #{id}
+    </update>
+
 </mapper>

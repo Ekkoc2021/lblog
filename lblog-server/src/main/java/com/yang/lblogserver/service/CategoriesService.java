@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface CategoriesService {
 
-    List<CategoryVO> getCategoryList(int limit);
+    List<CategoryVO> getCategoryList(int limit, Long createdBy);
 
     // ---- Admin ----
 

@@ -94,13 +94,12 @@
         LEFT JOIN series_posts sp ON s.id = sp.series_id
         LEFT JOIN posts p ON sp.post_id = p.id AND p.status = 1 AND p.is_delelte = 0 AND p.deleted_at IS NULL
         WHERE s.is_delelte = 0 AND s.deleted_at IS NULL
+        <if test="createdBy != null">AND s.created_by = #{createdBy}</if>
         <if test="categoryId != null">
             AND s.category_id = #{categoryId}
         </if>
         GROUP BY s.id, s.title, s.slug, s.description, s.cover_image_url,
                  s.category_id, s.is_completed, s.sort_order
-        ORDER BY s.sort_order ASC
-        LIMIT #{limit}
+        ORDER BY s.sort_order ASC, s.id ASC
     </select>
-
 </mapper>

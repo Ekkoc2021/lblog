@@ -28,4 +28,6 @@ public interface UserTokenMapper {
     int deleteExpired();
 
     int countValidByUserId(@Param("userId") Long userId);
+
+    int updateReplacedBy(@Param("tokenHash") String tokenHash, @Param("replacedBy") String replacedBy);
 }

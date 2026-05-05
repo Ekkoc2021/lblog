@@ -6,6 +6,7 @@ import type { PostDetail as PostDetailType } from '../types';
 import { getPostBySlug, likePost, unlikePost, getLikeStatus, reportView } from '../services/api';
 import MarkdownRenderer from '../components/MarkdownRenderer';
 import EmptyState from '../components/EmptyState';
+import CommentSection from '../components/CommentSection';
 import TableOfContents, { parseHeadings } from '../components/TableOfContents';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
@@ -222,6 +223,9 @@ const PostDetail: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* 评论区 */}
+      {post && <CommentSection postId={post.id} />}
 
       <TableOfContents items={tocItems} />
     </div>

@@ -51,14 +51,18 @@ public class HomeController {
     @GetMapping("/categories")
     public ApiResponse<List<CategoryVO>> getCategories(
             @Parameter(description = "返回数量") @RequestParam(name = "limit", defaultValue = "10") @Min(1) @Max(100) int limit) {
-        return ApiResponse.success(categoriesService.getCategoryList(limit));
+        List<CategoryVO> catList = categoriesService.getCategoryList(limit, null);
+        if (catList.size() > limit) catList = catList.subList(0, limit);
+        return ApiResponse.success(catList);
     }
 
     @Operation(summary = "获取标签列表", description = "按文章数量降序返回热门标签")
     @GetMapping("/tags")
     public ApiResponse<List<TagVO>> getTags(
             @Parameter(description = "返回数量") @RequestParam(name = "limit", defaultValue = "20") @Min(1) @Max(100) int limit) {
-        return ApiResponse.success(tagsService.getTagList(limit));
+        List<TagVO> tagList = tagsService.getTagList(limit, null);
+        if (tagList.size() > limit) tagList = tagList.subList(0, limit);
+        return ApiResponse.success(tagList);
     }
 
     @Operation(summary = "获取专栏列表", description = "侧边栏专栏推荐展示，含文章数量")
@@ -66,7 +70,9 @@ public class HomeController {
     public ApiResponse<List<SeriesVO>> getSeries(
             @Parameter(description = "返回数量") @RequestParam(name = "limit", defaultValue = "5") @Min(1) @Max(100) int limit,
             @Parameter(description = "分类ID") @RequestParam(name = "categoryId", required = false) Long categoryId) {
-        return ApiResponse.success(seriesService.getSeriesList(limit, categoryId));
+        List<SeriesVO> seriesList = seriesService.getSeriesList(limit, categoryId, null);
+        if (seriesList.size() > limit) seriesList = seriesList.subList(0, limit);
+        return ApiResponse.success(seriesList);
     }
 
     @Operation(summary = "获取热门文章", description = "按浏览量降序返回热门文章排行")
@@ -99,7 +105,7 @@ public class HomeController {
     @PostMapping("/posts/{id}/like")
     public ApiResponse<LikeResponseVO> likePost(
             @Parameter(description = "文章ID") @PathVariable Long id,
-            @RequestHeader("X-Visitor-Id") String visitorId) {
+            @RequestHeader(value = "X-Visitor-Id", required = false) String visitorId) {
         if (visitorId == null || visitorId.isEmpty()) {
             return ApiResponse.error(400, "visitorId不能为空");
         }
@@ -114,7 +120,7 @@ public class HomeController {
     @DeleteMapping("/posts/{id}/like")
     public ApiResponse<LikeResponseVO> unlikePost(
             @Parameter(description = "文章ID") @PathVariable Long id,
-            @RequestHeader("X-Visitor-Id") String visitorId) {
+            @RequestHeader(value = "X-Visitor-Id", required = false) String visitorId) {
         if (visitorId == null || visitorId.isEmpty()) {
             return ApiResponse.error(400, "visitorId不能为空");
         }

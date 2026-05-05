@@ -39,9 +39,9 @@
         FROM categories c
         LEFT JOIN posts p ON c.id = p.category_id AND p.status = 1 AND p.is_delelte = 0 AND p.deleted_at IS NULL
         WHERE c.parent_id IS NULL AND c.is_delelte = 0 AND c.deleted_at IS NULL
+        <if test="createdBy != null">AND c.created_by = #{createdBy}</if>
         GROUP BY c.id, c.name, c.slug, c.parent_id, c.description, c.sort_order
-        ORDER BY c.sort_order ASC
-        <if test="limit != null">LIMIT #{limit}</if>
+        ORDER BY c.sort_order ASC, c.id ASC
     </select>
 
     <select id="selectBatchIds" resultMap="BaseResultMap">

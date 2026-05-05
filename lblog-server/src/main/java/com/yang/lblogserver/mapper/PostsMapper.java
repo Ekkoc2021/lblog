@@ -32,7 +32,8 @@ public interface PostsMapper {
     // ---- Admin ----
 
     List<Posts> selectPostListAdmin(@Param("status") Integer status,
-                                    @Param("keyword") String keyword);
+                                    @Param("keyword") String keyword,
+                                    @Param("authorId") Long authorId);
 
     Posts selectByIdRaw(@Param("id") Long id);
 

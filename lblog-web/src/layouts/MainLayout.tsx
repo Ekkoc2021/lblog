@@ -1,18 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
-import { Layout, Input, Typography, Avatar, Popover, Button, Divider, message } from 'antd';
+import { Layout, Input, Typography, Avatar, Popover, Button, Divider, message, Tag } from 'antd';
 import { UserOutlined, LogoutOutlined, FileTextOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useSearchHistory } from '../hooks/useSearchHistory';
 import { useAuth } from '../contexts/AuthContext';
 import LoginModal from '../components/LoginModal';
+import UserSettingsDrawer from '../components/UserSettingsDrawer';
 
 const { Header, Content, Footer } = Layout;
 const { Search } = Input;
 const { Text } = Typography;
 
-const navItems = [
-  { key: '/', label: '首页' },
-];
+const adminNavItem = { key: '/admin', label: '博客管理' };
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -23,10 +22,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const [searchValue, setSearchValue] = useState('');
   const [loginModalVisible, setLoginModalVisible] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
   const blurTimerRef = useRef<number | null>(null);
   const afterLoginRef = useRef<string | null>(null);
 
@@ -86,7 +86,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           >
             <Text strong style={{ fontSize: 20, color: '#1e80ff' }}>LBlog</Text>
           </div>
-          {navItems.map(item => {
+          {[{ key: '/', label: '首页' }, ...(user?.role === 'admin' ? [adminNavItem] : [])].map(item => {
             const isActive = item.key === '/' ? location.pathname === '/' : location.pathname.startsWith(item.key);
             return (
               <div
@@ -223,15 +223,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               content={
                 <div style={{ width: 220, padding: 4 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <Avatar icon={<UserOutlined />} style={{ background: '#1e80ff' }} />
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+                        <Avatar icon={<UserOutlined />} style={{ background: '#1e80ff' }} />
+                        {user?.role && <Tag color={user.role === 'admin' ? 'red' : user.role === 'author' ? 'blue' : 'default'} style={{ fontSize: 10, lineHeight: '16px', padding: '0 5px', margin: 0 }}>{user.role === 'admin' ? '管理员' : user.role === 'author' ? '作者' : '用户'}</Tag>}
+                      </div>
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: 14 }}>站长</div>
-                        <div style={{ color: '#999', fontSize: 12 }}>admin</div>
-                        <div style={{ color: '#bbb', fontSize: 11, marginTop: 2 }}>admin@lblog.com</div>
+                        <div style={{ fontWeight: 600, fontSize: 14 }}>{user?.nickname ?? '用户'}</div>
+                        <div style={{ color: '#999', fontSize: 12 }}>{user?.username ?? '-'}</div>
+                        <div style={{ color: '#bbb', fontSize: 11, marginTop: 2 }}>{user?.email ?? '-'}</div>
                       </div>
                     </div>
-                    <Button type="text" size="small" disabled style={{ color: '#999', marginTop: 2 }}>设置</Button>
+                    <Button type="text" size="small" style={{ color: '#999', marginTop: 2 }} onClick={() => setSettingsVisible(true)}>设置</Button>
                   </div>
                   <Divider style={{ margin: '10px 0' }} />
                   <div style={{ display: 'flex', gap: 8 }}>
@@ -239,7 +242,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                       type="text"
                       icon={<FileTextOutlined />}
                       style={{ flex: 1, paddingLeft: 8 }}
-                      onClick={() => { setLoginModalVisible(false); navigate('/admin/posts'); }}
+                      onClick={() => {
+                        setLoginModalVisible(false);
+                        if (user?.role === 'user') {
+                          message.info('申请成为作者后才能使用创作中心');
+                          return;
+                        }
+                        navigate('/author/posts');
+                      }}
                     >
                       创作中心
                     </Button>
@@ -270,8 +280,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           )}
         </div>
       </Header>
-      <Content style={{ padding: location.pathname.startsWith('/admin') ? 0 : '20px 0' }}>
-        {location.pathname.startsWith('/admin') ? (
+      <Content style={{ padding: location.pathname.startsWith('/author') ? 0 : '20px 0' }}>
+        {location.pathname.startsWith('/author') ? (
           children
         ) : (
           <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
@@ -282,6 +292,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <Footer style={{ textAlign: 'center', background: '#f4f5f5', color: '#999' }}>
         LBlog ©{new Date().getFullYear()} — Powered by React + Ant Design
       </Footer>
+        <UserSettingsDrawer
+          open={settingsVisible}
+          onClose={() => setSettingsVisible(false)}
+        />
         <LoginModal
           open={loginModalVisible}
           onClose={() => setLoginModalVisible(false)}

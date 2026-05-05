@@ -9,12 +9,12 @@ import TagPosts from './pages/TagPosts';
 import SeriesPosts from './pages/SeriesPosts';
 import SearchResult from './pages/SearchResult';
 import PostDetail from './pages/PostDetail';
-import PostList from './pages/admin/PostList';
-import PostEditor from './pages/admin/PostEditor';
-import CategoryManage from './pages/admin/CategoryManage';
-import TagManage from './pages/admin/TagManage';
-import SeriesManage from './pages/admin/SeriesManage';
-import Statistics from './pages/admin/Statistics';
+import PostList from './pages/author/PostList';
+import PostEditor from './pages/author/PostEditor';
+import CategoryManage from './pages/author/CategoryManage';
+import TagManage from './pages/author/TagManage';
+import SeriesManage from './pages/author/SeriesManage';
+import Statistics from './pages/author/Statistics';
 
 function App() {
   return (
@@ -29,7 +29,8 @@ function App() {
             <Route path="/series/:slug" element={<SeriesPosts />} />
             <Route path="/search" element={<SearchResult />} />
             <Route path="/posts/:slug" element={<PostDetail />} />
-            <Route path="/admin" element={<AdminLayout />}>
+            <Route path="/admin" element={<div style={{ padding: 48, textAlign: 'center', color: '#999' }}>博客管理 · 开发中</div>} />
+            <Route path="/author" element={<AdminLayout />}>
               <Route index element={<PostList />} />
               <Route path="posts" element={<PostList />} />
               <Route path="posts/new" element={<PostEditor />} />

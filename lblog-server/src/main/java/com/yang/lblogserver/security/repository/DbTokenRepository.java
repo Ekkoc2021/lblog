@@ -55,6 +55,11 @@ public class DbTokenRepository implements TokenRepository {
     }
 
     @Override
+    public void updateReplacedBy(String tokenHash, String replacedBy) {
+        userTokenMapper.updateReplacedBy(tokenHash, replacedBy);
+    }
+
+    @Override
     public int countValidByUserId(Long userId) {
         return userTokenMapper.countValidByUserId(userId);
     }

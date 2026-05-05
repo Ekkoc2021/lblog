@@ -113,6 +113,48 @@ export interface ApiResponse<T> {
   data: T;
 }
 
+// ---- 评论 ----
+
+export interface CommentAuthor {
+  id: number;
+  nickname: string;
+  avatar: string | null;
+}
+
+export interface CommentReplyTo {
+  id: number;
+  nickname: string;
+}
+
+export interface Comment {
+  id: number;
+  author: CommentAuthor;
+  content: string;
+  replyTo: CommentReplyTo | null;
+  likeCount: number;
+  replyCount: number;
+  createdAt: string;
+  status?: number;  // 0=待审核 1=通过 2=驳回（仅本地评论有）
+}
+
+export interface CreateCommentRequest {
+  content: string;
+  parentId?: number | null;
+}
+
+// ---- 认证相关 ----
+
+export interface TokenPairVO {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  user: User;
+}
+
+export interface RefreshRequest {
+  refreshToken: string;
+}
+
 // ---- 管理端请求体 ----
 
 export interface CreatePostRequest {
@@ -152,6 +194,20 @@ export interface CreateCategoryRequest {
 export interface CreateTagRequest {
   name: string;
   slug: string;
+}
+
+// 修改密码
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+}
+
+// 注册
+export interface RegisterRequest {
+  username: string;
+  password: string;
+  nickname?: string;
+  email?: string;
 }
 
 export interface CreateSeriesRequest {

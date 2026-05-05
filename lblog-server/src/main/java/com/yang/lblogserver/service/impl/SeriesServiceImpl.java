@@ -25,8 +25,8 @@ public class SeriesServiceImpl implements SeriesService {
     }
 
     @Override
-    public List<SeriesVO> getSeriesList(int limit, Long categoryId) {
-        return seriesMapper.selectSeriesWithCount(limit, categoryId);
+    public List<SeriesVO> getSeriesList(int limit, Long categoryId, Long createdBy) {
+        return seriesMapper.selectSeriesWithCount(limit, categoryId, createdBy);
     }
 
     // ---- Admin ----

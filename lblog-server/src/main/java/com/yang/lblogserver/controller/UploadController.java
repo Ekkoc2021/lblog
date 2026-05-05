@@ -33,8 +33,8 @@ public class UploadController {
 
     @Operation(summary = "上传图片", description = "支持 jpg/png/gif/webp/svg，最大 5MB")
     @PostMapping("/image")
-    public ApiResponse<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
-        if (file.isEmpty()) {
+    public ApiResponse<Map<String, String>> uploadImage(@RequestParam(value = "file", required = false) MultipartFile file) {
+        if (file == null || file.isEmpty()) {
             return ApiResponse.error(400, "请选择要上传的图片");
         }
 

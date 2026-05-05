@@ -10,7 +10,8 @@ import java.util.List;
 @Mapper
 public interface TagsMapper {
 
-    List<TagVO> selectTagsWithCount(@Param("limit") int limit);
+    List<TagVO> selectTagsWithCount(@Param("limit") int limit,
+                                     @Param("createdBy") Long createdBy);
 
     List<Tags> selectBatchIds(List<Long> ids);
 

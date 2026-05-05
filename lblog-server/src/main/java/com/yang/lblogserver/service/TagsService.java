@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface TagsService {
 
-    List<TagVO> getTagList(int limit);
+    List<TagVO> getTagList(int limit, Long createdBy);
 
     // ---- Admin ----
 

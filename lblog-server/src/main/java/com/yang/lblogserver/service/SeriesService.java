@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface SeriesService {
 
-    List<SeriesVO> getSeriesList(int limit, Long categoryId);
+    List<SeriesVO> getSeriesList(int limit, Long categoryId, Long createdBy);
 
     // ---- Admin ----
 

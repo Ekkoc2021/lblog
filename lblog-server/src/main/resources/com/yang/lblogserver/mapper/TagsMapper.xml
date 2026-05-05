@@ -33,9 +33,9 @@
         LEFT JOIN post_tags pt ON t.id = pt.tag_id
         LEFT JOIN posts p ON pt.post_id = p.id AND p.status = 1 AND p.is_delelte = 0 AND p.deleted_at IS NULL
         WHERE t.is_delelte = 0 AND t.deleted_at IS NULL
+        <if test="createdBy != null">AND t.created_by = #{createdBy}</if>
         GROUP BY t.id
         ORDER BY post_count DESC, t.id ASC
-        LIMIT #{limit}
     </select>
 
     <select id="selectBatchIds" resultMap="BaseResultMap">

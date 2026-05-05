@@ -11,7 +11,8 @@ import java.util.List;
 public interface SeriesMapper {
 
     List<SeriesVO> selectSeriesWithCount(@Param("limit") int limit,
-                                         @Param("categoryId") Long categoryId);
+                                         @Param("categoryId") Long categoryId,
+                                         @Param("createdBy") Long createdBy);
 
     // ---- Admin ----
 

@@ -27,7 +27,7 @@ public interface PostsService {
 
     // ---- Admin ----
 
-    PageResult<PostVO> getAdminPostList(int page, int pageSize, Integer status, String keyword);
+    PageResult<PostVO> getAdminPostList(int page, int pageSize, Integer status, String keyword, Long authorId);
 
     PostDetailVO getAdminPostById(Long id);
 

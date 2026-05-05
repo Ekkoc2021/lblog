@@ -13,4 +13,10 @@ public interface UsersMapper {
 
     // TODO: 后续可改为 Optional
     Users findByUsername(@Param("username") String username);
+
+    Users findByEmail(@Param("email") String email);
+
+    int insertUser(Users user);
+
+    int updatePassword(@Param("id") Long id, @Param("passwordHash") String passwordHash);
 }

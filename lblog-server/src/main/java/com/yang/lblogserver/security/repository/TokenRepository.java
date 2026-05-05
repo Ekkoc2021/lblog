@@ -27,6 +27,9 @@ public interface TokenRepository {
     /** 清理过期且已吊销的 token */
     int deleteExpired();
 
+    /** 更新 token 的 replaced_by 字段（用于 refresh rotation 链式追踪） */
+    void updateReplacedBy(String tokenHash, String replacedBy);
+
     /** 统计用户有效 token 数 */
     int countValidByUserId(Long userId);
 }

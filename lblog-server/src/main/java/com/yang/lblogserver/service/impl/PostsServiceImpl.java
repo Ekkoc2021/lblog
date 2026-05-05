@@ -5,6 +5,7 @@ import com.github.pagehelper.PageInfo;
 import com.yang.lblogserver.common.PageResult;
 import com.yang.lblogserver.domain.*;
 import com.yang.lblogserver.mapper.*;
+import com.yang.lblogserver.service.PostContentsService;
 import com.yang.lblogserver.service.PostsService;
 import com.yang.lblogserver.vo.*;
 import com.yang.lblogserver.vo.admin.*;
@@ -21,14 +22,14 @@ public class PostsServiceImpl implements PostsService {
     private final CategoriesMapper categoriesMapper;
     private final PostTagsMapper postTagsMapper;
     private final TagsMapper tagsMapper;
-    private final PostContentsMapper postContentsMapper;
+    private final PostContentsService postContentsService;
     private final LikeRecordsMapper likeRecordsMapper;
     private final SeriesPostsMapper seriesPostsMapper;
     private final SeriesMapper seriesMapper;
 
     public PostsServiceImpl(PostsMapper postsMapper, UsersMapper usersMapper,
                             CategoriesMapper categoriesMapper, PostTagsMapper postTagsMapper,
-                            TagsMapper tagsMapper, PostContentsMapper postContentsMapper,
+                            TagsMapper tagsMapper, PostContentsService postContentsService,
                             LikeRecordsMapper likeRecordsMapper,
                             SeriesPostsMapper seriesPostsMapper,
                             SeriesMapper seriesMapper) {
@@ -37,7 +38,7 @@ public class PostsServiceImpl implements PostsService {
         this.categoriesMapper = categoriesMapper;
         this.postTagsMapper = postTagsMapper;
         this.tagsMapper = tagsMapper;
-        this.postContentsMapper = postContentsMapper;
+        this.postContentsService = postContentsService;
         this.likeRecordsMapper = likeRecordsMapper;
         this.seriesPostsMapper = seriesPostsMapper;
         this.seriesMapper = seriesMapper;
@@ -109,7 +110,7 @@ public class PostsServiceImpl implements PostsService {
             return null;
         }
 
-        PostContents contents = postContentsMapper.selectByPostId(post.getId());
+        PostContents contents = postContentsService.getByPostId(post.getId());
         PostDetailVO vo = new PostDetailVO();
         copyPostToVO(post, vo);
         vo.setBody(contents != null ? contents.getBody() : null);
@@ -261,9 +262,9 @@ public class PostsServiceImpl implements PostsService {
     // ========== Admin ==========
 
     @Override
-    public PageResult<PostVO> getAdminPostList(int page, int pageSize, Integer status, String keyword) {
+    public PageResult<PostVO> getAdminPostList(int page, int pageSize, Integer status, String keyword, Long authorId) {
         PageHelper.startPage(page, pageSize);
-        List<Posts> posts = postsMapper.selectPostListAdmin(status, keyword);
+        List<Posts> posts = postsMapper.selectPostListAdmin(status, keyword, authorId);
         PageInfo<Posts> pageInfo = new PageInfo<>(posts);
 
         if (posts.isEmpty()) {
@@ -338,7 +339,7 @@ public class PostsServiceImpl implements PostsService {
             return null;
         }
 
-        PostContents contents = postContentsMapper.selectByPostId(post.getId());
+        PostContents contents = postContentsService.getByPostId(post.getId());
         PostDetailVO vo = new PostDetailVO();
         copyPostToVO(post, vo);
         vo.setBody(contents != null ? contents.getBody() : null);
@@ -390,11 +391,7 @@ public class PostsServiceImpl implements PostsService {
         Long postId = post.getId();
 
         // 写入正文
-        PostContents contents = new PostContents();
-        contents.setPostId(postId);
-        contents.setBody(req.getBody());
-        contents.setFormat("markdown");
-        postContentsMapper.insert(contents);
+        postContentsService.save(postId, req.getBody(), "markdown");
 
         // 写入标签关联
         if (req.getTagIds() != null && !req.getTagIds().isEmpty()) {
@@ -447,14 +444,7 @@ public class PostsServiceImpl implements PostsService {
 
         // 更新正文
         if (req.getBody() != null) {
-            PostContents contents = new PostContents();
-            contents.setPostId(id);
-            contents.setBody(req.getBody());
-            int affected = postContentsMapper.updateByPostId(contents);
-            if (affected == 0) {
-                contents.setFormat("markdown");
-                postContentsMapper.insert(contents);
-            }
+            postContentsService.saveOrUpdate(id, req.getBody());
         }
 
         // 更新标签（先删后插）
@@ -504,7 +494,7 @@ public class PostsServiceImpl implements PostsService {
         }
 
         // 分类分布
-        List<StatisticsVO.CategoryDist> catDist = categoriesMapper.selectCategoriesWithCount(null)
+        List<StatisticsVO.CategoryDist> catDist = categoriesMapper.selectCategoriesWithCount(null, null)
                 .stream()
                 .map(c -> {
                     StatisticsVO.CategoryDist d = new StatisticsVO.CategoryDist();
@@ -516,7 +506,7 @@ public class PostsServiceImpl implements PostsService {
         stats.setCategoryDistribution(catDist);
 
         // 标签分布
-        List<StatisticsVO.TagDist> tagDist = tagsMapper.selectTagsWithCount(100)
+        List<StatisticsVO.TagDist> tagDist = tagsMapper.selectTagsWithCount(100, null)
                 .stream()
                 .map(t -> {
                     StatisticsVO.TagDist d = new StatisticsVO.TagDist();

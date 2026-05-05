@@ -10,7 +10,8 @@ import java.util.List;
 @Mapper
 public interface CategoriesMapper {
 
-    List<CategoryVO> selectCategoriesWithCount(@Param("limit") Integer limit);
+    List<CategoryVO> selectCategoriesWithCount(@Param("limit") Integer limit,
+                                                @Param("createdBy") Long createdBy);
 
     List<Categories> selectBatchIds(List<Long> ids);
 
