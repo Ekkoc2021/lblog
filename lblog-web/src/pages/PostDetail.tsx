@@ -119,7 +119,7 @@ const PostDetail: React.FC = () => {
   }
 
   return (
-    <div style={{ maxWidth: 860, margin: '0 auto' }}>
+    <div style={{ maxWidth: 1200, margin: '0 auto' }}>
       <Button
         type="link"
         icon={<ArrowLeftOutlined />}

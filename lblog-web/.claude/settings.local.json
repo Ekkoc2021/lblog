@@ -39,7 +39,26 @@
       "Bash(pkill -f \"vite\")",
       "Bash(lsof -ti:5173)",
       "Bash(xargs kill *)",
-      "Bash(mysql *)"
+      "Bash(mysql *)",
+      "WebSearch",
+      "Bash(claude mcp *)",
+      "mcp__browser-connect__browser_list_tabs",
+      "mcp__browser-connect__browser_launch",
+      "mcp__browser-connect__browser_connect",
+      "mcp__browser-connect__network_analyze",
+      "mcp__browser-connect__console_search",
+      "mcp__browser-connect__browser_disconnect",
+      "mcp__browser-connect__debug_localhost",
+      "mcp__browser-connect__network_performance",
+      "mcp__browser-connect__performance_profile",
+      "mcp__browser-connect__security_scan",
+      "mcp__browser-connect__log_analyze",
+      "Bash(taskkill /f /im msedge.exe)",
+      "Bash(tasklist)",
+      "Bash(taskkill /f /im msedgewebview2.exe)",
+      "Bash(taskkill //F //IM msedge.exe //T)",
+      "Bash(taskkill //F //IM msedgewebview2.exe //T)",
+      "mcp__browser-connect__error_correlate"
     ]
   }
 }

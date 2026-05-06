@@ -78,7 +78,7 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ items }) => {
     <div style={{
       position: 'fixed',
       top,
-      right: 'calc(50% + 450px)',
+      right: 'calc(50% + 620px)',
       width: 190,
       maxHeight: 'calc(100vh - 300px)',
       overflowY: 'auto',

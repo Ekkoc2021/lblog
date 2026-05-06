@@ -135,7 +135,7 @@ a {
 }
 
 /* 目录 - 桌面端显示 */
-@media (min-width: 1400px) {
+@media (min-width: 1600px) {
   .toc-desktop {
     display: block !important;
   }
