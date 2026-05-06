@@ -134,10 +134,10 @@ a {
   text-decoration: underline;
 }
 
-/* 目录 - 桌面端显示 */
-@media (min-width: 1600px) {
-  .toc-desktop {
-    display: block !important;
+/* 目录侧栏 - 窄屏隐藏 */
+@media (max-width: 1200px) {
+  .toc-sidebar {
+    display: none !important;
   }
 }
 

@@ -29,24 +29,6 @@ const PostDetail: React.FC = () => {
   const body = post?.body || post?.content?.body || '';
   const tocItems = parseHeadings(body);
 
-  // 渲染后给标题元素注入 id
-  useEffect(() => {
-    if (!body) return;
-    const container = document.querySelector('.markdown-body');
-    if (!container) return;
-    const headings = container.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    const idCount = new Map<string, number>();
-    headings.forEach(el => {
-      if (el.id) return;
-      const text = el.textContent || '';
-      const baseId = text.toLowerCase().replace(/[^a-z0-9一-鿿]+/g, '-').replace(/(^-|-$)/g, '');
-      const count = idCount.get(baseId) || 0;
-      const id = count > 0 ? `${baseId}-${count}` : baseId;
-      idCount.set(baseId, count + 1);
-      el.id = id;
-    });
-  }, [body]);
-
   useEffect(() => {
     fpRef.current = FingerprintJS.load({ monitoring: false });
   }, []);
@@ -119,7 +101,7 @@ const PostDetail: React.FC = () => {
   }
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+    <div style={{ maxWidth: 1500, margin: '0 auto' }}>
       <Button
         type="link"
         icon={<ArrowLeftOutlined />}
@@ -129,105 +111,121 @@ const PostDetail: React.FC = () => {
         返回
       </Button>
 
-      <Card id="post-content" style={{ borderRadius: 4 }} styles={{ body: { padding: '32px 40px' } }}>
-        <Title level={2} style={{ marginTop: 0, marginBottom: 16, lineHeight: 1.4 }}>
-          {post.title}
-        </Title>
+      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+        {/* 文章主体 */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <Card id="post-content" style={{ borderRadius: 4 }} styles={{ body: { padding: '28px 32px' } }}>
+            <Title level={2} style={{ marginTop: 0, marginBottom: 16, lineHeight: 1.4 }}>
+              {post.title}
+            </Title>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-          <Avatar size={32} style={{ background: '#1e80ff' }}>
-            {post.author?.nickname?.[0] || 'U'}
-          </Avatar>
-          <Text style={{ color: '#333', fontWeight: 500 }}>{post.author?.nickname}</Text>
-          <Divider type="vertical" />
-          <Text style={{ color: '#8a919f', fontSize: 13 }}>
-            {post.publishedAt?.split('T')[0]}
-          </Text>
-          <Divider type="vertical" />
-          <Text style={{ color: '#1e80ff', fontSize: 13 }}>{post.category?.name}</Text>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
+              <Avatar size={32} style={{ background: '#1e80ff' }}>
+                {post.author?.nickname?.[0] || 'U'}
+              </Avatar>
+              <Text style={{ color: '#333', fontWeight: 500 }}>{post.author?.nickname}</Text>
+              <Divider type="vertical" />
+              <Text style={{ color: '#8a919f', fontSize: 13 }}>
+                {post.publishedAt?.split('T')[0]}
+              </Text>
+              <Divider type="vertical" />
+              <Text style={{ color: '#1e80ff', fontSize: 13 }}>{post.category?.name}</Text>
+            </div>
+
+            <Space size={20} style={{ marginBottom: 24, display: 'flex' }}>
+              <Space size={4} style={{ color: '#8a919f', fontSize: 13 }}>
+                <EyeOutlined /> <span>{post.viewCount}</span>
+              </Space>
+              <Space
+                size={4}
+                style={{
+                  color: liked ? '#1e80ff' : '#8a919f',
+                  fontSize: 13,
+                  cursor: 'pointer',
+                }}
+                onClick={handleLike}
+              >
+                {liked ? <LikeFilled /> : <LikeOutlined />} <span>{likeCount}</span>
+              </Space>
+              <Space size={4} style={{ color: '#8a919f', fontSize: 13 }}>
+                <MessageOutlined /> <span>{post.commentCount}</span>
+              </Space>
+            </Space>
+
+            {post.tags && post.tags.length > 0 && (
+              <Space style={{ marginBottom: 24 }}>
+                {post.tags.map(tag => (
+                  <Tag key={tag.id} color="blue" style={{ borderRadius: 2 }}>{tag.name}</Tag>
+                ))}
+              </Space>
+            )}
+
+            <Divider style={{ margin: '0 0 24px' }} />
+
+            {body ? (
+              <MarkdownRenderer content={body} />
+            ) : (
+              <div style={{ textAlign: 'center', padding: 40, color: '#8a919f' }}>
+                暂无文章内容
+              </div>
+            )}
+          </Card>
+
+          {/* 上下篇导航 */}
+          {(post.prevPost || post.nextPost) && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginTop: 24 }}>
+              <div style={{ flex: 1, textAlign: 'left' }}>
+                {post.prevPost ? (
+                  <Button
+                    type="link"
+                    style={{ padding: 0, height: 'auto', textAlign: 'left' }}
+                    onClick={() => navigate(`/posts/${post.prevPost!.slug}`)}
+                  >
+                    <div>
+                      <div style={{ fontSize: 12, color: '#8a919f' }}>← 上一篇</div>
+                      <div style={{ fontSize: 14, color: '#1e80ff', lineHeight: 1.4, wordBreak: 'break-word' }}>
+                        {post.prevPost.title}
+                      </div>
+                    </div>
+                  </Button>
+                ) : null}
+              </div>
+              <div style={{ flex: 1, textAlign: 'right' }}>
+                {post.nextPost ? (
+                  <Button
+                    type="link"
+                    style={{ padding: 0, height: 'auto', textAlign: 'right' }}
+                    onClick={() => navigate(`/posts/${post.nextPost!.slug}`)}
+                  >
+                    <div>
+                      <div style={{ fontSize: 12, color: '#8a919f' }}>下一篇 →</div>
+                      <div style={{ fontSize: 14, color: '#1e80ff', lineHeight: 1.4, wordBreak: 'break-word' }}>
+                        {post.nextPost.title}
+                      </div>
+                    </div>
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          )}
+
+          {/* 评论区 */}
+          {post && <CommentSection postId={post.id} />}
         </div>
 
-        <Space size={20} style={{ marginBottom: 24, display: 'flex' }}>
-          <Space size={4} style={{ color: '#8a919f', fontSize: 13 }}>
-            <EyeOutlined /> <span>{post.viewCount}</span>
-          </Space>
-          <Space
-            size={4}
-            style={{
-              color: liked ? '#1e80ff' : '#8a919f',
-              fontSize: 13,
-              cursor: 'pointer',
-            }}
-            onClick={handleLike}
-          >
-            {liked ? <LikeFilled /> : <LikeOutlined />} <span>{likeCount}</span>
-          </Space>
-          <Space size={4} style={{ color: '#8a919f', fontSize: 13 }}>
-            <MessageOutlined /> <span>{post.commentCount}</span>
-          </Space>
-        </Space>
-
-        {post.tags && post.tags.length > 0 && (
-          <Space style={{ marginBottom: 24 }}>
-            {post.tags.map(tag => (
-              <Tag key={tag.id} color="blue" style={{ borderRadius: 2 }}>{tag.name}</Tag>
-            ))}
-          </Space>
-        )}
-
-        <Divider style={{ margin: '0 0 24px' }} />
-
-        {body ? (
-          <MarkdownRenderer content={body} />
-        ) : (
-          <div style={{ textAlign: 'center', padding: 40, color: '#8a919f' }}>
-            暂无文章内容
+        {/* 右侧目录 */}
+        {tocItems.length > 0 && (
+          <div className="toc-sidebar" style={{
+            width: 200,
+            flexShrink: 0,
+            position: 'sticky',
+            top: 80,
+            alignSelf: 'flex-start',
+          }}>
+            <TableOfContents items={tocItems} />
           </div>
         )}
-      </Card>
-
-      {/* 上下篇导航 */}
-      {(post.prevPost || post.nextPost) && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginTop: 24 }}>
-          <div style={{ flex: 1, textAlign: 'left' }}>
-            {post.prevPost ? (
-              <Button
-                type="link"
-                style={{ padding: 0, height: 'auto', textAlign: 'left' }}
-                onClick={() => navigate(`/posts/${post.prevPost!.slug}`)}
-              >
-                <div>
-                  <div style={{ fontSize: 12, color: '#8a919f' }}>← 上一篇</div>
-                  <div style={{ fontSize: 14, color: '#1e80ff', lineHeight: 1.4, wordBreak: 'break-word' }}>
-                    {post.prevPost.title}
-                  </div>
-                </div>
-              </Button>
-            ) : null}
-          </div>
-          <div style={{ flex: 1, textAlign: 'right' }}>
-            {post.nextPost ? (
-              <Button
-                type="link"
-                style={{ padding: 0, height: 'auto', textAlign: 'right' }}
-                onClick={() => navigate(`/posts/${post.nextPost!.slug}`)}
-              >
-                <div>
-                  <div style={{ fontSize: 12, color: '#8a919f' }}>下一篇 →</div>
-                  <div style={{ fontSize: 14, color: '#1e80ff', lineHeight: 1.4, wordBreak: 'break-word' }}>
-                    {post.nextPost.title}
-                  </div>
-                </div>
-              </Button>
-            ) : null}
-          </div>
-        </div>
-      )}
-
-      {/* 评论区 */}
-      {post && <CommentSection postId={post.id} />}
-
-      <TableOfContents items={tocItems} />
+      </div>
     </div>
   );
 };
