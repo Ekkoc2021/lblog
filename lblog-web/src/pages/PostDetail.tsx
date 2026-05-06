@@ -114,25 +114,24 @@ const PostDetail: React.FC = () => {
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
         {/* 文章主体 */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <Card id="post-content" style={{ borderRadius: 4 }} styles={{ body: { padding: '28px 32px' } }}>
+          <Card id="post-content" style={{ borderRadius: 4 }} styles={{ body: { padding: '24px 28px' } }}>
             <Title level={2} style={{ marginTop: 0, marginBottom: 16, lineHeight: 1.4 }}>
               {post.title}
             </Title>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-              <Avatar size={32} style={{ background: '#1e80ff' }}>
+            {/* 元信息：作者 + 统计合并为一行 */}
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
+              <Avatar size={28} style={{ background: '#1e80ff' }}>
                 {post.author?.nickname?.[0] || 'U'}
               </Avatar>
-              <Text style={{ color: '#333', fontWeight: 500 }}>{post.author?.nickname}</Text>
-              <Divider type="vertical" />
+              <Text style={{ color: '#333', fontWeight: 500, fontSize: 14 }}>{post.author?.nickname}</Text>
+              <Text style={{ color: '#bbb' }}>/</Text>
               <Text style={{ color: '#8a919f', fontSize: 13 }}>
                 {post.publishedAt?.split('T')[0]}
               </Text>
-              <Divider type="vertical" />
+              <Text style={{ color: '#bbb' }}>/</Text>
               <Text style={{ color: '#1e80ff', fontSize: 13 }}>{post.category?.name}</Text>
-            </div>
-
-            <Space size={20} style={{ marginBottom: 24, display: 'flex' }}>
+              <Text style={{ color: '#e8e8e8' }}>|</Text>
               <Space size={4} style={{ color: '#8a919f', fontSize: 13 }}>
                 <EyeOutlined /> <span>{post.viewCount}</span>
               </Space>
@@ -150,10 +149,10 @@ const PostDetail: React.FC = () => {
               <Space size={4} style={{ color: '#8a919f', fontSize: 13 }}>
                 <MessageOutlined /> <span>{post.commentCount}</span>
               </Space>
-            </Space>
+            </div>
 
             {post.tags && post.tags.length > 0 && (
-              <Space style={{ marginBottom: 24 }}>
+              <Space style={{ marginBottom: 16 }}>
                 {post.tags.map(tag => (
                   <Tag key={tag.id} color="blue" style={{ borderRadius: 2 }}>{tag.name}</Tag>
                 ))}
@@ -173,40 +172,42 @@ const PostDetail: React.FC = () => {
 
           {/* 上下篇导航 */}
           {(post.prevPost || post.nextPost) && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, marginTop: 24 }}>
-              <div style={{ flex: 1, textAlign: 'left' }}>
-                {post.prevPost ? (
-                  <Button
-                    type="link"
-                    style={{ padding: 0, height: 'auto', textAlign: 'left' }}
-                    onClick={() => navigate(`/posts/${post.prevPost!.slug}`)}
-                  >
-                    <div>
-                      <div style={{ fontSize: 12, color: '#8a919f' }}>← 上一篇</div>
-                      <div style={{ fontSize: 14, color: '#1e80ff', lineHeight: 1.4, wordBreak: 'break-word' }}>
-                        {post.prevPost.title}
+            <Card style={{ marginTop: 16, borderRadius: 4 }} styles={{ body: { padding: '12px 16px' } }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+                <div style={{ flex: 1, textAlign: 'left' }}>
+                  {post.prevPost ? (
+                    <Button
+                      type="link"
+                      style={{ padding: 0, height: 'auto', textAlign: 'left' }}
+                      onClick={() => navigate(`/posts/${post.prevPost!.slug}`)}
+                    >
+                      <div>
+                        <div style={{ fontSize: 12, color: '#8a919f' }}>← 上一篇</div>
+                        <div style={{ fontSize: 14, color: '#1e80ff', lineHeight: 1.4, wordBreak: 'break-word' }}>
+                          {post.prevPost.title}
+                        </div>
                       </div>
-                    </div>
-                  </Button>
-                ) : null}
-              </div>
-              <div style={{ flex: 1, textAlign: 'right' }}>
-                {post.nextPost ? (
-                  <Button
-                    type="link"
-                    style={{ padding: 0, height: 'auto', textAlign: 'right' }}
-                    onClick={() => navigate(`/posts/${post.nextPost!.slug}`)}
-                  >
-                    <div>
-                      <div style={{ fontSize: 12, color: '#8a919f' }}>下一篇 →</div>
-                      <div style={{ fontSize: 14, color: '#1e80ff', lineHeight: 1.4, wordBreak: 'break-word' }}>
-                        {post.nextPost.title}
+                    </Button>
+                  ) : null}
+                </div>
+                <div style={{ flex: 1, textAlign: 'right' }}>
+                  {post.nextPost ? (
+                    <Button
+                      type="link"
+                      style={{ padding: 0, height: 'auto', textAlign: 'right' }}
+                      onClick={() => navigate(`/posts/${post.nextPost!.slug}`)}
+                    >
+                      <div>
+                        <div style={{ fontSize: 12, color: '#8a919f' }}>下一篇 →</div>
+                        <div style={{ fontSize: 14, color: '#1e80ff', lineHeight: 1.4, wordBreak: 'break-word' }}>
+                          {post.nextPost.title}
+                        </div>
                       </div>
-                    </div>
-                  </Button>
-                ) : null}
+                    </Button>
+                  ) : null}
+                </div>
               </div>
-            </div>
+            </Card>
           )}
 
           {/* 评论区 */}
