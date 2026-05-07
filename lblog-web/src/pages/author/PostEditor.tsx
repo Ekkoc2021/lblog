@@ -65,6 +65,9 @@ const PostEditor: React.FC = () => {
   const [draftRestored, setDraftRestored] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const splitContainerRef = useRef<HTMLDivElement>(null);
+  const [leftRatio, setLeftRatio] = useState(0.5);
+  const [dragging, setDragging] = useState(false);
   const { imageBaseUrl, imageMaxSize } = useSiteData();
 
   // 下拉选项数据
@@ -245,6 +248,26 @@ const PostEditor: React.FC = () => {
     fileInputRef.current?.click();
   };
 
+  // 可拖拽分隔条
+  const handleMouseDown = () => setDragging(true);
+
+  useEffect(() => {
+    if (!dragging) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      const el = splitContainerRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      setLeftRatio(Math.min(Math.max((e.clientX - rect.left) / rect.width, 0.25), 0.75));
+    };
+    const handleMouseUp = () => setDragging(false);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [dragging]);
+
   const updateMeta = <K extends keyof PostMeta>(key: K, value: PostMeta[K]) => {
     setMeta(prev => ({ ...prev, [key]: value }));
   };
@@ -270,10 +293,12 @@ const PostEditor: React.FC = () => {
       </Card>
 
       {/* 编辑器主体 */}
-      <div style={{ display: 'flex', gap: 16, flex: 1, minHeight: 400 }}>
+      <div
+        ref={splitContainerRef}
+        style={{ display: 'flex', gap: 0, flex: 1, minHeight: 400, position: 'relative' }}>
         <Card
           title="Markdown 编辑器"
-          style={{ flex: 1, borderRadius: 8 }}
+          style={{ width: `${leftRatio * 100}%`, borderRadius: 8, minWidth: 0, overflow: 'hidden' }}
           styles={{ body: { padding: 0, height: 'calc(100% - 57px)' } }}
         >
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -319,7 +344,23 @@ const PostEditor: React.FC = () => {
           </div>
         </Card>
 
-        <Card title="预览" style={{ flex: 1, borderRadius: 8 }} styles={{ body: { padding: 16, height: 'calc(100% - 57px)', overflow: 'auto' } }}>
+        {/* 拖拽分隔条 */}
+        <div
+          onMouseDown={handleMouseDown}
+          style={{
+            width: 6,
+            cursor: "col-resize",
+            background: dragging ? "#1e80ff" : "transparent",
+            flexShrink: 0,
+            transition: dragging ? "none" : "background 0.2s",
+            borderRadius: 3,
+            margin: "0 5px",
+          }}
+          onMouseEnter={e => { if (!dragging) e.currentTarget.style.background = "#e8e8e8"; }}
+          onMouseLeave={e => { if (!dragging) e.currentTarget.style.background = "transparent"; }}
+        />
+
+        <Card title="预览" style={{ width: `${(1 - leftRatio) * 100}%`, borderRadius: 8, minWidth: 0, overflow: 'hidden' }} styles={{ body: { padding: 16, height: 'calc(100% - 57px)', overflow: 'auto' } }}>
           {body ? (
             <MarkdownRenderer content={body} imageBaseUrl={imageBaseUrl} />
           ) : (
