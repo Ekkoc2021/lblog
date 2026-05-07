@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, Input, Select, Switch, Button, Space, Typography, message, Modal } from 'antd';
-import { SaveOutlined, SendOutlined, ArrowLeftOutlined, PictureOutlined, SettingOutlined, LoadingOutlined } from '@ant-design/icons';
+import { Card, Input, Select, Switch, Button, Space, Typography, message, Modal, Segmented } from 'antd';
+import { SaveOutlined, SendOutlined, ArrowLeftOutlined, PictureOutlined, SettingOutlined, LoadingOutlined, EditOutlined, EyeOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
+import { BlockNoteViewRaw, useCreateBlockNote } from '@blocknote/react';
+import '@blocknote/react/style.css';
+import '@blocknote/core/fonts/inter.css';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
 import { useSiteData } from '../../contexts/SiteDataContext';
 import type { Category, Tag, Series } from '../../types';
@@ -69,6 +72,36 @@ const PostEditor: React.FC = () => {
   const [leftRatio, setLeftRatio] = useState(0.5);
   const [dragging, setDragging] = useState(false);
   const { imageBaseUrl, imageMaxSize } = useSiteData();
+  const [mode, setMode] = useState<'split' | 'wysiwyg'>('split');
+
+  const bnEditor = useCreateBlockNote({
+    uploadFile: async (file) => {
+      if (file.size > imageMaxSize) {
+        message.warning(`图片大小超过限制（最大 ${Math.round(imageMaxSize / 1048576)}MB）`);
+        throw new Error('File too large');
+      }
+      const res = await uploadImage(file);
+      return res.data.url;
+    },
+  });
+
+  // 同步 body → BlockNote 当切换到 WYSIWYG 时
+  const prevMode = useRef(mode);
+  useEffect(() => {
+    if (mode === 'wysiwyg' && prevMode.current === 'split' && body) {
+      try {
+        const blocks = bnEditor.tryParseMarkdownToBlocks(body);
+        bnEditor.replaceBlocks(bnEditor.document, blocks);
+      } catch { /* ignore parse errors */ }
+    }
+    prevMode.current = mode;
+  }, [mode]);
+
+  // WYSIWYG 内容变更 → 同步到 body
+  const handleBnChange = useCallback(() => {
+    const md = bnEditor.blocksToMarkdownLossy();
+    if (md !== body) setBody(md);
+  }, [bnEditor, body]);
 
   // 下拉选项数据
   const [categories, setCategories] = useState<Category[]>([]);
@@ -286,6 +319,15 @@ const PostEditor: React.FC = () => {
             style={{ fontSize: 20, fontWeight: 600, flex: 1 }}
           />
           <Space>
+            <Segmented
+              value={mode}
+              onChange={(val) => setMode(val as 'split' | 'wysiwyg')}
+              options={[
+                { value: 'split', label: <><EditOutlined /> Markdown</> },
+                { value: 'wysiwyg', label: <><EyeOutlined /> 富文本</> },
+              ]}
+              size="small"
+            />
             <Button icon={<SaveOutlined />} onClick={() => openMetaModal('draft')}>保存草稿</Button>
             <Button type="primary" icon={<SendOutlined />} onClick={() => openMetaModal('published')}>发布</Button>
           </Space>
@@ -293,81 +335,94 @@ const PostEditor: React.FC = () => {
       </Card>
 
       {/* 编辑器主体 */}
-      <div
-        ref={splitContainerRef}
-        style={{ display: 'flex', gap: 0, flex: 1, minHeight: 400, position: 'relative' }}>
-        <Card
-          title="Markdown 编辑器"
-          style={{ width: `${leftRatio * 100}%`, borderRadius: 8, minWidth: 0, overflow: 'hidden' }}
-          styles={{ body: { padding: 0, height: 'calc(100% - 57px)' } }}
-        >
-          <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <TextArea
-              id="post-editor-textarea"
-              placeholder="在此输入 Markdown 内容..."
-              value={body}
-              onChange={e => setBody(e.target.value)}
-              onPaste={handlePaste}
-              style={{ flex: 1, border: 'none', resize: 'none', padding: 16, fontSize: 14 }}
-            />
-            <div style={{ padding: '4px 16px', borderTop: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={handleFileSelect}
+      {mode === 'split' ? (
+        <div
+          ref={splitContainerRef}
+          style={{ display: 'flex', gap: 0, flex: 1, minHeight: 400, position: 'relative' }}>
+          <Card
+            title="Markdown 编辑器"
+            style={{ width: `${leftRatio * 100}%`, borderRadius: 8, minWidth: 0, overflow: 'hidden' }}
+            styles={{ body: { padding: 0, height: 'calc(100% - 57px)' } }}
+          >
+            <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <TextArea
+                id="post-editor-textarea"
+                placeholder="在此输入 Markdown 内容..."
+                value={body}
+                onChange={e => setBody(e.target.value)}
+                onPaste={handlePaste}
+                style={{ flex: 1, border: 'none', resize: 'none', padding: 16, fontSize: 14 }}
               />
-              <Button
-                type="link"
-                size="small"
-                icon={uploading ? <LoadingOutlined /> : <PictureOutlined />}
-                onClick={handleImageButtonClick}
-                disabled={uploading}
-                style={{ color: '#999' }}
-              >
-                {uploading ? '上传中...' : '插入图片'}
-              </Button>
-              <Space size="middle">
-                <Text type="secondary" style={{ fontSize: 12 }}>{body.length} 字</Text>
+              <div style={{ padding: '4px 16px', borderTop: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  onChange={handleFileSelect}
+                />
                 <Button
                   type="link"
                   size="small"
-                  icon={<SettingOutlined />}
-                  onClick={() => openMetaModal(null)}
+                  icon={uploading ? <LoadingOutlined /> : <PictureOutlined />}
+                  onClick={handleImageButtonClick}
+                  disabled={uploading}
                   style={{ color: '#999' }}
                 >
-                  文章设置
+                  {uploading ? '上传中...' : '插入图片'}
                 </Button>
-              </Space>
+                <Space size="middle">
+                  <Text type="secondary" style={{ fontSize: 12 }}>{body.length} 字</Text>
+                  <Button
+                    type="link"
+                    size="small"
+                    icon={<SettingOutlined />}
+                    onClick={() => openMetaModal(null)}
+                    style={{ color: '#999' }}
+                  >
+                    文章设置
+                  </Button>
+                </Space>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
 
-        {/* 拖拽分隔条 */}
-        <div
-          onMouseDown={handleMouseDown}
-          style={{
-            width: 6,
-            cursor: "col-resize",
-            background: dragging ? "#1e80ff" : "transparent",
-            flexShrink: 0,
-            transition: dragging ? "none" : "background 0.2s",
-            borderRadius: 3,
-            margin: "0 5px",
-          }}
-          onMouseEnter={e => { if (!dragging) e.currentTarget.style.background = "#e8e8e8"; }}
-          onMouseLeave={e => { if (!dragging) e.currentTarget.style.background = "transparent"; }}
-        />
+          {/* 拖拽分隔条 */}
+          <div
+            onMouseDown={handleMouseDown}
+            style={{
+              width: 6,
+              cursor: "col-resize",
+              background: dragging ? "#1e80ff" : "transparent",
+              flexShrink: 0,
+              transition: dragging ? "none" : "background 0.2s",
+              borderRadius: 3,
+              margin: "0 5px",
+            }}
+            onMouseEnter={e => { if (!dragging) e.currentTarget.style.background = "#e8e8e8"; }}
+            onMouseLeave={e => { if (!dragging) e.currentTarget.style.background = "transparent"; }}
+          />
 
-        <Card title="预览" style={{ width: `${(1 - leftRatio) * 100}%`, borderRadius: 8, minWidth: 0, overflow: 'hidden' }} styles={{ body: { padding: 16, height: 'calc(100% - 57px)', overflow: 'auto' } }}>
-          {body ? (
-            <MarkdownRenderer content={body} imageBaseUrl={imageBaseUrl} />
-          ) : (
-            <div style={{ color: '#ccc', textAlign: 'center', marginTop: 40 }}>开始在左侧编写，实时预览</div>
-          )}
+          <Card title="预览" style={{ width: `${(1 - leftRatio) * 100}%`, borderRadius: 8, minWidth: 0, overflow: 'hidden' }} styles={{ body: { padding: 16, height: 'calc(100% - 57px)', overflow: 'auto' } }}>
+            {body ? (
+              <MarkdownRenderer content={body} imageBaseUrl={imageBaseUrl} />
+            ) : (
+              <div style={{ color: '#ccc', textAlign: 'center', marginTop: 40 }}>开始在左侧编写，实时预览</div>
+            )}
+          </Card>
+        </div>
+      ) : (
+        <Card
+          styles={{ body: { padding: 0, height: '100%' }, header: { display: 'none' } }}
+          style={{ flex: 1, borderRadius: 8, overflow: 'hidden' }}
+        >
+          <BlockNoteViewRaw
+            editor={bnEditor}
+            theme="light"
+            onChange={handleBnChange}
+          />
         </Card>
-      </div>
+      )}
 
       {/* 文章设置弹窗 */}
       <Modal
