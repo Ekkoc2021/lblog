@@ -79,6 +79,28 @@ src/
 
 The Vite dev server proxies `/api/*` to `http://localhost:8099/iblogserver`. The Java backend at `../lblog-server/` provides the actual API. No separate mock server is needed.
 
+## Browser MCP (Chrome 调试)
+
+Chrome 浏览器 MCP 用于调试前端页面。Chrome 安装路径：
+```
+D:\ProgramFile\other\Google\Chrome\Application\chrome.exe
+```
+
+**启动命令：**
+```bash
+# 必须先关闭所有已运行的 Chrome 进程，再以调试模式启动
+powershell "Get-Process chrome | Stop-Process -Force"
+"D:/ProgramFile/other/Google/Chrome/Application/chrome.exe" \
+  --remote-debugging-port=9222 \
+  --no-first-run \
+  --no-default-browser-check \
+  --user-data-dir="D:/ProgramFile/other/Google/Chrome/UserData"
+```
+
+> **注意**：必须同时指定 `--remote-debugging-port` 和 `--user-data-dir` 参数，缺一不可。否则 Chrome 无法开启 DevTools 调试端口。
+
+启动后通过 `mcp__browser-connect__browser_list_tabs` 查看标签页，用 `mcp__browser-connect__browser_connect` 连接指定标签页。
+
 ## TypeScript Conventions
 
 - `verbatimModuleSyntax` enabled — use `import type` for type-only imports

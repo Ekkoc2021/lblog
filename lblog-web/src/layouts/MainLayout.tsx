@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Layout, Input, Typography, Avatar, Popover, Button, Divider, message, Tag } from 'antd';
-import { UserOutlined, LogoutOutlined, FileTextOutlined } from '@ant-design/icons';
+import { Layout, Input, Typography, Avatar, Popover, Button, Divider, message, Tag, Drawer } from 'antd';
+import { UserOutlined, LogoutOutlined, FileTextOutlined, MenuOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useSearchHistory } from '../hooks/useSearchHistory';
 import { useAuth } from '../contexts/AuthContext';
@@ -29,6 +29,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [settingsVisible, setSettingsVisible] = useState(false);
   const blurTimerRef = useRef<number | null>(null);
   const afterLoginRef = useRef<string | null>(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const handler = (e: MediaQueryListEvent | MediaQueryList) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   useEffect(() => {
     if (location.pathname === '/search') {
@@ -70,7 +79,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <Header style={{
         background: '#fff',
         borderBottom: '1px solid #e8e8e8',
-        padding: '0 24px',
+        padding: isMobile ? '0 12px' : '0 24px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -80,13 +89,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+          {isMobile && (
+            <Button
+              type="text"
+              icon={<MenuOutlined style={{ fontSize: 18, color: '#555' }} />}
+              onClick={() => setDrawerOpen(true)}
+              style={{ marginRight: 8 }}
+            />
+          )}
           <div
-            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', marginRight: 32 }}
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', marginRight: isMobile ? 0 : 32 }}
             onClick={() => navigate('/')}
           >
             <Text strong style={{ fontSize: 20, color: '#1e80ff' }}>LBlog</Text>
           </div>
-          {[{ key: '/', label: '首页' }, ...(user?.role === 'admin' ? [adminNavItem] : [])].map(item => {
+          {!isMobile && [{ key: '/', label: '首页' }, ...(user?.role === 'admin' ? [adminNavItem] : [])].map(item => {
             const isActive = item.key === '/' ? location.pathname === '/' : location.pathname.startsWith(item.key);
             return (
               <div
@@ -103,6 +120,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   color: isActive ? '#1e80ff' : '#555',
                   fontSize: 15,
                   fontWeight: isActive ? 600 : 400,
+                  whiteSpace: 'nowrap',
                   transition: 'color 0.2s',
                 }}
                 onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = '#1e80ff'; }}
@@ -305,6 +323,39 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             if (target) navigate(target);
           }}
         />
+        <Drawer
+          title={null}
+          placement="left"
+          closable={false}
+          onClose={() => setDrawerOpen(false)}
+          open={drawerOpen}
+          width={200}
+          styles={{ body: { padding: '12px 0' } }}
+        >
+          {[{ key: '/', label: '首页' }, ...(user?.role === 'admin' ? [adminNavItem] : [])].map(item => {
+            const isActive = item.key === '/' ? location.pathname === '/' : location.pathname.startsWith(item.key);
+            return (
+              <div
+                key={item.key}
+                onClick={() => {
+                  handleNavClick(item.key);
+                  setDrawerOpen(false);
+                }}
+                style={{
+                  padding: '14px 24px',
+                  cursor: 'pointer',
+                  fontSize: 16,
+                  color: isActive ? '#1e80ff' : '#333',
+                  fontWeight: isActive ? 600 : 400,
+                  background: isActive ? '#f0f7ff' : 'transparent',
+                  borderRight: isActive ? '3px solid #1e80ff' : '3px solid transparent',
+                }}
+              >
+                {item.label}
+              </div>
+            );
+          })}
+        </Drawer>
     </Layout>
   );
 };
