@@ -8,6 +8,7 @@ import MarkdownRenderer from '../components/MarkdownRenderer';
 import EmptyState from '../components/EmptyState';
 import CommentSection from '../components/CommentSection';
 import TableOfContents, { parseHeadings } from '../components/TableOfContents';
+import { useSiteData } from '../contexts/SiteDataContext';
 import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 const { Text, Title } = Typography;
@@ -24,6 +25,7 @@ const PostDetail: React.FC = () => {
   const [likeLoading, setLikeLoading] = useState(false);
   const visitorIdRef = useRef<string>('');
   const fpRef = useRef<ReturnType<typeof FingerprintJS.load> | null>(null);
+  const { imageBaseUrl } = useSiteData();
 
   // 派生变量（必须在所有 hook 之后、early return 之前）
   const body = post?.body || post?.content?.body || '';
@@ -162,7 +164,7 @@ const PostDetail: React.FC = () => {
             <Divider style={{ margin: '0 0 24px' }} />
 
             {body ? (
-              <MarkdownRenderer content={body} />
+              <MarkdownRenderer content={body} imageBaseUrl={imageBaseUrl} />
             ) : (
               <div style={{ textAlign: 'center', padding: 40, color: '#8a919f' }}>
                 暂无文章内容

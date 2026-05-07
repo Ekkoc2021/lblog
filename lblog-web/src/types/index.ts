@@ -210,6 +210,12 @@ export interface RegisterRequest {
   email?: string;
 }
 
+// 站点配置
+export interface SiteConfig {
+  imageBaseUrl: string;
+  imageMaxSize: number;
+}
+
 export interface CreateSeriesRequest {
   title: string;
   slug: string;

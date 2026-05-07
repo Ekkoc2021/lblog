@@ -1,4 +1,4 @@
-import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest } from '../types';
+import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig } from '../types';
 
 function getToken(): string | null {
   return sessionStorage.getItem('lblog_access_token');
@@ -38,6 +38,11 @@ async function request<T>(path: string, options?: RequestInit): Promise<ApiRespo
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options?.headers as Record<string, string>),
   };
+
+  // FormData 由浏览器自己设置 Content-Type（含 boundary）
+  if (options?.body instanceof FormData) {
+    delete headers['Content-Type'];
+  }
 
   const res = await fetch(path, { ...options, headers });
 
@@ -283,6 +288,21 @@ export async function deletePost(id: number): Promise<ApiResponse<null>> {
 // 校验 Slug
 export async function checkSlug(slug: string, excludeId?: number): Promise<ApiResponse<{ available: boolean }>> {
   return request<{ available: boolean }>(`/api/v1/author/posts/check-slug${buildQuery({ slug, excludeId })}`);
+}
+
+// ---- 站点配置 & 图片上传 ----
+
+export async function getSiteConfig(): Promise<ApiResponse<SiteConfig>> {
+  return request<SiteConfig>('/api/v1/config');
+}
+
+export async function uploadImage(file: File): Promise<ApiResponse<{ url: string; filename: string; size: number; mimeType: string }>> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return request('/api/v1/upload/image', {
+    method: 'POST',
+    body: formData,
+  });
 }
 
 // ---- 管理端 Category CRUD ----

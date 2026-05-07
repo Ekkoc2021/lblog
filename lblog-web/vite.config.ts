@@ -13,6 +13,10 @@ export default defineConfig({
           Origin: 'http://localhost:4200',
         },
       },
+      '/uploads': {
+        target: 'http://localhost:8099/iblogserver',
+        changeOrigin: true,
+      },
     },
   },
 })

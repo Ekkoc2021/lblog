@@ -5,6 +5,7 @@ import type { Components } from 'react-markdown';
 
 interface MarkdownRendererProps {
   content: string;
+  imageBaseUrl?: string;
 }
 
 function generateId(text: string): string {
@@ -38,20 +39,34 @@ function withHeadingId(level: string) {
   };
 }
 
-const components: Components = {
-  h1: withHeadingId('h1'),
-  h2: withHeadingId('h2'),
-  h3: withHeadingId('h3'),
-  h4: withHeadingId('h4'),
-  h5: withHeadingId('h5'),
-  h6: withHeadingId('h6'),
-};
+function withImageBaseUrl(imageBaseUrl: string): Components {
+  return {
+    h1: withHeadingId('h1'),
+    h2: withHeadingId('h2'),
+    h3: withHeadingId('h3'),
+    h4: withHeadingId('h4'),
+    h5: withHeadingId('h5'),
+    h6: withHeadingId('h6'),
+    img: ({ src, alt, ...rest }) => {
+      const finalSrc = src && imageBaseUrl && src.startsWith('/')
+        ? `${imageBaseUrl.replace(/\/$/, '')}${src}`
+        : src;
+      return <img src={finalSrc} alt={alt || ''} {...rest} />;
+    },
+  };
+}
 
-const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
+const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, imageBaseUrl = '' }) => {
   idCount.clear();
   return (
     <div className="markdown-body">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} components={components}>{content}</ReactMarkdown>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeHighlight]}
+        components={withImageBaseUrl(imageBaseUrl)}
+      >
+        {content}
+      </ReactMarkdown>
     </div>
   );
 };

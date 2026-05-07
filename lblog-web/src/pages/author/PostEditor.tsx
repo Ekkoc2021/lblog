@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, Input, Select, Switch, Button, Space, Typography, message, Modal } from 'antd';
-import { SaveOutlined, SendOutlined, ArrowLeftOutlined, PictureOutlined, SettingOutlined } from '@ant-design/icons';
+import { SaveOutlined, SendOutlined, ArrowLeftOutlined, PictureOutlined, SettingOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
+import { useSiteData } from '../../contexts/SiteDataContext';
 import type { Category, Tag, Series } from '../../types';
-import { getCategories, getTags, getSeries, getAdminPostById, createPost, updatePost } from '../../services/api';
+import { getCategories, getTags, getSeries, getAdminPostById, createPost, updatePost, uploadImage } from '../../services/api';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -62,6 +63,9 @@ const PostEditor: React.FC = () => {
   const [metaModalVisible, setMetaModalVisible] = useState(false);
   const [pendingAction, setPendingAction] = useState<'draft' | 'published' | null>(null);
   const [draftRestored, setDraftRestored] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { imageBaseUrl, imageMaxSize } = useSiteData();
 
   // 下拉选项数据
   const [categories, setCategories] = useState<Category[]>([]);
@@ -185,8 +189,60 @@ const PostEditor: React.FC = () => {
     }
   };
 
-  const handleImageUpload = () => {
-    message.info('图片上传功能待对接后端');
+  const insertAtCursor = (text: string) => {
+    const textarea = document.getElementById('post-editor-textarea') as HTMLTextAreaElement | null;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    setBody(body.slice(0, start) + text + body.slice(end));
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const pos = start + text.length;
+      textarea.setSelectionRange(pos, pos);
+    });
+  };
+
+  const handleUploadImage = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      message.warning('请选择图片文件');
+      return;
+    }
+    if (file.size > imageMaxSize) {
+      message.warning(`图片大小超过限制（最大 ${Math.round(imageMaxSize / 1048576)}MB）`);
+      return;
+    }
+    setUploading(true);
+    try {
+      const res = await uploadImage(file);
+      const markdown = `![${file.name}](${res.data.url})`;
+      insertAtCursor(markdown);
+    } catch (e: unknown) {
+      message.error(e instanceof Error ? e.message : '上传失败');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    for (let i = 0; i < e.clipboardData.items.length; i++) {
+      const item = e.clipboardData.items[i];
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) handleUploadImage(file);
+        return;
+      }
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleUploadImage(file);
+    e.target.value = '';
+  };
+
+  const handleImageButtonClick = () => {
+    fileInputRef.current?.click();
   };
 
   const updateMeta = <K extends keyof PostMeta>(key: K, value: PostMeta[K]) => {
@@ -222,14 +278,30 @@ const PostEditor: React.FC = () => {
         >
           <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
             <TextArea
+              id="post-editor-textarea"
               placeholder="在此输入 Markdown 内容..."
               value={body}
               onChange={e => setBody(e.target.value)}
+              onPaste={handlePaste}
               style={{ flex: 1, border: 'none', resize: 'none', padding: 16, fontSize: 14 }}
             />
             <div style={{ padding: '4px 16px', borderTop: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Button type="link" size="small" icon={<PictureOutlined />} onClick={handleImageUpload} style={{ color: '#999' }}>
-                插入图片
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleFileSelect}
+              />
+              <Button
+                type="link"
+                size="small"
+                icon={uploading ? <LoadingOutlined /> : <PictureOutlined />}
+                onClick={handleImageButtonClick}
+                disabled={uploading}
+                style={{ color: '#999' }}
+              >
+                {uploading ? '上传中...' : '插入图片'}
               </Button>
               <Space size="middle">
                 <Text type="secondary" style={{ fontSize: 12 }}>{body.length} 字</Text>
@@ -249,7 +321,7 @@ const PostEditor: React.FC = () => {
 
         <Card title="预览" style={{ flex: 1, borderRadius: 8 }} styles={{ body: { padding: 16, height: 'calc(100% - 57px)', overflow: 'auto' } }}>
           {body ? (
-            <MarkdownRenderer content={body} />
+            <MarkdownRenderer content={body} imageBaseUrl={imageBaseUrl} />
           ) : (
             <div style={{ color: '#ccc', textAlign: 'center', marginTop: 40 }}>开始在左侧编写，实时预览</div>
           )}
