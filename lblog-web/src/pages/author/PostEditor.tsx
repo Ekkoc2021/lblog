@@ -72,7 +72,8 @@ const PostEditor: React.FC = () => {
   const [dragging, setDragging] = useState(false);
   const { imageBaseUrl, imageMaxSize } = useSiteData();
   const [mode, setMode] = useState<'split' | 'wysiwyg'>('split');
-  const modeLocked = body.trim().length > 0;
+  const [bnHasContent, setBnHasContent] = useState(false);
+  const modeLocked = body.trim().length > 0 || bnHasContent;
 
   const bnEditor = useCreateBlockNote({
     uploadFile: async (file) => {
@@ -424,14 +425,12 @@ const PostEditor: React.FC = () => {
           </Card>
         </div>
       ) : (
-        <Card
-          styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', flex: 1 }, header: { display: 'none' } }}
-          style={{ flex: 1, borderRadius: 8, minWidth: 0, display: 'flex', flexDirection: 'column' }}
-        >
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', borderRadius: 8, overflow: 'hidden', background: '#fff' }}>
           <div className="bn-editor-wysiwyg" style={{ flex: 1, minHeight: 0 }}>
             <BlockNoteViewRaw
               editor={bnEditor}
               theme="light"
+              onChange={() => { if (!bnHasContent) setBnHasContent(true); }}
             />
           </div>
           <div style={{ padding: '4px 16px', borderTop: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -465,7 +464,7 @@ const PostEditor: React.FC = () => {
               </Button>
             </Space>
           </div>
-        </Card>
+        </div>
       )}      {/* 文章设置弹窗 */}
       <Modal
         title="文章设置"
