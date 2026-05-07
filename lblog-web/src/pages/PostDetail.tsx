@@ -115,8 +115,8 @@ const PostDetail: React.FC = () => {
 
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
         {/* 文章主体 */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <Card id="post-content" style={{ borderRadius: 4 }} styles={{ body: { padding: '24px 28px' } }}>
+        <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+          <Card id="post-content" style={{ borderRadius: 4 }} styles={{ body: { padding: '24px 28px', overflow: 'hidden' } }}>
             <Title level={2} style={{ marginTop: 0, marginBottom: 16, lineHeight: 1.4 }}>
               {post.title}
             </Title>
