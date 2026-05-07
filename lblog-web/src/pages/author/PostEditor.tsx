@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, Input, Select, Switch, Button, Space, Typography, message, Modal, Segmented } from 'antd';
+import { Card, Input, Select, Switch, Button, Space, Typography, message, Modal, Segmented, Tooltip } from 'antd';
 import { SaveOutlined, SendOutlined, ArrowLeftOutlined, PictureOutlined, SettingOutlined, LoadingOutlined, EditOutlined, EyeOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BlockNoteViewRaw, useCreateBlockNote } from '@blocknote/react';
 import '@blocknote/react/style.css';
-import '@blocknote/core/fonts/inter.css';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
 import { useSiteData } from '../../contexts/SiteDataContext';
 import type { Category, Tag, Series } from '../../types';
@@ -73,6 +72,7 @@ const PostEditor: React.FC = () => {
   const [dragging, setDragging] = useState(false);
   const { imageBaseUrl, imageMaxSize } = useSiteData();
   const [mode, setMode] = useState<'split' | 'wysiwyg'>('split');
+  const modeLocked = body.trim().length > 0;
 
   const bnEditor = useCreateBlockNote({
     uploadFile: async (file) => {
@@ -85,23 +85,27 @@ const PostEditor: React.FC = () => {
     },
   });
 
-  // 同步 body → BlockNote 当切换到 WYSIWYG 时
-  const prevMode = useRef(mode);
+  const prevModeRef = useRef(mode);
   useEffect(() => {
-    if (mode === 'wysiwyg' && prevMode.current === 'split' && body) {
-      try {
-        const blocks = bnEditor.tryParseMarkdownToBlocks(body);
-        bnEditor.replaceBlocks(bnEditor.document, blocks);
-      } catch { /* ignore parse errors */ }
+    if (mode === 'wysiwyg' && prevModeRef.current === 'split' && body) {
+      try { bnEditor.replaceBlocks(bnEditor.document, bnEditor.tryParseMarkdownToBlocks(body)); } catch { /* ignore */ }
     }
-    prevMode.current = mode;
+    if (mode === 'split' && prevModeRef.current === 'wysiwyg') {
+      setBody(bnEditor.blocksToMarkdownLossy());
+    }
+    prevModeRef.current = mode;
   }, [mode]);
 
-  // WYSIWYG 内容变更 → 同步到 body
-  const handleBnChange = useCallback(() => {
-    const md = bnEditor.blocksToMarkdownLossy();
-    if (md !== body) setBody(md);
-  }, [bnEditor, body]);
+  // 返回前同步 BlockNote 内容 → body，直接写入 localStorage 草稿
+  const handleBack = useCallback(() => {
+    const finalBody = mode === 'wysiwyg' ? bnEditor.blocksToMarkdownLossy() : body;
+    if (mode === 'wysiwyg') setBody(finalBody);
+    // setBody 是异步的，直接手动保存草稿到 localStorage
+    if (!isEdit) {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, body: finalBody, meta, slugEdited }));
+    }
+    navigate('/author/posts');
+  }, [mode, bnEditor, body, isEdit, title, meta, slugEdited, navigate]);
 
   // 下拉选项数据
   const [categories, setCategories] = useState<Category[]>([]);
@@ -190,6 +194,9 @@ const PostEditor: React.FC = () => {
   };
 
   const handleSave = async () => {
+    // 富文本模式下，保存前先同步内容
+    const finalBody = mode === 'wysiwyg' ? bnEditor.blocksToMarkdownLossy() : body;
+    if (mode === 'wysiwyg') setBody(finalBody);
     if (!meta.slug.trim()) {
       message.warning('请输入 URL 别名');
       return;
@@ -199,8 +206,8 @@ const PostEditor: React.FC = () => {
       const payload = {
         title,
         slug: meta.slug,
-        excerpt: meta.excerpt || extractExcerpt(body),
-        body,
+        excerpt: meta.excerpt || extractExcerpt(finalBody),
+        body: finalBody,
         featuredImage: meta.featuredImage || null,
         status: meta.isPrivate ? 2 : (pendingAction === 'published' ? 1 : 0),
         categoryId: meta.categoryId || null,
@@ -310,7 +317,7 @@ const PostEditor: React.FC = () => {
       {/* 顶部操作栏 */}
       <Card styles={{ body: { padding: '12px 24px' } }} style={{ marginBottom: 16, borderRadius: 8 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/author/posts')}>返回</Button>
+          <Button icon={<ArrowLeftOutlined />} onClick={handleBack}>返回</Button>
           <Input
             placeholder="输入文章标题..."
             value={title}
@@ -319,15 +326,20 @@ const PostEditor: React.FC = () => {
             style={{ fontSize: 20, fontWeight: 600, flex: 1 }}
           />
           <Space>
-            <Segmented
-              value={mode}
-              onChange={(val) => setMode(val as 'split' | 'wysiwyg')}
-              options={[
-                { value: 'split', label: <><EditOutlined /> Markdown</> },
-                { value: 'wysiwyg', label: <><EyeOutlined /> 富文本</> },
-              ]}
-              size="small"
-            />
+            <Tooltip
+              title={modeLocked ? "已有内容时不可切换模式，避免格式丢失" : undefined}
+            >
+              <Segmented
+                value={mode}
+                onChange={(val) => setMode(val as 'split' | 'wysiwyg')}
+                disabled={modeLocked}
+                options={[
+                  { value: 'split', label: <><EditOutlined /> Markdown</> },
+                  { value: 'wysiwyg', label: <><EyeOutlined /> 富文本</> },
+                ]}
+                size="small"
+              />
+            </Tooltip>
             <Button icon={<SaveOutlined />} onClick={() => openMetaModal('draft')}>保存草稿</Button>
             <Button type="primary" icon={<SendOutlined />} onClick={() => openMetaModal('published')}>发布</Button>
           </Space>
@@ -413,18 +425,48 @@ const PostEditor: React.FC = () => {
         </div>
       ) : (
         <Card
-          styles={{ body: { padding: 0, height: '100%' }, header: { display: 'none' } }}
-          style={{ flex: 1, borderRadius: 8, overflow: 'hidden' }}
+          styles={{ body: { padding: 0, display: 'flex', flexDirection: 'column', flex: 1 }, header: { display: 'none' } }}
+          style={{ flex: 1, borderRadius: 8, minWidth: 0, display: 'flex', flexDirection: 'column' }}
         >
-          <BlockNoteViewRaw
-            editor={bnEditor}
-            theme="light"
-            onChange={handleBnChange}
-          />
+          <div className="bn-editor-wysiwyg" style={{ flex: 1, minHeight: 0 }}>
+            <BlockNoteViewRaw
+              editor={bnEditor}
+              theme="light"
+            />
+          </div>
+          <div style={{ padding: '4px 16px', borderTop: '1px solid #f0f0f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleFileSelect}
+            />
+            <Button
+              type="link"
+              size="small"
+              icon={uploading ? <LoadingOutlined /> : <PictureOutlined />}
+              onClick={handleImageButtonClick}
+              disabled={uploading}
+              style={{ color: '#999' }}
+            >
+              {uploading ? '上传中...' : '插入图片'}
+            </Button>
+            <Space size="middle">
+              <Text type="secondary" style={{ fontSize: 12 }}>{body.length} 字</Text>
+              <Button
+                type="link"
+                size="small"
+                icon={<SettingOutlined />}
+                onClick={() => openMetaModal(null)}
+                style={{ color: '#999' }}
+              >
+                文章设置
+              </Button>
+            </Space>
+          </div>
         </Card>
-      )}
-
-      {/* 文章设置弹窗 */}
+      )}      {/* 文章设置弹窗 */}
       <Modal
         title="文章设置"
         open={metaModalVisible}

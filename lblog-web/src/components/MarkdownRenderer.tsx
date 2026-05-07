@@ -1,5 +1,6 @@
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkBreaks from 'remark-breaks';
 import rehypeHighlight from 'rehype-highlight';
 import type { Components } from 'react-markdown';
 
@@ -61,7 +62,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, imageBaseU
   return (
     <div className="markdown-body">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkBreaks]}
         rehypePlugins={[rehypeHighlight]}
         components={withImageBaseUrl(imageBaseUrl)}
       >

@@ -141,6 +141,12 @@ a {
   }
 }
 
+/* BlockNote WYSIWYG 编辑器高度撑满 */
+.bn-editor-wysiwyg .bn-root,
+.bn-editor-wysiwyg .bn-editor {
+  height: 100%;
+}
+
 /* 平滑滚动 */
 html {
   scroll-behavior: smooth;
