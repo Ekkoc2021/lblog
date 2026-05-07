@@ -2,21 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Build & Run
+## Build, Run & Debug
 
-```bash
-# Build the project (skip tests for speed during development)
-mvn clean install -DskipTests
+All build/run/debug operations must use IntelliJ IDEA MCP tools (不要用 mvn 命令行):
 
-# Run the application (starts on port 8099, context-path: /iblogserver)
-mvn spring-boot:run
-
-# Run tests
-mvn test
-
-# Run a single test class
-mvn test -Dtest=LblogServerApplicationTests
-```
+- **Build project** — `mcp__idea__build_project(rebuild: true)`
+- **Run/Debug (Spring Boot)** — Run configuration: `LblogServerApplication` (profile: default, port 8099, context-path: `/iblogserver`)
+  - 使用 `mcp__idea__xdebug_start_debugger_session(configurationName: "LblogServerApplication")` 以 debug 模式启动
+- **Run tests** — Use `mcp__idea__get_run_configurations(filePath: ...)` 找到测试类后执行
 
 ## Project Overview
 

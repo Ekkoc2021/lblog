@@ -69,11 +69,15 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/posts/*/view", "/api/v1/posts/*/like").permitAll()
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/posts/*/like").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/v1/posts/*/like/status").permitAll()
+                // 公开接口：站点配置
+                .requestMatchers("/api/v1/config").permitAll()
                 // 公开接口：静态资源
                 .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                 // 创作中心接口：AUTHOR 及以上可访问（admin 通过角色继承自动拥有 AUTHOR 权限）
                 .requestMatchers("/api/v1/author/**").hasRole("AUTHOR")
-                // 其余接口（auth/me, auth/logout, auth/change-password, upload 等）需登录
+                // 上传接口：AUTHOR 及以上可访问
+                .requestMatchers("/api/v1/upload/**").hasRole("AUTHOR")
+                // 其余接口（auth/me, auth/logout, auth/change-password 等）需登录
                 .anyRequest().authenticated()
             )
             .userDetailsService(userDetailsService)
