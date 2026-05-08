@@ -405,3 +405,18 @@ export interface AuthorStatistics {
 export async function getAuthorStatistics(): Promise<ApiResponse<AuthorStatistics>> {
   return request<AuthorStatistics>('/api/v1/author/statistics');
 }
+
+// ---- 用户头像 ----
+
+export async function updateAvatar(file: File): Promise<ApiResponse<{ id: number; url: string }>> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return request<{ id: number; url: string }>('/api/v1/user/avatar', {
+    method: 'PUT',
+    body: formData,
+  });
+}
+
+export async function deleteAvatar(): Promise<ApiResponse<null>> {
+  return request<null>('/api/v1/user/avatar', { method: 'DELETE' });
+}

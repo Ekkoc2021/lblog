@@ -243,7 +243,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', gap: 12 }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                        <Avatar icon={<UserOutlined />} style={{ background: '#1e80ff' }} />
+                        <Avatar src={user?.avatar || undefined} icon={user?.avatar ? undefined : <UserOutlined />} style={{ background: user?.avatar ? undefined : '#1e80ff' }}>{!user?.avatar && (user?.nickname?.[0] || 'U')}</Avatar>
                         {user?.role && <Tag color={user.role === 'admin' ? 'red' : user.role === 'author' ? 'blue' : 'default'} style={{ fontSize: 10, lineHeight: '16px', padding: '0 5px', margin: 0 }}>{user.role === 'admin' ? '管理员' : user.role === 'author' ? '作者' : '用户'}</Tag>}
                       </div>
                       <div>
@@ -286,9 +286,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             >
               <span style={{ display: 'inline-block' }}>
                 <Avatar
-                  icon={<UserOutlined />}
-                  style={{ background: '#1e80ff', cursor: 'pointer' }}
-                />
+                  src={user?.avatar || undefined}
+                  icon={user?.avatar ? undefined : <UserOutlined />}
+                  style={{ background: user?.avatar ? undefined : '#1e80ff', cursor: 'pointer' }}
+                >{!user?.avatar && (user?.nickname?.[0] || 'U')}</Avatar>
               </span>
             </Popover>
           ) : (

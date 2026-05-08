@@ -128,8 +128,8 @@ const PostDetail: React.FC = () => {
 
             {/* 元信息：作者 + 统计合并为一行 */}
             <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 16 }}>
-              <Avatar size={28} style={{ background: '#1e80ff' }}>
-                {post.author?.nickname?.[0] || 'U'}
+              <Avatar size={28} src={post.author?.avatar || undefined} style={{ background: post.author?.avatar ? undefined : '#1e80ff' }}>
+                {!post.author?.avatar && (post.author?.nickname?.[0] || 'U')}
               </Avatar>
               <Text style={{ color: '#333', fontWeight: 500, fontSize: 14 }}>{post.author?.nickname}</Text>
               <Text style={{ color: '#bbb' }}>/</Text>

@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { Drawer, Avatar, Descriptions, Tag, Divider, Form, Input, Button, message, Typography } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import { useState, useRef } from 'react';
+import { Drawer, Avatar, Descriptions, Tag, Divider, Form, Input, Button, message, Typography, Upload } from 'antd';
+import { UserOutlined, LockOutlined, CameraOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
-import { changePassword } from '../services/api';
+import { changePassword, updateAvatar, deleteAvatar } from '../services/api';
 
 const { Text } = Typography;
 
@@ -12,9 +12,11 @@ interface UserSettingsDrawerProps {
 }
 
 const UserSettingsDrawer: React.FC<UserSettingsDrawerProps> = ({ open, onClose }) => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [avatarLoading, setAvatarLoading] = useState(false);
   const [form] = Form.useForm();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChangePassword = async (values: { oldPassword: string; newPassword: string; confirmPassword: string }) => {
     setLoading(true);
@@ -27,6 +29,42 @@ const UserSettingsDrawer: React.FC<UserSettingsDrawerProps> = ({ open, onClose }
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAvatarUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      message.warning('请选择图片文件');
+      return;
+    }
+    setAvatarLoading(true);
+    try {
+      await updateAvatar(file);
+      message.success('头像已更新');
+      await refreshUser();
+    } catch (e: unknown) {
+      message.error(e instanceof Error ? e.message : '上传失败');
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+
+  const handleAvatarDelete = async () => {
+    setAvatarLoading(true);
+    try {
+      await deleteAvatar();
+      message.success('头像已删除');
+      await refreshUser();
+    } catch (e: unknown) {
+      message.error(e instanceof Error ? e.message : '删除失败');
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleAvatarUpload(file);
+    e.target.value = '';
   };
 
   const roleLabel: Record<string, { color: string; label: string }> = {
@@ -45,13 +83,50 @@ const UserSettingsDrawer: React.FC<UserSettingsDrawerProps> = ({ open, onClose }
       width={400}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-        <Avatar size={64} icon={<UserOutlined />} style={{ background: '#1e80ff' }} />
+        <div style={{ position: 'relative' }}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleFileSelect}
+          />
+          <Avatar
+            size={64}
+            src={user?.avatar || undefined}
+            icon={user?.avatar ? undefined : <UserOutlined />}
+            style={{ background: user?.avatar ? undefined : '#1e80ff', cursor: 'pointer' }}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            {!user?.avatar && (user?.nickname?.[0] || 'U')}
+          </Avatar>
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              position: 'absolute', bottom: 0, right: 0,
+              width: 22, height: 22, borderRadius: '50%',
+              background: '#1e80ff', color: '#fff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', fontSize: 12, border: '2px solid #fff',
+            }}
+          >
+            {avatarLoading ? <LoadingOutlined /> : <CameraOutlined />}
+          </div>
+        </div>
         <div>
           <Text strong style={{ fontSize: 16 }}>{user?.nickname ?? '用户'}</Text>
           <div><Text type="secondary">@{user?.username}</Text></div>
           <Tag color={roleInfo.color} style={{ marginTop: 4 }}>{roleInfo.label}</Tag>
         </div>
       </div>
+
+      {user?.avatar && (
+        <div style={{ textAlign: 'right', marginBottom: 8 }}>
+          <Button type="link" size="small" danger onClick={handleAvatarDelete} loading={avatarLoading}>
+            删除头像
+          </Button>
+        </div>
+      )}
 
       <Descriptions column={1} size="small" style={{ marginBottom: 16 }}>
         <Descriptions.Item label="邮箱">{user?.email ?? '-'}</Descriptions.Item>

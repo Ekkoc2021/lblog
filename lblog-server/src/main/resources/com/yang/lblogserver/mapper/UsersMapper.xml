@@ -61,4 +61,8 @@
         WHERE id = #{id}
     </update>
 
+    <update id="updateAvatar">
+        UPDATE users SET avatar = #{avatar} WHERE id = #{id}
+    </update>
+
 </mapper>

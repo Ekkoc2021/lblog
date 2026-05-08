@@ -36,8 +36,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ post, keyword, onClick }) => 
     <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <Avatar size={22} style={{ background: '#1e80ff', fontSize: 12 }}>
-            {post.author?.nickname?.[0] || 'U'}
+          <Avatar size={22} src={post.author?.avatar || undefined} style={{ background: post.author?.avatar ? undefined : '#1e80ff', fontSize: 12 }}>
+            {!post.author?.avatar && (post.author?.nickname?.[0] || 'U')}
           </Avatar>
           <Text style={{ fontSize: 13, color: '#8a919f' }}>{post.author?.nickname}</Text>
           <Divider type="vertical" />
