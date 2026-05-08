@@ -10,6 +10,7 @@ import com.yang.lblogserver.service.PostsService;
 import com.yang.lblogserver.vo.*;
 import com.yang.lblogserver.vo.admin.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -479,6 +480,50 @@ public class PostsServiceImpl implements PostsService {
         postsMapper.softDeletePost(id);
         postTagsMapper.deleteByPostId(id);
         seriesPostsMapper.deleteByPostId(id);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public AuthorStatisticsVO getAuthorStatistics(Long authorId) {
+        AuthorStatisticsVO stats = postsMapper.selectAuthorStatistics(authorId);
+        if (stats == null) {
+            stats = new AuthorStatisticsVO();
+        }
+
+        // 状态分布
+        List<AuthorStatisticsVO.StatusItem> statusDist = postsMapper.selectStatusDistribution(authorId);
+        stats.setStatusDistribution(statusDist != null ? statusDist : Collections.emptyList());
+
+        // 分类分布
+        List<AuthorStatisticsVO.CategoryItem> catDist = postsMapper.selectCategoryDistribution(authorId);
+        stats.setCategoryDistribution(catDist != null ? catDist : Collections.emptyList());
+
+        // 月度趋势：查询 + 补足 12 个月
+        List<AuthorStatisticsVO.MonthItem> dbTrend = postsMapper.selectMonthlyTrend(authorId);
+        Map<String, Integer> monthMap = new HashMap<>();
+        if (dbTrend != null) {
+            for (AuthorStatisticsVO.MonthItem item : dbTrend) {
+                monthMap.put(item.getMonth(), item.getCount());
+            }
+        }
+
+        List<AuthorStatisticsVO.MonthItem> fullTrend = new ArrayList<>(12);
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(new Date());
+        for (int i = 11; i >= 0; i--) {
+            Calendar m = Calendar.getInstance();
+            m.setTime(new Date());
+            m.add(Calendar.MONTH, -i);
+            String month = String.format("%04d-%02d", m.get(Calendar.YEAR), m.get(Calendar.MONTH) + 1);
+            int count = monthMap.getOrDefault(month, 0);
+            AuthorStatisticsVO.MonthItem item = new AuthorStatisticsVO.MonthItem();
+            item.setMonth(month);
+            item.setCount(count);
+            fullTrend.add(item);
+        }
+        stats.setMonthlyTrend(fullTrend);
+
+        return stats;
     }
 
     @Override

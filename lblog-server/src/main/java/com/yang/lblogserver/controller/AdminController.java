@@ -327,9 +327,17 @@ public class AdminController {
     // ==================== 统计 ====================
 
     @Operation(summary = "获取站点统计数据")
-    @GetMapping("/statistics")
+    @GetMapping("/site-statistics")
     public ApiResponse<StatisticsVO> getStatistics() {
         StatisticsVO stats = postsService.getStatistics();
+        return ApiResponse.success(stats);
+    }
+
+    @Operation(summary = "获取作者个人统计数据", description = "文章数、浏览量、点赞数、评论数、状态分布、分类分布、月度发文趋势")
+    @GetMapping("/statistics")
+    public ApiResponse<AuthorStatisticsVO> getAuthorStatistics() {
+        Long userId = getCurrentUserId();
+        AuthorStatisticsVO stats = postsService.getAuthorStatistics(userId);
         return ApiResponse.success(stats);
     }
 }

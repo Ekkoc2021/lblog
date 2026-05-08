@@ -37,5 +37,7 @@ public interface PostsService {
 
     void deletePost(Long id);
 
+    AuthorStatisticsVO getAuthorStatistics(Long authorId);
+
     boolean checkSlug(String slug, Long excludeId);
 }

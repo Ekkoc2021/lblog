@@ -1,3 +1,4 @@
+import { Image } from 'antd';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
@@ -48,11 +49,11 @@ function withImageBaseUrl(imageBaseUrl: string): Components {
     h4: withHeadingId('h4'),
     h5: withHeadingId('h5'),
     h6: withHeadingId('h6'),
-    img: ({ src, alt, ...rest }) => {
+    img: ({ src, alt }) => {
       const finalSrc = src && imageBaseUrl && src.startsWith('/')
         ? `${imageBaseUrl.replace(/\/$/, '')}${src}`
         : src;
-      return <img src={finalSrc} alt={alt || ''} {...rest} />;
+      return <Image src={finalSrc} alt={alt || ''} style={{ maxWidth: '100%' }} />;
     },
   };
 }

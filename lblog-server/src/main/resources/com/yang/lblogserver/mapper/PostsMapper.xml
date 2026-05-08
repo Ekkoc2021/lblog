@@ -168,4 +168,47 @@
         WHERE is_delelte = 0 AND deleted_at IS NULL
     </select>
 
+    <!-- ========== Author Statistics ========== -->
+
+    <select id="selectAuthorStatistics" resultType="com.yang.lblogserver.vo.admin.AuthorStatisticsVO">
+        SELECT
+            COUNT(*) AS totalPosts,
+            COALESCE(SUM(view_count), 0) AS totalViews,
+            COALESCE(SUM(like_count), 0) AS totalLikes,
+            COALESCE(SUM(comment_count), 0) AS totalComments
+        FROM posts
+        WHERE author_id = #{authorId} AND is_delelte = 0 AND deleted_at IS NULL
+    </select>
+
+    <select id="selectStatusDistribution" resultType="com.yang.lblogserver.vo.admin.AuthorStatisticsVO$StatusItem">
+        SELECT status AS `status`, COUNT(*) AS `count`
+        FROM posts
+        WHERE author_id = #{authorId} AND is_delelte = 0 AND deleted_at IS NULL
+        GROUP BY status
+    </select>
+
+    <select id="selectCategoryDistribution" resultType="com.yang.lblogserver.vo.admin.AuthorStatisticsVO$CategoryItem">
+        SELECT
+            COALESCE(c.name, '未分类') AS categoryName,
+            COALESCE(c.slug, '') AS categorySlug,
+            COUNT(p.id) AS postCount
+        FROM posts p
+        LEFT JOIN categories c ON c.id = p.category_id
+        WHERE p.author_id = #{authorId} AND p.is_delelte = 0 AND p.deleted_at IS NULL
+        GROUP BY p.category_id
+        ORDER BY postCount DESC
+    </select>
+
+    <select id="selectMonthlyTrend" resultType="com.yang.lblogserver.vo.admin.AuthorStatisticsVO$MonthItem">
+        SELECT
+            DATE_FORMAT(p.created_at, '%Y-%m') AS month,
+            COUNT(*) AS count
+        FROM posts p
+        WHERE p.author_id = #{authorId}
+          AND p.is_delelte = 0 AND p.deleted_at IS NULL
+          AND p.created_at >= DATE_SUB(NOW(), INTERVAL 12 MONTH)
+        GROUP BY month
+        ORDER BY month
+    </select>
+
 </mapper>

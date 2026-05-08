@@ -58,7 +58,18 @@
       "Bash(taskkill /f /im msedgewebview2.exe)",
       "Bash(taskkill //F //IM msedge.exe //T)",
       "Bash(taskkill //F //IM msedgewebview2.exe //T)",
-      "mcp__browser-connect__error_correlate"
+      "mcp__browser-connect__error_correlate",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(node -e \"console.log\\(require\\('@blocknote/react/package.json'\\).version\\)\")",
+      "Bash(node 507/apply-wysiwyg.cjs)",
+      "Bash(node -e ' *)",
+      "Bash(npm view *)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const d=fs.readFileSync\\('/dev/stdin','utf8',\\(_,d\\)=>{const v=JSON.parse\\(d\\);const filtered=v.filter\\(v=>/^0\\\\.[0-9]+\\\\./.test\\(v\\)\\);console.log\\(filtered.slice\\(-5\\).join\\('\\\\n'\\)\\);}\\)\")",
+      "Bash(npm uninstall *)",
+      "Bash(node 507/fix-editor.cjs)",
+      "Bash(node 507/add-wysiwyg-final.cjs)",
+      "Bash(node 507/add-wysiwyg-v2.cjs)"
     ]
   }
 }

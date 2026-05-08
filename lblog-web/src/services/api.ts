@@ -389,3 +389,19 @@ export async function updateSeries(id: number, data: Partial<CreateSeriesRequest
 export async function deleteSeries(id: number): Promise<ApiResponse<null>> {
   return request<null>(`/api/v1/author/series/${id}`, { method: 'DELETE' });
 }
+
+// ---- 作者统计 ----
+
+export interface AuthorStatistics {
+  totalPosts: number;
+  totalViews: number;
+  totalLikes: number;
+  totalComments: number;
+  statusDistribution: Array<{ status: number; count: number }>;
+  categoryDistribution: Array<{ categoryName: string; categorySlug: string; postCount: number }>;
+  monthlyTrend: Array<{ month: string; count: number }>;
+}
+
+export async function getAuthorStatistics(): Promise<ApiResponse<AuthorStatistics>> {
+  return request<AuthorStatistics>('/api/v1/author/statistics');
+}

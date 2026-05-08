@@ -2,6 +2,7 @@ package com.yang.lblogserver.mapper;
 
 import com.yang.lblogserver.domain.Posts;
 import com.yang.lblogserver.vo.HotPostVO;
+import com.yang.lblogserver.vo.admin.AuthorStatisticsVO;
 import com.yang.lblogserver.vo.admin.StatisticsVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -46,4 +47,14 @@ public interface PostsMapper {
     int countBySlug(@Param("slug") String slug, @Param("excludeId") Long excludeId);
 
     StatisticsVO selectStatistics();
+
+    // ---- Author Statistics ----
+
+    AuthorStatisticsVO selectAuthorStatistics(@Param("authorId") Long authorId);
+
+    List<AuthorStatisticsVO.StatusItem> selectStatusDistribution(@Param("authorId") Long authorId);
+
+    List<AuthorStatisticsVO.CategoryItem> selectCategoryDistribution(@Param("authorId") Long authorId);
+
+    List<AuthorStatisticsVO.MonthItem> selectMonthlyTrend(@Param("authorId") Long authorId);
 }
