@@ -31,12 +31,14 @@ public interface UsersMapper {
     List<Users> selectUserList(@Param("keyword") String keyword,
                                @Param("status") Integer status,
                                @Param("inactiveDays") Integer inactiveDays,
+                               @Param("role") String role,
                                @Param("offset") int offset,
                                @Param("limit") int limit);
 
     int countUserList(@Param("keyword") String keyword,
                       @Param("status") Integer status,
-                      @Param("inactiveDays") Integer inactiveDays);
+                      @Param("inactiveDays") Integer inactiveDays,
+                      @Param("role") String role);
 
     int softDeleteUser(@Param("id") Long id);
 

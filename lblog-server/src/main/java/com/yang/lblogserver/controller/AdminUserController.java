@@ -2,9 +2,13 @@ package com.yang.lblogserver.controller;
 
 import com.yang.lblogserver.common.ApiResponse;
 import com.yang.lblogserver.common.PageResult;
+import com.yang.lblogserver.domain.Permissions;
+import com.yang.lblogserver.domain.RolePermissions;
 import com.yang.lblogserver.domain.Roles;
 import com.yang.lblogserver.domain.UserRoles;
 import com.yang.lblogserver.domain.Users;
+import com.yang.lblogserver.mapper.PermissionsMapper;
+import com.yang.lblogserver.mapper.RolePermissionsMapper;
 import com.yang.lblogserver.mapper.RolesMapper;
 import com.yang.lblogserver.mapper.UserRolesMapper;
 import com.yang.lblogserver.mapper.UserTokenMapper;
@@ -21,7 +25,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Tag(name = "管理端", description = "用户管理")
@@ -34,32 +40,39 @@ public class AdminUserController {
     private final UsersMapper usersMapper;
     private final UserRolesMapper userRolesMapper;
     private final RolesMapper rolesMapper;
+    private final PermissionsMapper permissionsMapper;
+    private final RolePermissionsMapper rolePermissionsMapper;
     private final UserTokenMapper userTokenMapper;
     private final PasswordEncoder passwordEncoder;
 
     public AdminUserController(UsersMapper usersMapper,
                                UserRolesMapper userRolesMapper,
                                RolesMapper rolesMapper,
+                               PermissionsMapper permissionsMapper,
+                               RolePermissionsMapper rolePermissionsMapper,
                                UserTokenMapper userTokenMapper,
                                PasswordEncoder passwordEncoder) {
         this.usersMapper = usersMapper;
         this.userRolesMapper = userRolesMapper;
         this.rolesMapper = rolesMapper;
+        this.permissionsMapper = permissionsMapper;
+        this.rolePermissionsMapper = rolePermissionsMapper;
         this.userTokenMapper = userTokenMapper;
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Operation(summary = "用户列表", description = "分页查询用户列表，支持关键词搜索、状态筛选、非活跃天数筛选")
+    @Operation(summary = "用户列表", description = "分页查询用户列表，支持关键词搜索、状态筛选、非活跃天数筛选、角色筛选")
     @GetMapping("/users")
     public ApiResponse<PageResult<AdminUserVO>> getUserList(
             @RequestParam(defaultValue = "1") @Min(1) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int pageSize,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer status,
-            @RequestParam(required = false) Integer inactiveDays) {
+            @RequestParam(required = false) Integer inactiveDays,
+            @RequestParam(required = false) String role) {
         int offset = (page - 1) * pageSize;
-        List<Users> userList = usersMapper.selectUserList(keyword, status, inactiveDays, offset, pageSize);
-        int total = usersMapper.countUserList(keyword, status, inactiveDays);
+        List<Users> userList = usersMapper.selectUserList(keyword, status, inactiveDays, role, offset, pageSize);
+        int total = usersMapper.countUserList(keyword, status, inactiveDays, role);
 
         List<AdminUserVO> voList = new ArrayList<>();
         for (Users user : userList) {
@@ -166,10 +179,80 @@ public class AdminUserController {
         return ApiResponse.success(null);
     }
 
-    @Operation(summary = "角色列表", description = "获取所有角色")
+    @Operation(summary = "用户详情", description = "获取单个用户详情")
+    @GetMapping("/users/{id}")
+    public ApiResponse<AdminUserVO> getUser(@PathVariable Long id) {
+        Users user = usersMapper.selectById(id);
+        if (user == null) {
+            return ApiResponse.error(404, "用户不存在");
+        }
+        return ApiResponse.success(buildAdminUserVO(user));
+    }
+
+    @Operation(summary = "角色列表", description = "获取所有角色，含权限列表")
     @GetMapping("/roles")
     public ApiResponse<List<Roles>> getRoleList() {
-        return ApiResponse.success(rolesMapper.selectAll());
+        List<Roles> list = rolesMapper.selectAll();
+        List<Permissions> allPerms = permissionsMapper.selectAll();
+        for (Roles role : list) {
+            List<RolePermissions> rps = rolePermissionsMapper.selectByRoleId(role.getId());
+            if (rps != null && !rps.isEmpty()) {
+                List<Long> permIds = rps.stream().map(RolePermissions::getPermissionId).collect(Collectors.toList());
+                List<String> perms = allPerms.stream()
+                        .filter(p -> permIds.contains(p.getId()))
+                        .map(Permissions::getCode)
+                        .collect(Collectors.toList());
+                role.setPermissions(perms);
+            } else {
+                role.setPermissions(Collections.emptyList());
+            }
+        }
+        return ApiResponse.success(list);
+    }
+
+    @Operation(summary = "权限列表", description = "获取所有权限")
+    @GetMapping("/permissions")
+    public ApiResponse<List<Permissions>> getPermissions() {
+        return ApiResponse.success(permissionsMapper.selectAll());
+    }
+
+    @Operation(summary = "更新角色权限", description = "更新指定角色的权限列表（全量覆盖）")
+    @PutMapping("/roles/{id}/permissions")
+    public ApiResponse<?> updateRolePermissions(@PathVariable Long id,
+                                                @RequestBody Map<String, List<String>> body) {
+        List<String> codes = body.get("permissionCodes");
+        if (codes == null) {
+            return ApiResponse.error(400, "permissionCodes 不能为空");
+        }
+
+        // 查出所有权限 code 对应的 ID
+        List<Permissions> allPerms = permissionsMapper.selectAll();
+        Map<String, Long> codeToId = allPerms.stream()
+                .collect(Collectors.toMap(Permissions::getCode, Permissions::getId));
+
+        List<Long> permIds = new ArrayList<>();
+        for (String code : codes) {
+            Long pid = codeToId.get(code);
+            if (pid != null) {
+                permIds.add(pid);
+            }
+        }
+
+        // 先删后插
+        rolePermissionsMapper.deleteByRoleId(id);
+        if (!permIds.isEmpty()) {
+            List<RolePermissions> list = permIds.stream()
+                    .map(permId -> {
+                        RolePermissions rp = new RolePermissions();
+                        rp.setRoleId(id);
+                        rp.setPermissionId(permId);
+                        return rp;
+                    })
+                    .collect(Collectors.toList());
+            rolePermissionsMapper.insertBatch(list);
+        }
+
+        return ApiResponse.success(null);
     }
 
     /**

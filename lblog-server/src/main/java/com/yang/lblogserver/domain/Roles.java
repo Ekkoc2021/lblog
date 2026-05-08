@@ -2,6 +2,7 @@ package com.yang.lblogserver.domain;
 
 import lombok.Data;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 角色表
@@ -15,4 +16,5 @@ public class Roles {
     private Integer sortOrder;
     private Date createdAt;
     private Date updatedAt;
+    private List<String> permissions;
 }
