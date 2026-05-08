@@ -58,6 +58,7 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(username, request.getPassword()));
             LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
             loginAttemptService.resetAttempts(username);
+            usersMapper.updateLoginInfo(loginUser.getUserId());
             TokenPairVO tokenPair = tokenService.issueTokenPair(loginUser.getUserId());
             return ApiResponse.success(tokenPair);
         } catch (BadCredentialsException e) {

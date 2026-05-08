@@ -17,6 +17,8 @@
             <result property="updatedAt" column="updated_at" />
             <result property="deletedAt" column="deleted_at" />
             <result property="isDelelte" column="is_delelte" />
+            <result property="lastLoginAt" column="last_login_at" />
+            <result property="loginCount" column="login_count" />
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -63,6 +65,11 @@
 
     <update id="updateAvatar">
         UPDATE users SET avatar = #{avatar} WHERE id = #{id}
+    </update>
+
+    <update id="updateLoginInfo">
+        UPDATE users SET last_login_at = NOW(), login_count = login_count + 1
+        WHERE id = #{id}
     </update>
 
 </mapper>

@@ -21,4 +21,6 @@ public interface UsersMapper {
     int updatePassword(@Param("id") Long id, @Param("passwordHash") String passwordHash);
 
     int updateAvatar(@Param("id") Long id, @Param("avatar") String avatar);
+
+    int updateLoginInfo(@Param("id") Long id);
 }

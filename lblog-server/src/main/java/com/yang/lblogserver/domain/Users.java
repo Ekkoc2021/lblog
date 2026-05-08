@@ -70,6 +70,16 @@ public class Users {
      */
     private Integer isDelelte;
 
+    /**
+     * 最后登录时间
+     */
+    private Date lastLoginAt;
+
+    /**
+     * 登录次数
+     */
+    private Integer loginCount;
+
     @Override
     public boolean equals(Object that) {
         if (this == that) {
