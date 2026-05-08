@@ -2,6 +2,7 @@ package com.yang.lblogserver.controller;
 
 import com.yang.lblogserver.common.ApiResponse;
 import com.yang.lblogserver.domain.Users;
+import com.yang.lblogserver.mapper.SiteConfigMapper;
 import com.yang.lblogserver.mapper.UsersMapper;
 import com.yang.lblogserver.security.model.LoginUser;
 import com.yang.lblogserver.security.service.LoginAttemptService;
@@ -28,17 +29,20 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
     private final UsersMapper usersMapper;
+    private final SiteConfigMapper siteConfigMapper;
     private final PasswordEncoder passwordEncoder;
     private final LoginAttemptService loginAttemptService;
     private final RegisterProtectionService registerProtectionService;
 
     public AuthController(AuthenticationManager authenticationManager, TokenService tokenService,
-                          UsersMapper usersMapper, PasswordEncoder passwordEncoder,
+                          UsersMapper usersMapper, SiteConfigMapper siteConfigMapper,
+                          PasswordEncoder passwordEncoder,
                           LoginAttemptService loginAttemptService,
                           RegisterProtectionService registerProtectionService) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
         this.usersMapper = usersMapper;
+        this.siteConfigMapper = siteConfigMapper;
         this.passwordEncoder = passwordEncoder;
         this.loginAttemptService = loginAttemptService;
         this.registerProtectionService = registerProtectionService;
@@ -72,6 +76,12 @@ public class AuthController {
     @PostMapping("/register")
     public ApiResponse<TokenPairVO> register(@Valid @RequestBody RegisterRequest request,
                                              HttpServletRequest servletRequest) {
+        // ——— 注册开关检查 ———
+        String regEnabled = siteConfigMapper.selectConfigValue("registration_enabled");
+        if (!"true".equals(regEnabled)) {
+            return ApiResponse.error(403, "当前暂未开放注册");
+        }
+
         // ——— 防滥用检查 ———
 
         // 1) 全局熔断（5 秒滑动窗口超过 10 次 → 今日关闭）
