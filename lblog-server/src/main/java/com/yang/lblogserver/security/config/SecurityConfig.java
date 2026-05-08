@@ -73,11 +73,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/config").permitAll()
                 // 公开接口：静态资源
                 .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
-                // 创作中心接口：AUTHOR 及以上可访问（admin 通过角色继承自动拥有 AUTHOR 权限）
-                .requestMatchers("/api/v1/author/**").hasRole("AUTHOR")
-                // 上传接口：AUTHOR 及以上可访问
-                .requestMatchers("/api/v1/upload/**").hasRole("AUTHOR")
-                // 其余接口（auth/me, auth/logout, auth/change-password 等）需登录
+                // 创作中心 & 上传：由 Controller 上的 @PreAuthorize 控制角色
+                .requestMatchers("/api/v1/author/**", "/api/v1/upload/**").authenticated()
+                // 其余接口需登录
                 .anyRequest().authenticated()
             )
             .userDetailsService(userDetailsService)
