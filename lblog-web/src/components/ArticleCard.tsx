@@ -1,4 +1,4 @@
-import { Card, Tag, Space, Typography, Avatar, Divider } from 'antd';
+import { Card, Tag, Space, Typography, Avatar, Divider, Image } from 'antd';
 import { EyeOutlined, LikeOutlined, MessageOutlined } from '@ant-design/icons';
 import type { Post, Tag as TagType } from '../types';
 
@@ -33,7 +33,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ post, keyword, onClick }) => 
     styles={{ body: { padding: '16px 20px' } }}
     onClick={onClick}
   >
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
+    <div style={{ display: 'flex', gap: 16 }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <Avatar size={22} style={{ background: '#1e80ff', fontSize: 12 }}>
@@ -76,6 +76,16 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ post, keyword, onClick }) => 
           ))}
         </Space>
       </div>
+      {post.featuredImage && (
+        <Image
+          src={post.featuredImage}
+          alt={post.title}
+          width={140}
+          height={90}
+          style={{ objectFit: 'cover', borderRadius: 6, flexShrink: 0, marginTop: 2 }}
+          preview={false}
+        />
+      )}
     </div>
   </Card>
 );

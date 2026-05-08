@@ -5,9 +5,12 @@
 ## [x] 7. 图片预览（Image Lightbox）
 - [x] MarkdownRenderer `<img>` → Ant Design `<Image>`，点击放大预览
 
-## [ ] 1. 站点统计页对接真实数据
-- Statistics.tsx 接入后端 API
-- 图表展示（发布趋势 / 分类分布 / 标签分布）
+## [x] 1. 站点统计页
+- [x] 设计文档（statistics-design.md）
+- [x] 接口文档（api-statistics.md）
+- [x] 后端 API 实现（AdminController + SQL）
+- [x] Statistics.tsx 完整重写（KPI 卡片 + 状态/分类分布 + 月度趋势 + 交互效果）
+- [x] api.ts 新增 AuthorStatistics 类型和接口
 
 ## [ ] 2. 评论管理后台
 - 管理端新增评论审核/管理页面
@@ -22,9 +25,7 @@
 ## [ ] 5. 文章详情移动端适配
 - TOC 侧边栏小屏收起
 
-## [ ] 6. 图片灯箱（已实现）
-
-## [ ] 7. 错误边界
+## [ ] 6. 错误边界
 - 全局 ErrorBoundary 组件
 
 ## [ ] 8. 管理后台首页

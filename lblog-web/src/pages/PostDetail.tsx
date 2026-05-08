@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Tag, Space, Typography, Avatar, Divider, Spin, Button, message } from 'antd';
+import { Card, Tag, Space, Typography, Avatar, Divider, Spin, Button, message, Image } from 'antd';
 import { EyeOutlined, LikeOutlined, LikeFilled, MessageOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import type { PostDetail as PostDetailType } from '../types';
 import { getPostBySlug, likePost, unlikePost, getLikeStatus, reportView } from '../services/api';
@@ -20,12 +20,17 @@ const PostDetail: React.FC = () => {
   const [post, setPost] = useState<PostDetailType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [likeLoading, setLikeLoading] = useState(false);
   const visitorIdRef = useRef<string>('');
   const fpRef = useRef<ReturnType<typeof FingerprintJS.load> | null>(null);
   const { imageBaseUrl } = useSiteData();
+
+  const coverSrc = post?.featuredImage
+    ? (post.featuredImage.startsWith('/') ? `${imageBaseUrl.replace(/\/$/, '')}${post.featuredImage}` : post.featuredImage)
+    : '';
 
   // 派生变量（必须在所有 hook 之后、early return 之前）
   const body = post?.body || post?.content?.body || '';
@@ -161,6 +166,19 @@ const PostDetail: React.FC = () => {
               </Space>
             )}
 
+            {post.featuredImage && (
+              <div
+                style={{ textAlign: 'center', marginBottom: 20, padding: 12, background: '#fafafa', borderRadius: 12, border: '1px solid #f0f0f0', cursor: 'pointer' }}
+                onClick={() => setPreviewVisible(true)}
+              >
+                <img
+                  src={coverSrc}
+                  alt={post.title}
+                  style={{ width: '100%', height: 'auto', borderRadius: 8, display: 'block', boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}
+                />
+              </div>
+            )}
+
             <Divider style={{ margin: '0 0 24px' }} />
 
             {body ? (
@@ -171,6 +189,15 @@ const PostDetail: React.FC = () => {
               </div>
             )}
           </Card>
+
+          {post.featuredImage && (
+            <div style={{ display: 'none' }}>
+              <Image
+                src={coverSrc}
+                preview={{ visible: previewVisible, onVisibleChange: setPreviewVisible }}
+              />
+            </div>
+          )}
 
           {/* 上下篇导航 */}
           {(post.prevPost || post.nextPost) && (

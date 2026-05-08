@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, Input, Select, Switch, Button, Space, Typography, message, Modal, Segmented, Tooltip } from 'antd';
-import { SaveOutlined, SendOutlined, ArrowLeftOutlined, PictureOutlined, SettingOutlined, LoadingOutlined, EditOutlined, EyeOutlined } from '@ant-design/icons';
+import { Card, Input, Select, Switch, Button, Space, Typography, message, Modal, Segmented, Tooltip, Image } from 'antd';
+import { SaveOutlined, SendOutlined, ArrowLeftOutlined, PictureOutlined, SettingOutlined, LoadingOutlined, EditOutlined, EyeOutlined, PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BlockNoteViewRaw, useCreateBlockNote } from '@blocknote/react';
 import '@blocknote/react/style.css';
@@ -66,7 +66,9 @@ const PostEditor: React.FC = () => {
   const [pendingAction, setPendingAction] = useState<'draft' | 'published' | null>(null);
   const [draftRestored, setDraftRestored] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [coverUploading, setCoverUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverFileInputRef = useRef<HTMLInputElement>(null);
   const splitContainerRef = useRef<HTMLDivElement>(null);
   const [leftRatio, setLeftRatio] = useState(0.5);
   const [dragging, setDragging] = useState(false);
@@ -283,6 +285,54 @@ const PostEditor: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) handleUploadImage(file);
     e.target.value = '';
+  };
+
+  const handleCoverUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      message.warning('请选择图片文件');
+      return;
+    }
+    if (file.size > imageMaxSize) {
+      message.warning(`图片大小超过限制（最大 ${Math.round(imageMaxSize / 1048576)}MB）`);
+      return;
+    }
+    setCoverUploading(true);
+    try {
+      const res = await uploadImage(file);
+      updateMeta('featuredImage', res.data.url);
+    } catch (e: unknown) {
+      message.error(e instanceof Error ? e.message : '上传失败');
+    } finally {
+      setCoverUploading(false);
+    }
+  };
+
+  const handleCoverSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleCoverUpload(file);
+    e.target.value = '';
+  };
+
+  const handleCoverRemove = () => {
+    updateMeta('featuredImage', '');
+  };
+
+  const handleCoverPaste = (e: React.ClipboardEvent) => {
+    for (let i = 0; i < e.clipboardData.items.length; i++) {
+      const item = e.clipboardData.items[i];
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (file) handleCoverUpload(file);
+        return;
+      }
+    }
+  };
+
+  const getImageUrl = (url: string) => {
+    return url && imageBaseUrl && url.startsWith('/')
+      ? `${imageBaseUrl.replace(/\/$/, '')}${url}`
+      : url;
   };
 
   const handleImageButtonClick = () => {
@@ -518,6 +568,50 @@ const PostEditor: React.FC = () => {
               allowClear
               options={seriesList.map(s => ({ value: s.id, label: s.title }))}
             />
+          </div>
+
+          <div>
+            <Text type="secondary" style={{ fontSize: 13, marginBottom: 4, display: 'block' }}>封面图</Text>
+            <input
+              ref={coverFileInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={handleCoverSelect}
+            />
+            <div
+              onPaste={handleCoverPaste}
+              style={{ border: meta.featuredImage ? 'none' : '1px dashed #d9d9d9', borderRadius: 6, padding: meta.featuredImage ? 0 : 16, width: 'fit-content', cursor: 'pointer' }}
+              onClick={() => !meta.featuredImage && coverFileInputRef.current?.click()}
+            >
+            {meta.featuredImage ? (
+              <div style={{ position: 'relative', display: 'inline-block', borderRadius: 6, overflow: 'hidden' }}>
+                <Image
+                  src={getImageUrl(meta.featuredImage)}
+                  alt="封面图"
+                  style={{ maxWidth: 240, maxHeight: 135, objectFit: 'cover', borderRadius: 6 }}
+                  preview={{ mask: null }}
+                />
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  danger
+                  style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.45)', color: '#fff', border: 'none' }}
+                  onClick={handleCoverRemove}
+                />
+              </div>
+            ) : (
+              <Button
+                icon={coverUploading ? <LoadingOutlined /> : <PlusOutlined />}
+                onClick={() => coverFileInputRef.current?.click()}
+                loading={coverUploading}
+                style={{ height: 80, width: 160, borderRadius: 6 }}
+              >
+                {coverUploading ? '上传中...' : '上传封面'}
+              </Button>
+            )}
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: 24 }}>
