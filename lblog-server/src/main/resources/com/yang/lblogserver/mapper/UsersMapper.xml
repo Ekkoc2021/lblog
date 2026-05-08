@@ -51,6 +51,13 @@
         LIMIT 1
     </select>
 
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM users
+        WHERE id = #{id}
+        LIMIT 1
+    </select>
+
     <insert id="insertUser" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
         INSERT INTO users (username, password_hash, nickname, email, avatar, role, status,
                            created_at, updated_at, is_delelte)
@@ -69,6 +76,62 @@
 
     <update id="updateLoginInfo">
         UPDATE users SET last_login_at = NOW(), login_count = login_count + 1
+        WHERE id = #{id}
+    </update>
+
+    <sql id="Base_Column_List_With_Extra">
+        u.id, u.username, u.password_hash, u.nickname, u.email, u.avatar,
+        u.role, u.status, u.created_at, u.updated_at, u.deleted_at,
+        u.is_delelte, u.last_login_at, u.login_count
+    </sql>
+
+    <select id="selectUserList" resultMap="BaseResultMap">
+        SELECT
+            <include refid="Base_Column_List_With_Extra"/>
+        FROM users u
+        WHERE u.deleted_at IS NULL
+        <if test="keyword != null and keyword != ''">
+            AND (u.username LIKE CONCAT('%', #{keyword}, '%')
+                 OR u.nickname LIKE CONCAT('%', #{keyword}, '%')
+                 OR u.email LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="status != null">
+            AND u.status = #{status}
+        </if>
+        <if test="inactiveDays != null and inactiveDays > 0">
+            AND (u.last_login_at IS NULL OR u.last_login_at &lt; DATE_SUB(NOW(), INTERVAL #{inactiveDays} DAY))
+        </if>
+        ORDER BY u.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countUserList" resultType="int">
+        SELECT COUNT(*)
+        FROM users u
+        WHERE u.deleted_at IS NULL
+        <if test="keyword != null and keyword != ''">
+            AND (u.username LIKE CONCAT('%', #{keyword}, '%')
+                 OR u.nickname LIKE CONCAT('%', #{keyword}, '%')
+                 OR u.email LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="status != null">
+            AND u.status = #{status}
+        </if>
+        <if test="inactiveDays != null and inactiveDays > 0">
+            AND (u.last_login_at IS NULL OR u.last_login_at &lt; DATE_SUB(NOW(), INTERVAL #{inactiveDays} DAY))
+        </if>
+    </select>
+
+    <update id="softDeleteUser">
+        UPDATE users SET deleted_at = NOW(), is_delelte = 1
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateUser">
+        UPDATE users
+        SET nickname = #{nickname},
+            email = #{email},
+            status = #{status}
         WHERE id = #{id}
     </update>
 

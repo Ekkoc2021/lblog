@@ -4,6 +4,7 @@ import com.yang.lblogserver.common.ApiResponse;
 import com.yang.lblogserver.common.PageResult;
 import com.yang.lblogserver.domain.Images;
 import com.yang.lblogserver.mapper.ImagesMapper;
+import com.yang.lblogserver.mapper.SiteConfigMapper;
 import com.yang.lblogserver.storage.FileStorage;
 import com.yang.lblogserver.vo.admin.AdminImageVO;
 import com.yang.lblogserver.vo.admin.ImageCleanupVO;
@@ -29,10 +30,13 @@ public class AdminImageController {
 
     private final ImagesMapper imagesMapper;
     private final FileStorage fileStorage;
+    private final SiteConfigMapper siteConfigMapper;
 
-    public AdminImageController(ImagesMapper imagesMapper, FileStorage fileStorage) {
+    public AdminImageController(ImagesMapper imagesMapper, FileStorage fileStorage,
+                                SiteConfigMapper siteConfigMapper) {
         this.imagesMapper = imagesMapper;
         this.fileStorage = fileStorage;
+        this.siteConfigMapper = siteConfigMapper;
     }
 
     @Operation(summary = "图片统计概览", description = "总图片数、总大小、已引用/未引用数量、30天以上未引用等")
@@ -75,9 +79,22 @@ public class AdminImageController {
             description = "dryRun=true（默认）仅预览；dryRun=false 执行实际物理删除（删磁盘文件 + 硬删 DB 记录）")
     @DeleteMapping("/cleanup")
     public ApiResponse<ImageCleanupVO> cleanupImages(
-            @RequestParam(defaultValue = "30") int beforeDays,
+            @RequestParam(required = false) Integer beforeDays,
             @RequestParam(required = false) Double targetUtilization,
             @RequestParam(defaultValue = "true") boolean dryRun) {
+        // 从 site_config 读取默认值，兜底 30 天
+        if (beforeDays == null) {
+            String configVal = siteConfigMapper.selectConfigValue("image_cleanup_days");
+            if (configVal != null) {
+                try {
+                    beforeDays = Integer.parseInt(configVal);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            if (beforeDays == null) {
+                beforeDays = 30;
+            }
+        }
         // 1. 统计当前利用率
         ImageStatisticsVO stats = imagesMapper.selectImageStatistics();
         long totalImages = stats.getTotalImages();
@@ -158,10 +175,10 @@ public class AdminImageController {
         return ApiResponse.success(result);
     }
 
-    @Operation(summary = "删除单张图片", description = "管理员强制删除，已被引用的图片无法删除（软删除）")
+    @Operation(summary = "删除单张图片", description = "管理员强制删除，已被引用的图片无法删除（物理删除）")
     @DeleteMapping("/{id}")
     public ApiResponse<?> deleteImage(@PathVariable Long id) {
-        Images image = imagesMapper.selectById(id);
+        Images image = imagesMapper.selectByIdRaw(id);
         if (image == null) {
             return ApiResponse.error(404, "图片不存在");
         }
@@ -170,7 +187,10 @@ public class AdminImageController {
         if (!usages.isEmpty()) {
             return ApiResponse.error(400, "该图片已被 " + usages.size() + " 处引用，无法删除");
         }
-        imagesMapper.softDeleteById(id);
+        // 物理删除磁盘文件
+        fileStorage.delete(image.getStoragePath());
+        // 物理删除 DB 记录
+        imagesMapper.hardDeleteById(id);
         return ApiResponse.success(null);
     }
 }

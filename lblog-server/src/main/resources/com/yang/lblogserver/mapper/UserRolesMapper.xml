@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.mapper.UserRolesMapper">
+
+    <resultMap id="BaseResultMap" type="com.yang.lblogserver.domain.UserRoles">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="roleId" column="role_id" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, role_id
+    </sql>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_roles
+        WHERE user_id = #{userId}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO user_roles (user_id, role_id)
+        VALUES (#{userId}, #{roleId})
+    </insert>
+
+    <delete id="deleteByUserId">
+        DELETE FROM user_roles WHERE user_id = #{userId}
+    </delete>
+
+    <insert id="insertBatch">
+        INSERT INTO user_roles (user_id, role_id)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.userId}, #{item.roleId})
+        </foreach>
+    </insert>
+
+</mapper>
