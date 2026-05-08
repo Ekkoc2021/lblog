@@ -1,5 +1,5 @@
 import { Card, Row, Col, Typography } from 'antd';
-import { SettingOutlined, PictureOutlined } from '@ant-design/icons';
+import { SettingOutlined, PictureOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 const { Title, Paragraph } = Typography;
@@ -18,6 +18,13 @@ const features = [
     description: '管理上传的图片，清理未使用的图片',
     icon: <PictureOutlined style={{ fontSize: 32, color: '#52c41a' }} />,
     path: '/admin/images',
+  },
+  {
+    key: 'users',
+    title: '用户管理',
+    description: '管理用户账号、角色分配、重置密码',
+    icon: <UserOutlined style={{ fontSize: 32, color: '#722ed1' }} />,
+    path: '/admin/users',
   },
 ];
 

@@ -498,3 +498,81 @@ export async function deleteAdminImage(id: number): Promise<ApiResponse<null>> {
 export async function cleanupImages(params?: { beforeDays?: number; dryRun?: boolean }): Promise<ApiResponse<any>> {
   return request<any>(`/api/v1/admin/images/cleanup${buildQuery(params as any)}`, { method: 'DELETE' });
 }
+
+// ---- 管理端用户管理 ----
+
+export interface AdminUser {
+  id: number;
+  username: string;
+  nickname: string;
+  email: string;
+  avatar: string | null;
+  roles: string[];
+  roleLabels: string[];
+  status: number;
+  postCount: number;
+  lastLoginAt: string | null;
+  loginCount: number;
+  createdAt: string;
+}
+
+export interface RoleInfo {
+  id: number;
+  name: string;
+  label: string;
+}
+
+export async function getAdminUsers(params?: {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+  role?: string;
+  status?: number;
+  inactiveDays?: number;
+}): Promise<ApiResponse<PageResult<AdminUser>>> {
+  return request<PageResult<AdminUser>>(`/api/v1/admin/users${buildQuery(params as any)}`);
+}
+
+export async function getAdminUser(id: number): Promise<ApiResponse<AdminUser>> {
+  return request<AdminUser>(`/api/v1/admin/users/${id}`);
+}
+
+export async function createAdminUser(data: {
+  username: string;
+  password: string;
+  nickname?: string;
+  email?: string;
+  roleIds?: number[];
+}): Promise<ApiResponse<{ id: number }>> {
+  return request<{ id: number }>('/api/v1/admin/users', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateAdminUser(id: number, data: {
+  nickname?: string;
+  email?: string;
+  roleIds?: number[];
+  status?: number;
+}): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/users/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function resetUserPassword(id: number, newPassword: string): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/users/${id}/reset-password`, {
+    method: 'PUT',
+    body: JSON.stringify({ newPassword }),
+  });
+}
+
+export async function deleteAdminUser(id: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/users/${id}`, { method: 'DELETE' });
+}
+
+export async function getRoles(): Promise<ApiResponse<RoleInfo[]>> {
+  return request<RoleInfo[]>('/api/v1/admin/roles');
+}
