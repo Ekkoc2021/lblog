@@ -4,7 +4,7 @@ import java.io.InputStream;
 
 public interface FileStorage {
 
-    String store(InputStream inputStream, String originalFilename, long contentLength, String contentType);
+    StorageResult store(InputStream inputStream, String originalFilename, long contentLength, String contentType);
 
     default String getBaseUrl() {
         return "";

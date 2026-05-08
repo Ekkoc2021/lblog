@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.mapper.ImagesMapper">
+
+    <resultMap id="BaseResultMap" type="com.yang.lblogserver.domain.Images">
+        <id property="id" column="id"/>
+        <result property="url" column="url"/>
+        <result property="storagePath" column="storage_path"/>
+        <result property="originalName" column="original_name"/>
+        <result property="mimeType" column="mime_type"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="width" column="width"/>
+        <result property="height" column="height"/>
+        <result property="md5" column="md5"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="deletedAt" column="deleted_at"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, url, storage_path, original_name, mime_type, file_size,
+        width, height, md5, created_by, created_at, deleted_at
+    </sql>
+
+    <insert id="insertImage" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO images (url, storage_path, original_name, mime_type, file_size,
+                            width, height, md5, created_by, created_at)
+        VALUES (#{url}, #{storagePath}, #{originalName}, #{mimeType}, #{fileSize},
+                #{width}, #{height}, #{md5}, #{createdBy}, NOW())
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM images
+        WHERE id = #{id} AND deleted_at IS NULL
+    </select>
+
+    <select id="selectByMd5" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM images
+        WHERE md5 = #{md5} AND deleted_at IS NULL
+        LIMIT 1
+    </select>
+
+    <select id="selectByUrl" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM images
+        WHERE url = #{url} AND deleted_at IS NULL
+        LIMIT 1
+    </select>
+
+    <select id="selectByCreatedBy" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM images
+        WHERE created_by = #{createdBy} AND deleted_at IS NULL
+        ORDER BY created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countByCreatedBy" resultType="int">
+        SELECT COUNT(1)
+        FROM images
+        WHERE created_by = #{createdBy} AND deleted_at IS NULL
+    </select>
+
+    <select id="selectUnreferenced" resultMap="BaseResultMap">
+        SELECT i.id, i.url, i.storage_path, i.original_name, i.mime_type, i.file_size,
+               i.width, i.height, i.md5, i.created_by, i.created_at, i.deleted_at
+        FROM images i
+        LEFT JOIN image_usages iu ON i.id = iu.image_id
+        WHERE i.created_by = #{createdBy} AND i.deleted_at IS NULL
+          AND iu.id IS NULL
+        ORDER BY i.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countUnreferenced" resultType="int">
+        SELECT COUNT(1)
+        FROM images i
+        LEFT JOIN image_usages iu ON i.id = iu.image_id
+        WHERE i.created_by = #{createdBy} AND i.deleted_at IS NULL
+          AND iu.id IS NULL
+    </select>
+
+    <update id="softDeleteById">
+        UPDATE images SET deleted_at = NOW()
+        WHERE id = #{id} AND deleted_at IS NULL
+    </update>
+
+</mapper>

@@ -473,6 +473,7 @@ public class PostsServiceImpl implements PostsService {
             sp.setSortOrder(0);
             seriesPostsMapper.insert(sp);
         }
+
     }
 
     @Override

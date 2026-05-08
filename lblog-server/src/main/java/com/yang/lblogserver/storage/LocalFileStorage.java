@@ -24,8 +24,8 @@ public class LocalFileStorage implements FileStorage {
     private String uploadDir;
 
     @Override
-    public String store(InputStream inputStream, String originalFilename,
-                        long contentLength, String contentType) {
+    public StorageResult store(InputStream inputStream, String originalFilename,
+                               long contentLength, String contentType) {
         try {
             String datePath = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM"));
             Path baseDir = Paths.get(uploadDir, datePath);
@@ -39,7 +39,10 @@ public class LocalFileStorage implements FileStorage {
             Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
 
             log.info("File saved locally: {} ({} bytes, {})", filePath, contentLength, contentType);
-            return "/uploads/" + datePath + "/" + filename;
+
+            String url = "/uploads/" + datePath + "/" + filename;
+            String storagePath = filePath.toString().replace("\\", "/");
+            return new StorageResult(url, storagePath);
         } catch (IOException e) {
             throw new RuntimeException("文件保存失败", e);
         }
