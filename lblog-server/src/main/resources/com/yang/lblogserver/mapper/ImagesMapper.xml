@@ -136,9 +136,14 @@
 
     <select id="selectImageUsages" resultType="com.yang.lblogserver.vo.admin.ImageUsageVO">
         SELECT iu.ref_type AS refType, iu.ref_id AS refId, iu.field,
-               COALESCE(p.title, '') AS refTitle
+               CASE
+                   WHEN iu.ref_type = 'post' THEN COALESCE(p.title, '')
+                   WHEN iu.ref_type = 'user' THEN COALESCE(u.nickname, '')
+                   ELSE ''
+               END AS refTitle
         FROM image_usages iu
         LEFT JOIN posts p ON iu.ref_type = 'post' AND p.id = iu.ref_id AND p.is_delelte = 0
+        LEFT JOIN users u ON iu.ref_type = 'user' AND u.id = iu.ref_id AND u.deleted_at IS NULL
         WHERE iu.image_id = #{imageId}
     </select>
 
@@ -148,8 +153,8 @@
             COALESCE(SUM(file_size), 0) AS totalSize,
             SUM(CASE WHEN u.id IS NOT NULL THEN 1 ELSE 0 END) AS referencedCount,
             SUM(CASE WHEN u.id IS NULL THEN 1 ELSE 0 END) AS unreferencedCount,
-            SUM(CASE WHEN u.id IS NULL AND i.created_at &lt; DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) AS oldUnreferencedCount,
-            COALESCE(SUM(CASE WHEN u.id IS NULL AND i.created_at &lt; DATE_SUB(NOW(), INTERVAL 30 DAY) THEN i.file_size ELSE 0 END), 0) AS oldUnreferencedSize
+            SUM(CASE WHEN u.id IS NULL AND i.created_at &lt; DATE_SUB(NOW(), INTERVAL #{cleanupDays} DAY) THEN 1 ELSE 0 END) AS oldUnreferencedCount,
+            COALESCE(SUM(CASE WHEN u.id IS NULL AND i.created_at &lt; DATE_SUB(NOW(), INTERVAL #{cleanupDays} DAY) THEN i.file_size ELSE 0 END), 0) AS oldUnreferencedSize
         FROM images i
         LEFT JOIN image_usages u ON u.image_id = i.id
         WHERE i.deleted_at IS NULL

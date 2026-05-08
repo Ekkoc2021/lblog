@@ -52,4 +52,12 @@ public class AdminConfigController {
         siteConfigMapper.deleteByKey(key);
         return ApiResponse.success(null);
     }
+
+    /**
+     * 配置管理接口全部已实现 (Bug 3 确认)：
+     * - GET    /api/v1/admin/configs          ✅ 获取全部配置
+     * - PUT    /api/v1/admin/configs          ✅ 批量更新配置
+     * - POST   /api/v1/admin/configs          ✅ 添加配置
+     * - DELETE /api/v1/admin/configs?key=xxx  ✅ 删除配置
+     */
 }

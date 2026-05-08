@@ -39,10 +39,18 @@ public class AdminImageController {
         this.siteConfigMapper = siteConfigMapper;
     }
 
-    @Operation(summary = "图片统计概览", description = "总图片数、总大小、已引用/未引用数量、30天以上未引用等")
+    @Operation(summary = "图片统计概览", description = "总图片数、总大小、已引用/未引用数量、未引用超时天数可清理等")
     @GetMapping("/statistics")
     public ApiResponse<ImageStatisticsVO> getStatistics() {
-        ImageStatisticsVO stats = imagesMapper.selectImageStatistics();
+        // 从 site_config 读取清理天数，与 cleanupImages 接口保持一致
+        String days = siteConfigMapper.selectConfigValue("image_cleanup_days");
+        int cleanupDays = 30;
+        if (days != null && !days.isBlank()) {
+            try {
+                cleanupDays = Integer.parseInt(days);
+            } catch (NumberFormatException ignored) {}
+        }
+        ImageStatisticsVO stats = imagesMapper.selectImageStatistics(cleanupDays);
         // 计算利用率
         if (stats.getTotalImages() > 0) {
             double rate = (double) stats.getReferencedCount() / stats.getTotalImages() * 100;
@@ -96,7 +104,7 @@ public class AdminImageController {
             }
         }
         // 1. 统计当前利用率
-        ImageStatisticsVO stats = imagesMapper.selectImageStatistics();
+        ImageStatisticsVO stats = imagesMapper.selectImageStatistics(beforeDays);
         long totalImages = stats.getTotalImages();
         long referencedCount = stats.getReferencedCount();
         double currentUtil = totalImages > 0 ? referencedCount * 100.0 / totalImages : 0;

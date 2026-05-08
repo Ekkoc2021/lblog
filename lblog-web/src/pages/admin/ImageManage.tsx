@@ -48,6 +48,7 @@ const ImageManage: React.FC = () => {
   const [sort, setSort] = useState('newest');
   const [status, setStatus] = useState('all');
   const [keyword, setKeyword] = useState('');
+  const [cleanupDays, setCleanupDays] = useState(30);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -99,7 +100,7 @@ const ImageManage: React.FC = () => {
 
   const handleCleanup = async () => {
     try {
-      const previewRes = await cleanupImages({ dryRun: true });
+      const previewRes = await cleanupImages({ beforeDays: cleanupDays, dryRun: true });
       const previewData = previewRes.data as {
         dryRun: boolean;
         count: number;
@@ -118,6 +119,24 @@ const ImageManage: React.FC = () => {
         width: 600,
         content: (
           <div>
+            <div style={{ marginBottom: 16 }}>
+              <Text type="secondary">清理超过 </Text>
+              <Select
+                value={cleanupDays}
+                onChange={setCleanupDays}
+                style={{ width: 80 }}
+                size="small"
+                options={[
+                  { value: 7, label: '7' },
+                  { value: 14, label: '14' },
+                  { value: 30, label: '30' },
+                  { value: 60, label: '60' },
+                  { value: 90, label: '90' },
+                  { value: 180, label: '180' },
+                ]}
+              />
+              <Text type="secondary"> 天未引用的图片</Text>
+            </div>
             <p>
               将删除 <Text strong>{previewData.count}</Text> 张未引用的图片，
               释放 <Text strong>{formatFileSize(previewData.totalSize)}</Text> 空间。
@@ -149,7 +168,7 @@ const ImageManage: React.FC = () => {
         cancelText: '取消',
         onOk: async () => {
           try {
-            await cleanupImages({ dryRun: false });
+            await cleanupImages({ beforeDays: cleanupDays, dryRun: false });
             message.success('清理完成');
             loadData();
           } catch (e: unknown) {
@@ -193,7 +212,7 @@ const ImageManage: React.FC = () => {
             <Statistic
               title="可清理"
               value={statistics?.oldUnreferencedCount ?? 0}
-              suffix={`/ ${formatFileSize(statistics?.oldUnreferencedSize ?? 0)}`}
+              suffix={statistics?.oldUnreferencedCount ? `/ ${formatFileSize(statistics.oldUnreferencedSize)}` : undefined}
               valueStyle={{ color: '#ff4d4f' }}
             />
           </Card>
@@ -304,7 +323,8 @@ const ImageManage: React.FC = () => {
                           <div style={{ maxWidth: 280 }}>
                             {img.usages.map((u, i) => (
                               <div key={i} style={{ padding: '2px 0', fontSize: 13 }}>
-                                文章「{u.refTitle}」({u.field === 'featured_image' ? '封面' : u.field === 'body' ? '正文' : u.field})
+                                {u.refType === 'user' ? (u.refTitle ? `用户「${u.refTitle}」` : '用户头像') : (u.refTitle ? `文章「${u.refTitle}」` : `文章 #${u.refId}`)}
+                                {u.field === 'featured_image' ? '(封面)' : u.field === 'body' ? '(正文)' : u.field === 'avatar' ? '' : `(${u.field})`}
                               </div>
                             ))}
                           </div>

@@ -51,7 +51,7 @@ public interface ImagesMapper {
     List<ImageUsageVO> selectImageUsages(@Param("imageId") Long imageId);
 
     /** 图片统计概览 */
-    ImageStatisticsVO selectImageStatistics();
+    ImageStatisticsVO selectImageStatistics(@Param("cleanupDays") int cleanupDays);
 
     /** 查询清理候选图片（未引用且超过指定天数） */
     List<Images> selectCleanupCandidates(@Param("beforeDays") int beforeDays);

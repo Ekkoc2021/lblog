@@ -11,14 +11,27 @@
 ### 核心概念
 
 ```
-用户 (User)  ──→ 角色 (Role)  ──→ 权限 (Permission)
+用户 (User)  ── 用户角色关联 ──→ 角色 (Role)  ── 角色权限关联 ──→ 权限 (Permission)
 ```
 
-- 一个用户有一个角色（暂不设计多角色）
-- 一个角色包含多个权限
-- 权限是操作的最小单元
+- 一个用户可以拥有多个角色
+- 一个角色可以包含多个权限
+- 用户的实际权限 = 所有角色的权限并集
 
 ### 表设计
+
+#### user_roles（用户角色关联表）
+
+```sql
+CREATE TABLE user_roles (
+  id       BIGINT AUTO_INCREMENT PRIMARY KEY,
+  user_id  BIGINT NOT NULL COMMENT '用户ID',
+  role_id  BIGINT NOT NULL COMMENT '角色ID',
+  UNIQUE KEY uk_user_role (user_id, role_id)
+) COMMENT '用户角色关联表（支持多角色）';
+```
+
+> `users` 表原有的 `role` 字段保留作为冗余，以便兼容现有代码。后续检索用户角色以 `user_roles` 为准。
 
 #### roles（角色表）
 
@@ -131,7 +144,8 @@ Response:
         "nickname": "Ekko",
         "email": "ekko@example.com",
         "avatar": "/avatars/ekko.png",
-        "role": "admin",
+        "roles": ["admin"],           // 用户拥有的角色列表
+        "roleLabels": ["管理员"],       // 角色显示名
         "status": 1,
         "postCount": 23,
         "lastLoginAt": "2026-05-08T12:00:00",
@@ -161,7 +175,8 @@ Response:
     "nickname": "Ekko",
     "email": "ekko@example.com",
     "avatar": null,
-    "role": "admin",
+    "roles": ["admin"],
+    "roleLabels": ["管理员"],
     "status": 1,
     "postCount": 23,
     "lastLoginAt": "2026-05-08T12:00:00",
@@ -182,7 +197,7 @@ Content-Type: application/json
   "password": "password123",
   "nickname": "新用户",
   "email": "new@example.com",
-  "role": "author"
+  "roleIds": [2]           // 角色ID数组，支持多角色
 }
 
 Response:
@@ -202,10 +217,12 @@ Content-Type: application/json
 {
   "nickname": "新昵称",
   "email": "new@example.com",
-  "role": "author",
+  "roleIds": [2, 3],       // 替换用户的全部角色
   "status": 1
 }
 ```
+
+后端逻辑：更新角色时，先删 `user_roles` 中该用户的关联，再批量插入新的。
 
 #### 重置密码
 
@@ -319,10 +336,10 @@ Response:
 │  搜索: [______] [全部角色▾] [全部状态▾] [活跃度▾] [+ 新建用户] │
 │                                                     │
 │  ┌─ Table ────────────────────────────────────────┐ │
-│  │ 用户名  │ 昵称  │ 角色   │ 状态  │ 文章  │ 最后登录    │ 操作 │ │
-│  │ ekko   │ Ekko  │ 管理员 │ 正常  │  23  │ 1 小时前    │ 编辑 │ │
-│  │ alice  │ Alice │ 作者   │ 正常  │  12  │ 3 天前      │ 编辑 │ │
-│  │ bob    │ Bob   │ 作者   │ 禁用  │   5  │ 45 天前     │ 编辑 │ │
+│  │ 用户名  │ 昵称  │ 角色         │ 状态  │ 文章  │ 最后登录    │ 操作 │ │
+│  │ ekko   │ Ekko  │ [管理员]     │ 正常  │  23  │ 1 小时前    │ 编辑 │ │
+│  │ alice  │ Alice │ [作者]       │ 正常  │  12  │ 3 天前      │ 编辑 │ │
+│  │ bob    │ Bob   │ [作者][运营]  │ 禁用  │   5  │ 45 天前     │ 编辑 │ │
 │  │ ...    │ ...   │ ...    │ ...   │ ...  │ ...  │ │
 │  │ charlie│ C     │ 用户    │ 正常  │   0  │ 编辑 │ │
 │  │                 ↑  lastLoginAt 列显示最后登录时间/天数   │ │
@@ -341,7 +358,7 @@ Response:
 │  密码:   [________] (新建时必填)    │
 │  昵称:   [________]                │
 │  邮箱:   [________]                │
-│  角色:   [管理员 ▾]                │  ← 从 roles 表动态加载
+│  角色:   [管理员 ▾] 多选           │  ← Select mode="multiple"  ← 从 roles 表动态加载
 │  状态:   [正常 / 禁用]             │
 │                                    │
 │          [取消]  [保存]             │
