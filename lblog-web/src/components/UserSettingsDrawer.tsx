@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
-import { Drawer, Avatar, Descriptions, Tag, Divider, Form, Input, Button, message, Typography, Upload } from 'antd';
-import { UserOutlined, LockOutlined, CameraOutlined, LoadingOutlined } from '@ant-design/icons';
+import { Drawer, Avatar, Descriptions, Tag, Form, Input, Button, message, Typography, Collapse } from 'antd';
+import { UserOutlined, LockOutlined, CameraOutlined, LoadingOutlined, KeyOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { changePassword, updateAvatar, deleteAvatar } from '../services/api';
 
@@ -133,35 +133,43 @@ const UserSettingsDrawer: React.FC<UserSettingsDrawerProps> = ({ open, onClose }
         <Descriptions.Item label="用户名">{user?.username ?? '-'}</Descriptions.Item>
       </Descriptions>
 
-      <Divider>修改密码</Divider>
-
-      <Form form={form} layout="vertical" onFinish={handleChangePassword}>
-        <Form.Item name="oldPassword" label="旧密码" rules={[{ required: true, message: '请输入旧密码' }]}>
-          <Input.Password prefix={<LockOutlined />} placeholder="旧密码" />
-        </Form.Item>
-        <Form.Item name="newPassword" label="新密码" rules={[
-          { required: true, message: '请输入新密码' },
-          { min: 6, message: '密码至少6位' },
-        ]}>
-          <Input.Password prefix={<LockOutlined />} placeholder="新密码" />
-        </Form.Item>
-        <Form.Item name="confirmPassword" label="确认新密码" dependencies={['newPassword']} rules={[
-          { required: true, message: '请确认新密码' },
-          ({ getFieldValue }) => ({
-            validator(_, value) {
-              if (!value || getFieldValue('newPassword') === value) return Promise.resolve();
-              return Promise.reject(new Error('两次输入的密码不一致'));
-            },
-          }),
-        ]}>
-          <Input.Password prefix={<LockOutlined />} placeholder="确认新密码" />
-        </Form.Item>
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={loading} block>
-            保存修改
-          </Button>
-        </Form.Item>
-      </Form>
+      <Collapse
+        ghost
+        expandIconPosition="end"
+        items={[{
+          key: 'password',
+          label: <span><KeyOutlined style={{ marginRight: 6 }} />修改密码</span>,
+          children: (
+            <Form form={form} layout="vertical" onFinish={handleChangePassword}>
+              <Form.Item name="oldPassword" label="旧密码" rules={[{ required: true, message: '请输入旧密码' }]}>
+                <Input.Password prefix={<LockOutlined />} placeholder="旧密码" />
+              </Form.Item>
+              <Form.Item name="newPassword" label="新密码" rules={[
+                { required: true, message: '请输入新密码' },
+                { min: 6, message: '密码至少6位' },
+              ]}>
+                <Input.Password prefix={<LockOutlined />} placeholder="新密码" />
+              </Form.Item>
+              <Form.Item name="confirmPassword" label="确认新密码" dependencies={['newPassword']} rules={[
+                { required: true, message: '请确认新密码' },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue('newPassword') === value) return Promise.resolve();
+                    return Promise.reject(new Error('两次输入的密码不一致'));
+                  },
+                }),
+              ]}>
+                <Input.Password prefix={<LockOutlined />} placeholder="确认新密码" />
+              </Form.Item>
+              <Form.Item>
+                <Button type="primary" htmlType="submit" loading={loading} block>
+                  保存修改
+                </Button>
+              </Form.Item>
+            </Form>
+          ),
+        }]}
+      />
     </Drawer>
   );
 };
