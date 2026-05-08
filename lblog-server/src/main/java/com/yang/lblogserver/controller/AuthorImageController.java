@@ -20,11 +20,11 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/author/images")
 @PreAuthorize("hasRole('AUTHOR')")
-public class ImageController {
+public class AuthorImageController {
 
     private final ImagesService imagesService;
 
-    public ImageController(ImagesService imagesService) {
+    public AuthorImageController(ImagesService imagesService) {
         this.imagesService = imagesService;
     }
 
