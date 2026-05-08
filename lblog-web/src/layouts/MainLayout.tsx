@@ -11,7 +11,7 @@ const { Header, Content, Footer } = Layout;
 const { Search } = Input;
 const { Text } = Typography;
 
-const adminNavItem = { key: '/admin', label: '博客管理' };
+const adminNavItem = { key: '/admin', label: '社区管理' };
 
 interface MainLayoutProps {
   children: React.ReactNode;

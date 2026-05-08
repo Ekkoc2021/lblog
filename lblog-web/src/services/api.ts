@@ -420,3 +420,81 @@ export async function updateAvatar(file: File): Promise<ApiResponse<{ id: number
 export async function deleteAvatar(): Promise<ApiResponse<null>> {
   return request<null>('/api/v1/user/avatar', { method: 'DELETE' });
 }
+
+// ---- 管理端站点配置 ----
+
+export interface SiteConfigItem {
+  configKey: string;
+  configValue: string;
+}
+
+export async function getAdminConfigs(): Promise<ApiResponse<SiteConfigItem[]>> {
+  return request<SiteConfigItem[]>('/api/v1/admin/configs');
+}
+
+export async function updateAdminConfigs(data: Record<string, string>): Promise<ApiResponse<null>> {
+  return request<null>('/api/v1/admin/configs', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function addAdminConfig(key: string, value: string): Promise<ApiResponse<null>> {
+  return request<null>('/api/v1/admin/configs', {
+    method: 'POST',
+    body: JSON.stringify({ configKey: key, configValue: value }),
+  });
+}
+
+export async function deleteAdminConfig(key: string): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/configs?key=${encodeURIComponent(key)}`, {
+    method: 'DELETE',
+  });
+}
+
+// ---- 管理端图片管理 ----
+
+export interface AdminImage {
+  id: number;
+  url: string;
+  originalName: string;
+  mimeType: string;
+  fileSize: number;
+  width: number;
+  height: number;
+  usageCount: number;
+  usages: Array<{ refType: string; refId: number; field: string; refTitle: string }>;
+  createdAt: string;
+}
+
+export interface ImageStatistics {
+  totalImages: number;
+  totalSize: number;
+  referencedCount: number;
+  unreferencedCount: number;
+  utilizationRate: number;
+  oldUnreferencedCount: number;
+  oldUnreferencedSize: number;
+}
+
+export async function getAdminImages(params?: {
+  page?: number;
+  pageSize?: number;
+  sort?: string;
+  status?: string;
+  keyword?: string;
+}): Promise<ApiResponse<PageResult<AdminImage>>> {
+  return request<PageResult<AdminImage>>(`/api/v1/admin/images${buildQuery(params as any)}`);
+}
+
+export async function getImageStatistics(): Promise<ApiResponse<ImageStatistics>> {
+  return request<ImageStatistics>('/api/v1/admin/images/statistics');
+}
+
+export async function deleteAdminImage(id: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/images/${id}`, { method: 'DELETE' });
+}
+
+export async function cleanupImages(params?: { beforeDays?: number; dryRun?: boolean }): Promise<ApiResponse<any>> {
+  return request<any>(`/api/v1/admin/images/cleanup${buildQuery(params as any)}`, { method: 'DELETE' });
+}

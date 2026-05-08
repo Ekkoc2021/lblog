@@ -89,4 +89,88 @@
         WHERE id = #{id} AND deleted_at IS NULL
     </update>
 
+    <!-- ==================== 管理端 ==================== -->
+
+    <select id="selectAdminList" resultType="com.yang.lblogserver.vo.admin.AdminImageVO">
+        SELECT i.*, COUNT(iu.id) AS usageCount
+        FROM images i
+        LEFT JOIN image_usages iu ON iu.image_id = i.id
+        WHERE i.deleted_at IS NULL
+        <if test="keyword != null and keyword != ''">
+            AND i.original_name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="status == 'referenced'">
+            AND iu.id IS NOT NULL
+        </if>
+        <if test="status == 'unreferenced'">
+            AND iu.id IS NULL
+        </if>
+        GROUP BY i.id
+        ORDER BY
+        <choose>
+            <when test="sort == 'oldest'">i.created_at ASC</when>
+            <when test="sort == 'largest'">i.file_size DESC</when>
+            <when test="sort == 'smallest'">i.file_size ASC</when>
+            <when test="sort == 'most_used'">usageCount DESC</when>
+            <when test="sort == 'unused'">usageCount ASC</when>
+            <otherwise>i.created_at DESC</otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAdminList" resultType="int">
+        SELECT COUNT(DISTINCT i.id)
+        FROM images i
+        LEFT JOIN image_usages iu ON iu.image_id = i.id
+        WHERE i.deleted_at IS NULL
+        <if test="keyword != null and keyword != ''">
+            AND i.original_name LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        <if test="status == 'referenced'">
+            AND iu.id IS NOT NULL
+        </if>
+        <if test="status == 'unreferenced'">
+            AND iu.id IS NULL
+        </if>
+    </select>
+
+    <select id="selectImageUsages" resultType="com.yang.lblogserver.vo.admin.ImageUsageVO">
+        SELECT iu.ref_type AS refType, iu.ref_id AS refId, iu.field,
+               COALESCE(p.title, '') AS refTitle
+        FROM image_usages iu
+        LEFT JOIN posts p ON iu.ref_type = 'post' AND p.id = iu.ref_id AND p.is_delelte = 0
+        WHERE iu.image_id = #{imageId}
+    </select>
+
+    <select id="selectImageStatistics" resultType="com.yang.lblogserver.vo.admin.ImageStatisticsVO">
+        SELECT
+            COUNT(*) AS totalImages,
+            COALESCE(SUM(file_size), 0) AS totalSize,
+            SUM(CASE WHEN u.id IS NOT NULL THEN 1 ELSE 0 END) AS referencedCount,
+            SUM(CASE WHEN u.id IS NULL THEN 1 ELSE 0 END) AS unreferencedCount,
+            SUM(CASE WHEN u.id IS NULL AND i.created_at &lt; DATE_SUB(NOW(), INTERVAL 30 DAY) THEN 1 ELSE 0 END) AS oldUnreferencedCount,
+            COALESCE(SUM(CASE WHEN u.id IS NULL AND i.created_at &lt; DATE_SUB(NOW(), INTERVAL 30 DAY) THEN i.file_size ELSE 0 END), 0) AS oldUnreferencedSize
+        FROM images i
+        LEFT JOIN image_usages u ON u.image_id = i.id
+        WHERE i.deleted_at IS NULL
+    </select>
+
+    <select id="selectCleanupCandidates" resultMap="BaseResultMap">
+        SELECT i.* FROM images i
+        LEFT JOIN image_usages u ON u.image_id = i.id
+        WHERE i.deleted_at IS NULL AND u.id IS NULL
+          AND i.created_at &lt; DATE_SUB(NOW(), INTERVAL #{beforeDays} DAY)
+        ORDER BY i.created_at ASC
+    </select>
+
+    <select id="selectByIdRaw" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM images
+        WHERE id = #{id}
+    </select>
+
+    <delete id="hardDeleteById">
+        DELETE FROM images WHERE id = #{id}
+    </delete>
+
 </mapper>

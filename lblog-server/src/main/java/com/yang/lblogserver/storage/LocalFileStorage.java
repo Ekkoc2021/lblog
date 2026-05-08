@@ -24,6 +24,26 @@ public class LocalFileStorage implements FileStorage {
     private String uploadDir;
 
     @Override
+    public void delete(String storagePath) {
+        if (storagePath == null || storagePath.isEmpty()) {
+            log.warn("Storage path is empty, cannot delete");
+            return;
+        }
+        Path filePath = Paths.get(storagePath);
+        try {
+            boolean deleted = Files.deleteIfExists(filePath);
+            if (deleted) {
+                log.info("Deleted file: {} (normalized: {})", storagePath, filePath.toAbsolutePath());
+            } else {
+                log.warn("File not found, may already be deleted: {} (normalized: {})",
+                        storagePath, filePath.toAbsolutePath());
+            }
+        } catch (IOException e) {
+            log.error("Failed to delete file: {} (normalized: {})", storagePath, filePath.toAbsolutePath(), e);
+        }
+    }
+
+    @Override
     public StorageResult store(InputStream inputStream, String originalFilename,
                                long contentLength, String contentType) {
         try {

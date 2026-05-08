@@ -15,6 +15,9 @@ import CategoryManage from './pages/author/CategoryManage';
 import TagManage from './pages/author/TagManage';
 import SeriesManage from './pages/author/SeriesManage';
 import Statistics from './pages/author/Statistics';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import ConfigManage from './pages/author/ConfigManage';
+import ImageManage from './pages/admin/ImageManage';
 
 function App() {
   return (
@@ -29,7 +32,9 @@ function App() {
             <Route path="/series/:slug" element={<SeriesPosts />} />
             <Route path="/search" element={<SearchResult />} />
             <Route path="/posts/:slug" element={<PostDetail />} />
-            <Route path="/admin" element={<div style={{ padding: 48, textAlign: 'center', color: '#999' }}>博客管理 · 开发中</div>} />
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/configs" element={<ConfigManage />} />
+            <Route path="/admin/images" element={<ImageManage />} />
             <Route path="/author" element={<AdminLayout />}>
               <Route index element={<PostList />} />
               <Route path="posts" element={<PostList />} />
