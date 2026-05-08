@@ -240,7 +240,7 @@ const PostDetail: React.FC = () => {
           )}
 
           {/* 评论区 */}
-          {post && <CommentSection postId={post.id} />}
+          {post && post.commentEnable !== 0 && <CommentSection postId={post.id} />}
         </div>
 
         {/* 右侧目录 */}

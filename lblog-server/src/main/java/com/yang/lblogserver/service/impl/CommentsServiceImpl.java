@@ -2,7 +2,9 @@ package com.yang.lblogserver.service.impl;
 
 import com.yang.lblogserver.common.PageResult;
 import com.yang.lblogserver.domain.Comments;
+import com.yang.lblogserver.domain.Posts;
 import com.yang.lblogserver.mapper.CommentsMapper;
+import com.yang.lblogserver.mapper.PostsMapper;
 import com.yang.lblogserver.service.CommentsService;
 import com.yang.lblogserver.vo.CommentVO;
 import org.springframework.stereotype.Service;
@@ -14,15 +16,25 @@ import java.util.List;
 public class CommentsServiceImpl implements CommentsService {
 
     private final CommentsMapper commentsMapper;
+    private final PostsMapper postsMapper;
 
-    public CommentsServiceImpl(CommentsMapper commentsMapper) {
+    public CommentsServiceImpl(CommentsMapper commentsMapper, PostsMapper postsMapper) {
         this.commentsMapper = commentsMapper;
+        this.postsMapper = postsMapper;
     }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createComment(Long postId, String content, Long parentId, Long userId,
                               String authorName, String authorAvatar, String ip) {
+        Posts post = postsMapper.selectById(postId);
+        if (post == null) {
+            throw new IllegalArgumentException("文章不存在");
+        }
+        if (post.getCommentEnable() != null && post.getCommentEnable() == 0) {
+            throw new IllegalArgumentException("该文章已关闭评论");
+        }
+
         Long rootId = null;
         Long replyToUid = null;
         String replyToName = null;
