@@ -225,3 +225,40 @@ export interface CreateSeriesRequest {
   isCompleted?: number;
   sortOrder?: number;
 }
+
+// ---- Admin 全站管理类型 ----
+
+export interface AdminCategory {
+  id: number;
+  name: string;
+  slug: string;
+  parentId: number | null;
+  description: string | null;
+  sortOrder: number;
+  postCount: number;
+  createdBy: number;
+  creatorName: string;
+}
+
+export interface AdminTag {
+  id: number;
+  name: string;
+  slug: string;
+  postCount: number;
+  createdBy: number;
+  creatorName: string;
+}
+
+export interface AdminSeries {
+  id: number;
+  title: string;
+  slug: string;
+  description: string | null;
+  coverImageUrl: string | null;
+  categoryId: number | null;
+  isCompleted: number;
+  sortOrder: number;
+  postCount: number;
+  createdBy: number;
+  creatorName: string;
+}

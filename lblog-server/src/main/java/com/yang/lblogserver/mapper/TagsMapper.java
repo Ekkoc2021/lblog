@@ -23,5 +23,7 @@ public interface TagsMapper {
 
     int softDeleteTag(@Param("id") Long id);
 
+    int countBySlug(@Param("slug") String slug, @Param("excludeId") Long excludeId);
+
     Tags selectById(@Param("id") Long id);
 }

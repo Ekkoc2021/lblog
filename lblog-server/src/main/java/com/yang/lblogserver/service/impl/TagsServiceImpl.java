@@ -26,6 +26,11 @@ public class TagsServiceImpl implements TagsService {
     // ---- Admin ----
 
     @Override
+    public boolean checkSlug(String slug, Long excludeId) {
+        return tagsMapper.countBySlug(slug, excludeId) == 0;
+    }
+
+    @Override
     public Long createTag(CreateTagRequest req, Long createdBy) {
         Tags tag = new Tags();
         tag.setName(req.getName());

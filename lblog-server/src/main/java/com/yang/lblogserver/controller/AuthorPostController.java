@@ -63,7 +63,7 @@ public class AuthorPostController {
         return ApiResponse.success(new SlugCheckResponse(available));
     }
 
-    @Operation(summary = "获取单篇文章（编辑用）", description = "含正文，不过滤 status")
+    @Operation(summary = "获取单篇文章（编辑用）", description = "含正文，不过滤 status。管理员可查看任意文章")
     @GetMapping("/posts/{id}")
     public ApiResponse<PostDetailVO> getAdminPostById(@PathVariable Long id) {
         PostDetailVO vo = postsService.getAdminPostById(id);
@@ -85,7 +85,7 @@ public class AuthorPostController {
         return ApiResponse.success(new IdResponse(id));
     }
 
-    @Operation(summary = "更新文章")
+    @Operation(summary = "更新文章", description = "管理员可编辑任意文章")
     @PutMapping("/posts/{id}")
     public ApiResponse<?> updatePost(@PathVariable Long id, @RequestBody UpdatePostRequest request) {
         PostDetailVO vo = postsService.getAdminPostById(id);
@@ -101,7 +101,7 @@ public class AuthorPostController {
         return ApiResponse.success(null);
     }
 
-    @Operation(summary = "删除文章（软删除）")
+    @Operation(summary = "删除文章（软删除）", description = "管理员可删除任意文章")
     @DeleteMapping("/posts/{id}")
     public ApiResponse<?> deletePost(@PathVariable Long id) {
         PostDetailVO vo = postsService.getAdminPostById(id);

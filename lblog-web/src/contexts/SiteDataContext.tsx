@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { message } from 'antd';
-import type { Category, Tag as TagType, Series, Post, SiteConfig } from '../types';
+import type { Category, Tag as TagType, Series, Post } from '../types';
 import { getCategories, getTags, getSeries, getHotPosts, getSiteConfig } from '../services/api';
 
 interface SiteData {

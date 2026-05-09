@@ -1,4 +1,4 @@
-import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig } from '../types';
+import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries } from '../types';
 
 function getToken(): string | null {
   return sessionStorage.getItem('lblog_access_token');
@@ -575,4 +575,134 @@ export async function deleteAdminUser(id: number): Promise<ApiResponse<null>> {
 
 export async function getRoles(): Promise<ApiResponse<RoleInfo[]>> {
   return request<RoleInfo[]>('/api/v1/admin/roles');
+}
+
+// ---- 全站内容管理 Admin APIs ----
+
+// Posts
+export async function getAdminAllPosts(params?: {
+  page?: number;
+  pageSize?: number;
+  status?: number;
+  keyword?: string;
+  authorId?: number;
+}, signal?: AbortSignal): Promise<ApiResponse<PageResult<Post>>> {
+  return request<PageResult<Post>>(`/api/v1/admin/posts${buildQuery(params as Record<string, string | number | undefined>)}`, { signal });
+}
+
+export async function updateAdminPost(id: number, data: Record<string, unknown>): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/posts/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateAdminPostStatus(id: number, status: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/posts/${id}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  });
+}
+
+export async function batchAdminPosts(ids: number[], action: 'PUBLISH' | 'DRAFT' | 'DELETE'): Promise<ApiResponse<{ successCount: number; failedIds: number[] } | null>> {
+  return request<{ successCount: number; failedIds: number[] } | null>('/api/v1/admin/posts/batch', {
+    method: 'POST',
+    body: JSON.stringify({ ids, action }),
+  });
+}
+
+// Categories
+export async function getAdminAllCategories(params?: {
+  page?: number;
+  pageSize?: number;
+  createdBy?: number;
+}, signal?: AbortSignal): Promise<ApiResponse<PageResult<AdminCategory>>> {
+  return request<PageResult<AdminCategory>>(`/api/v1/admin/categories${buildQuery(params as Record<string, string | number | undefined>)}`, { signal });
+}
+
+export async function createAdminCategory(data: CreateCategoryRequest): Promise<ApiResponse<{ id: number }>> {
+  return request<{ id: number }>('/api/v1/admin/categories', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateAdminCategory(id: number, data: Partial<CreateCategoryRequest>): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/categories/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteAdminCategory(id: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/categories/${id}`, { method: 'DELETE' });
+}
+
+// Tags
+export async function getAdminAllTags(params?: {
+  page?: number;
+  pageSize?: number;
+  createdBy?: number;
+}, signal?: AbortSignal): Promise<ApiResponse<PageResult<AdminTag>>> {
+  return request<PageResult<AdminTag>>(`/api/v1/admin/tags${buildQuery(params as Record<string, string | number | undefined>)}`, { signal });
+}
+
+export async function createAdminTag(data: CreateTagRequest): Promise<ApiResponse<{ id: number }>> {
+  return request<{ id: number }>('/api/v1/admin/tags', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateAdminTag(id: number, data: Partial<CreateTagRequest>): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/tags/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteAdminTag(id: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/tags/${id}`, { method: 'DELETE' });
+}
+
+// Series
+export async function getAdminAllSeries(params?: {
+  page?: number;
+  pageSize?: number;
+  categoryId?: number;
+  createdBy?: number;
+}, signal?: AbortSignal): Promise<ApiResponse<PageResult<AdminSeries>>> {
+  return request<PageResult<AdminSeries>>(`/api/v1/admin/series${buildQuery(params as Record<string, string | number | undefined>)}`, { signal });
+}
+
+export async function createAdminSeries(data: CreateSeriesRequest): Promise<ApiResponse<{ id: number }>> {
+  return request<{ id: number }>('/api/v1/admin/series', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateAdminSeries(id: number, data: Partial<CreateSeriesRequest>): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/series/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteAdminSeries(id: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/series/${id}`, { method: 'DELETE' });
+}
+
+export async function linkAdminSeriesPosts(seriesId: number, postIds: number[]): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/series/${seriesId}/posts`, {
+    method: 'POST',
+    body: JSON.stringify({ postIds }),
+  });
+}
+
+export async function sortAdminSeriesPosts(seriesId: number, postIds: number[]): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/series/${seriesId}/posts/sort`, {
+    method: 'PUT',
+    body: JSON.stringify({ postIds }),
+  });
 }

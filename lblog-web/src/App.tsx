@@ -16,6 +16,10 @@ import TagManage from './pages/author/TagManage';
 import SeriesManage from './pages/author/SeriesManage';
 import Statistics from './pages/author/Statistics';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import PostManage from './pages/admin/PostManage';
+import AdminCategoryManage from './pages/admin/CategoryManage';
+import AdminTagManage from './pages/admin/TagManage';
+import AdminSeriesManage from './pages/admin/SeriesManage';
 import ConfigManage from './pages/author/ConfigManage';
 import ImageManage from './pages/admin/ImageManage';
 import UserManage from './pages/admin/UserManage';
@@ -34,6 +38,10 @@ function App() {
             <Route path="/search" element={<SearchResult />} />
             <Route path="/posts/:slug" element={<PostDetail />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/posts" element={<PostManage />} />
+            <Route path="/admin/categories" element={<AdminCategoryManage />} />
+            <Route path="/admin/tags" element={<AdminTagManage />} />
+            <Route path="/admin/series" element={<AdminSeriesManage />} />
             <Route path="/admin/configs" element={<ConfigManage />} />
             <Route path="/admin/images" element={<ImageManage />} />
             <Route path="/admin/users" element={<UserManage />} />

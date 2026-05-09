@@ -26,6 +26,11 @@ public class CategoriesServiceImpl implements CategoriesService {
     // ---- Admin ----
 
     @Override
+    public boolean checkSlug(String slug, Long excludeId) {
+        return categoriesMapper.countBySlug(slug, excludeId) == 0;
+    }
+
+    @Override
     public Long createCategory(CreateCategoryRequest req, Long createdBy) {
         Categories category = new Categories();
         category.setName(req.getName());

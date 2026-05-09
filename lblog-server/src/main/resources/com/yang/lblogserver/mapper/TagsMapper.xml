@@ -68,6 +68,12 @@
         WHERE id = #{id} AND is_delelte = 0
     </update>
 
+    <select id="countBySlug" resultType="int">
+        SELECT COUNT(1) FROM tags
+        WHERE slug = #{slug} AND is_delelte = 0 AND deleted_at IS NULL
+        <if test="excludeId != null">AND id != #{excludeId}</if>
+    </select>
+
     <update id="softDeleteTag">
         UPDATE tags SET is_delelte = 1, deleted_at = NOW()
         WHERE id = #{id}

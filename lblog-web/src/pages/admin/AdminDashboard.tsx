@@ -1,5 +1,5 @@
 import { Card, Row, Col, Typography } from 'antd';
-import { SettingOutlined, PictureOutlined, UserOutlined } from '@ant-design/icons';
+import { SettingOutlined, PictureOutlined, UserOutlined, FileTextOutlined, FolderOutlined, TagsOutlined, BookOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 const { Title, Paragraph } = Typography;
@@ -26,6 +26,34 @@ const features = [
     icon: <UserOutlined style={{ fontSize: 32, color: '#722ed1' }} />,
     path: '/admin/users',
   },
+  {
+    key: 'posts',
+    title: '文章管理',
+    description: '全站文章管理，支持按作者筛选、批量操作',
+    icon: <FileTextOutlined style={{ fontSize: 32, color: '#1e80ff' }} />,
+    path: '/admin/posts',
+  },
+  {
+    key: 'categories',
+    title: '分类管理',
+    description: '全站分类管理，查看所有作者创建的分类',
+    icon: <FolderOutlined style={{ fontSize: 32, color: '#52c41a' }} />,
+    path: '/admin/categories',
+  },
+  {
+    key: 'tags',
+    title: '标签管理',
+    description: '全站标签管理，查看所有作者创建的标签',
+    icon: <TagsOutlined style={{ fontSize: 32, color: '#fa8c16' }} />,
+    path: '/admin/tags',
+  },
+  {
+    key: 'series',
+    title: '专栏管理',
+    description: '全站专栏管理，查看所有作者创建的专栏',
+    icon: <BookOutlined style={{ fontSize: 32, color: '#722ed1' }} />,
+    path: '/admin/series',
+  },
 ];
 
 const AdminDashboard: React.FC = () => {
@@ -36,7 +64,7 @@ const AdminDashboard: React.FC = () => {
       <Title level={4} style={{ marginBottom: 24 }}>社区管理</Title>
       <Row gutter={[16, 16]}>
         {features.map((f) => (
-          <Col xs={24} sm={12} md={8} key={f.key}>
+          <Col xs={24} sm={12} md={8} xl={6} key={f.key}>
             <Card
               hoverable
               onClick={() => navigate(f.path)}

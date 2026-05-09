@@ -25,5 +25,7 @@ public interface CategoriesMapper {
 
     int countPostsByCategoryId(@Param("categoryId") Long categoryId);
 
+    int countBySlug(@Param("slug") String slug, @Param("excludeId") Long excludeId);
+
     Categories selectById(@Param("id") Long id);
 }

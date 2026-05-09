@@ -11,6 +11,8 @@ public interface TagsService {
 
     // ---- Admin ----
 
+    boolean checkSlug(String slug, Long excludeId);
+
     Long createTag(CreateTagRequest req, Long createdBy);
 
     void updateTag(Long id, CreateTagRequest req);

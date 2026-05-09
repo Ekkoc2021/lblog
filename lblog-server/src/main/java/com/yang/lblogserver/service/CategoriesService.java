@@ -11,6 +11,8 @@ public interface CategoriesService {
 
     // ---- Admin ----
 
+    boolean checkSlug(String slug, Long excludeId);
+
     Long createCategory(CreateCategoryRequest req, Long createdBy);
 
     void updateCategory(Long id, CreateCategoryRequest req);

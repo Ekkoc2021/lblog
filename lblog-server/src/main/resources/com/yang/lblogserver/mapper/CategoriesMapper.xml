@@ -84,6 +84,12 @@
         WHERE id = #{id}
     </update>
 
+    <select id="countBySlug" resultType="int">
+        SELECT COUNT(1) FROM categories
+        WHERE slug = #{slug} AND is_delelte = 0 AND deleted_at IS NULL
+        <if test="excludeId != null">AND id != #{excludeId}</if>
+    </select>
+
     <select id="countPostsByCategoryId" resultType="int">
         SELECT COUNT(1) FROM posts
         WHERE category_id = #{categoryId} AND is_delelte = 0 AND deleted_at IS NULL
