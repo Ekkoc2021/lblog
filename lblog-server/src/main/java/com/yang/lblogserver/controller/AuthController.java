@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -65,6 +66,9 @@ public class AuthController {
             usersMapper.updateLoginInfo(loginUser.getUserId());
             TokenPairVO tokenPair = tokenService.issueTokenPair(loginUser.getUserId());
             return ApiResponse.success(tokenPair);
+        } catch (DisabledException e) {
+            loginAttemptService.recordFailedAttempt(username);
+            return ApiResponse.error(403, "账号已被禁用，请联系管理员");
         } catch (BadCredentialsException e) {
             loginAttemptService.recordFailedAttempt(username);
             int remain = Math.max(0, 5 - loginAttemptService.getAttemptCount(username));
