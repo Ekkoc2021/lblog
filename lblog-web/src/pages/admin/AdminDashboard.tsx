@@ -1,5 +1,5 @@
 import { Card, Row, Col, Typography } from 'antd';
-import { SettingOutlined, PictureOutlined, UserOutlined, FileTextOutlined, FolderOutlined, TagsOutlined, BookOutlined } from '@ant-design/icons';
+import { SettingOutlined, PictureOutlined, UserOutlined, FileTextOutlined, FolderOutlined, TagsOutlined, BookOutlined, MessageOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 const { Title, Paragraph } = Typography;
@@ -53,6 +53,13 @@ const features = [
     description: '全站专栏管理，查看所有作者创建的专栏',
     icon: <BookOutlined style={{ fontSize: 32, color: '#722ed1' }} />,
     path: '/admin/series',
+  },
+  {
+    key: 'comments',
+    title: '评论管理',
+    description: '全站评论审核，通过、驳回或删除评论',
+    icon: <MessageOutlined style={{ fontSize: 32, color: '#eb2f96' }} />,
+    path: '/admin/comments',
   },
 ];
 

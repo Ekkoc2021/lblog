@@ -7,10 +7,13 @@ import com.yang.lblogserver.mapper.CommentsMapper;
 import com.yang.lblogserver.mapper.PostsMapper;
 import com.yang.lblogserver.service.CommentsService;
 import com.yang.lblogserver.vo.CommentVO;
+import com.yang.lblogserver.vo.admin.AdminCommentVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class CommentsServiceImpl implements CommentsService {
@@ -100,6 +103,37 @@ public class CommentsServiceImpl implements CommentsService {
     }
 
     @Override
+    public PageResult<AdminCommentVO> getAdminCommentPage(int page, int pageSize, Integer status,
+                                                           String keyword, Long postId) {
+        int offset = (page - 1) * pageSize;
+        List<Comments> list = commentsMapper.selectAdminPage(status, keyword, postId, offset, pageSize);
+        int total = commentsMapper.countAdmin(status, keyword, postId);
+
+        // batch load post titles
+        List<Long> postIds = list.stream().map(Comments::getPostId).distinct().toList();
+        final Map<Long, Posts> postMap;
+        if (!postIds.isEmpty()) {
+            postMap = postsMapper.selectBatchIds(postIds).stream()
+                    .collect(Collectors.toMap(Posts::getId, p -> p, (a, b) -> a));
+        } else {
+            postMap = Map.of();
+        }
+
+        List<AdminCommentVO> voList = list.stream().map(c -> {
+            AdminCommentVO vo = new AdminCommentVO();
+            copyToVO(c, vo);
+            Posts p = postMap.get(c.getPostId());
+            if (p != null) {
+                vo.setPostTitle(p.getTitle());
+                vo.setPostSlug(p.getSlug());
+            }
+            return vo;
+        }).toList();
+
+        return PageResult.of(page, pageSize, total, voList);
+    }
+
+    @Override
     public void updateStatus(Long id, Integer status) {
         commentsMapper.updateStatus(id, status);
     }
@@ -115,8 +149,7 @@ public class CommentsServiceImpl implements CommentsService {
 
     // ========== 内部方法 ==========
 
-    private CommentVO toVO(Comments c) {
-        CommentVO vo = new CommentVO();
+    private void copyToVO(Comments c, CommentVO vo) {
         vo.setId(c.getId());
         vo.setPostId(c.getPostId());
         vo.setContent(c.getContent());
@@ -138,6 +171,11 @@ public class CommentsServiceImpl implements CommentsService {
             replyTo.setNickname(c.getReplyToName());
             vo.setReplyTo(replyTo);
         }
+    }
+
+    private CommentVO toVO(Comments c) {
+        CommentVO vo = new CommentVO();
+        copyToVO(c, vo);
         return vo;
     }
 }

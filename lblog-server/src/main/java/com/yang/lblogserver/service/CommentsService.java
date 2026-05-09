@@ -2,6 +2,7 @@ package com.yang.lblogserver.service;
 
 import com.yang.lblogserver.common.PageResult;
 import com.yang.lblogserver.vo.CommentVO;
+import com.yang.lblogserver.vo.admin.AdminCommentVO;
 
 import java.util.List;
 
@@ -17,6 +18,9 @@ public interface CommentsService {
     PageResult<CommentVO> getReplies(Long rootId, int page, int pageSize, Long currentUserId);
 
     List<CommentVO> getAdminCommentList(Integer status);
+
+    PageResult<AdminCommentVO> getAdminCommentPage(int page, int pageSize, Integer status,
+                                                    String keyword, Long postId);
 
     void updateStatus(Long id, Integer status);
 

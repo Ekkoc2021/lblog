@@ -262,3 +262,18 @@ export interface AdminSeries {
   createdBy: number;
   creatorName: string;
 }
+
+export interface AdminComment {
+  id: number;
+  author: CommentAuthor;
+  replyTo: CommentReplyTo | null;
+  content: string;
+  likeCount: number;
+  replyCount: number;
+  createdAt: string;
+  postId: number;
+  status: number;
+  ipAddress: string;
+  postTitle: string;
+  postSlug: string;
+}

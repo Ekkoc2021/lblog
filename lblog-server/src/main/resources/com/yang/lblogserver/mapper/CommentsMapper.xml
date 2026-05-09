@@ -93,6 +93,25 @@
         ORDER BY created_at DESC
     </select>
 
+    <select id="selectAdminPage" resultMap="BaseResultMap">
+        SELECT c.*
+        FROM comments c
+        WHERE c.is_delelte = 0 AND c.deleted_at IS NULL
+        <if test="status != null">AND c.status = #{status}</if>
+        <if test="keyword != null and keyword != ''">AND c.content LIKE CONCAT('%', #{keyword}, '%')</if>
+        <if test="postId != null">AND c.post_id = #{postId}</if>
+        ORDER BY c.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAdmin" resultType="int">
+        SELECT COUNT(1) FROM comments c
+        WHERE c.is_delelte = 0 AND c.deleted_at IS NULL
+        <if test="status != null">AND c.status = #{status}</if>
+        <if test="keyword != null and keyword != ''">AND c.content LIKE CONCAT('%', #{keyword}, '%')</if>
+        <if test="postId != null">AND c.post_id = #{postId}</if>
+    </select>
+
     <update id="updateStatus">
         UPDATE comments SET status = #{status}, updated_at = NOW()
         WHERE id = #{id}

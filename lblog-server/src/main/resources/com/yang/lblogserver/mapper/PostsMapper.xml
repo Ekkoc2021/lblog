@@ -120,6 +120,15 @@
         WHERE id = #{id} AND is_delelte = 0 AND deleted_at IS NULL
     </select>
 
+    <select id="selectBatchIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM posts
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
     <insert id="insertPost" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
         INSERT INTO posts (title, slug, excerpt, featured_image, status, author_id,
                            category_id, view_count, like_count, comment_count, comment_enable,

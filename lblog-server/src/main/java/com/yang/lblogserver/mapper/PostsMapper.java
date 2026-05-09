@@ -38,6 +38,8 @@ public interface PostsMapper {
 
     Posts selectByIdRaw(@Param("id") Long id);
 
+    List<Posts> selectBatchIds(@Param("ids") List<Long> ids);
+
     int insertPost(Posts post);
 
     int updatePost(Posts post);

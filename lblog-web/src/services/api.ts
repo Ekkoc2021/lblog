@@ -1,4 +1,4 @@
-import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries } from '../types';
+import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries, AdminComment } from '../types';
 
 function getToken(): string | null {
   return sessionStorage.getItem('lblog_access_token');
@@ -704,5 +704,34 @@ export async function sortAdminSeriesPosts(seriesId: number, postIds: number[]):
   return request<null>(`/api/v1/admin/series/${seriesId}/posts/sort`, {
     method: 'PUT',
     body: JSON.stringify({ postIds }),
+  });
+}
+
+// Admin Comments
+export async function getAdminComments(params?: {
+  page?: number;
+  pageSize?: number;
+  status?: number;
+  keyword?: string;
+  postId?: number;
+}, signal?: AbortSignal): Promise<ApiResponse<PageResult<AdminComment>>> {
+  return request<PageResult<AdminComment>>(`/api/v1/admin/comments${buildQuery(params as Record<string, string | number | undefined>)}`, { signal });
+}
+
+export async function reviewAdminComment(id: number, status: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/comments/${id}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  });
+}
+
+export async function deleteAdminComment(id: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/comments/${id}`, { method: 'DELETE' });
+}
+
+export async function batchAdminComments(ids: number[], action: 'APPROVE' | 'REJECT' | 'DELETE'): Promise<ApiResponse<{ successCount: number; failedIds: number[] } | null>> {
+  return request<{ successCount: number; failedIds: number[] } | null>('/api/v1/admin/comments/batch', {
+    method: 'POST',
+    body: JSON.stringify({ ids, action }),
   });
 }

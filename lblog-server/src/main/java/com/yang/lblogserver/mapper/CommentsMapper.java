@@ -33,6 +33,16 @@ public interface CommentsMapper {
 
     List<Comments> selectAdminList(@Param("status") Integer status);
 
+    List<Comments> selectAdminPage(@Param("status") Integer status,
+                                    @Param("keyword") String keyword,
+                                    @Param("postId") Long postId,
+                                    @Param("offset") int offset,
+                                    @Param("limit") int limit);
+
+    int countAdmin(@Param("status") Integer status,
+                   @Param("keyword") String keyword,
+                   @Param("postId") Long postId);
+
     int updateStatus(@Param("id") Long id, @Param("status") Integer status);
 
     int softDelete(@Param("id") Long id);
