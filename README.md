@@ -80,11 +80,11 @@ INSERT INTO roles (name, label, description, sort_order) VALUES
 ('author', '作者', '可以管理自己的文章和评论', 1),
 ('user', '用户', '只能浏览和评论', 2);
 
--- 默认管理员（必须，启动前至少需要一个 admin 用户）
--- password_hash 使用 BCrypt 加密，请在项目中运行以下代码生成后替换：
+-- 默认管理员（不提供任何管理员注册接口，所以启动前至少需要一个 admin 用户），如下管理员密码为admin123，前缀{noop}表示明文存储到数据库。
+-- password_hash 使用 BCrypt 加密，需要加密可在项目中运行以下代码生成后替换（项目运行后通过接口注册的用户密码均会自动加密）：
 --   new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().encode("your-password")
 INSERT INTO users (username, password_hash, nickname, role, status) VALUES
-('admin', '${BCRYPT_HASH}', 'Admin', 'admin', 1);
+('admin', '{noop}admin123', 'Admin', 'admin', 1);
 
 -- 用户角色关联
 INSERT INTO user_roles (user_id, role_id) VALUES (1, 1);
