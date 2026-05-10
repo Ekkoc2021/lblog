@@ -272,9 +272,9 @@ public class AdminUserController {
 
         // 填充角色信息
         List<UserRoles> userRoleList = userRolesMapper.selectByUserId(user.getId());
+        List<String> roleNames = new ArrayList<>();
+        List<String> roleLabels = new ArrayList<>();
         if (userRoleList != null && !userRoleList.isEmpty()) {
-            List<String> roleNames = new ArrayList<>();
-            List<String> roleLabels = new ArrayList<>();
             for (UserRoles ur : userRoleList) {
                 Roles role = rolesMapper.selectById(ur.getRoleId());
                 if (role != null) {
@@ -282,9 +282,12 @@ public class AdminUserController {
                     roleLabels.add(role.getLabel());
                 }
             }
-            vo.setRoles(roleNames);
-            vo.setRoleLabels(roleLabels);
         }
+        vo.setRoles(roleNames);
+        vo.setRoleLabels(roleLabels);
+
+        // 文章数
+        vo.setPostCount(usersMapper.countPostsByUserId(user.getId()));
 
         return vo;
     }

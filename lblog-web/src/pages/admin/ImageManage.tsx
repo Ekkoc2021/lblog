@@ -48,7 +48,6 @@ const ImageManage: React.FC = () => {
   const [sort, setSort] = useState('newest');
   const [status, setStatus] = useState('all');
   const [keyword, setKeyword] = useState('');
-  const [cleanupDays, setCleanupDays] = useState(30);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -100,7 +99,7 @@ const ImageManage: React.FC = () => {
 
   const handleCleanup = async () => {
     try {
-      const previewRes = await cleanupImages({ beforeDays: cleanupDays, dryRun: true });
+      const previewRes = await cleanupImages({ dryRun: true });
       const previewData = previewRes.data as {
         dryRun: boolean;
         count: number;
@@ -119,27 +118,12 @@ const ImageManage: React.FC = () => {
         width: 600,
         content: (
           <div>
-            <div style={{ marginBottom: 16 }}>
-              <Text type="secondary">清理超过 </Text>
-              <Select
-                value={cleanupDays}
-                onChange={setCleanupDays}
-                style={{ width: 80 }}
-                size="small"
-                options={[
-                  { value: 7, label: '7' },
-                  { value: 14, label: '14' },
-                  { value: 30, label: '30' },
-                  { value: 60, label: '60' },
-                  { value: 90, label: '90' },
-                  { value: 180, label: '180' },
-                ]}
-              />
-              <Text type="secondary"> 天未引用的图片</Text>
-            </div>
             <p>
-              将删除 <Text strong>{previewData.count}</Text> 张未引用的图片，
-              释放 <Text strong>{formatFileSize(previewData.totalSize)}</Text> 空间。
+              清理策略由后端配置决定。将删除{' '}
+              <Text strong>{previewData.count}</Text>{' '}
+              张未引用的图片，释放{' '}
+              <Text strong>{formatFileSize(previewData.totalSize)}</Text>{' '}
+              空间。
             </p>
             {previewData.images && previewData.images.length > 0 && (
               <div style={{ maxHeight: 300, overflow: 'auto', marginTop: 12 }}>
@@ -168,7 +152,7 @@ const ImageManage: React.FC = () => {
         cancelText: '取消',
         onOk: async () => {
           try {
-            await cleanupImages({ beforeDays: cleanupDays, dryRun: false });
+            await cleanupImages({ dryRun: false });
             message.success('清理完成');
             loadData();
           } catch (e: unknown) {

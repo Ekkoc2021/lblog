@@ -243,8 +243,8 @@ const UserManage: React.FC = () => {
       width: 200,
       render: (_: unknown, record: AdminUser) => (
         <>
-          {record.roleLabels.map((label, i) => (
-            <Tag key={i} color={record.roles[i] === 'admin' ? 'red' : 'blue'}>
+          {(record.roleLabels ?? []).map((label, i) => (
+            <Tag key={i} color={(record.roles ?? [])[i] === 'admin' ? 'red' : 'blue'}>
               {label}
             </Tag>
           ))}

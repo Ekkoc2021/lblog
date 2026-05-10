@@ -141,4 +141,12 @@
         WHERE id = #{id}
     </update>
 
+    <select id="countPostsByUserId" resultType="int">
+        SELECT COUNT(*)
+        FROM posts
+        WHERE author_id = #{userId}
+          AND deleted_at IS NULL
+          AND status = 1
+    </select>
+
 </mapper>

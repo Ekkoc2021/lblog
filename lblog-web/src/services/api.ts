@@ -44,7 +44,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<ApiRespo
     delete headers['Content-Type'];
   }
 
-  const res = await fetch(path, { ...options, headers });
+  let res: Response;
+  try {
+    res = await fetch(path, { ...options, headers });
+  } catch {
+    throw new Error('网络连接失败，请检查网络或稍后重试');
+  }
 
   // 401 统一处理——自动续期
   if (res.status === 401) {
@@ -101,7 +106,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<ApiRespo
         Authorization: `Bearer ${newToken}`,
         ...(options?.headers as Record<string, string>),
       };
-      const retryRes = await fetch(path, { ...options, headers: newHeaders });
+      let retryRes: Response;
+      try {
+        retryRes = await fetch(path, { ...options, headers: newHeaders });
+      } catch {
+        throw new Error('网络连接失败，请检查网络或稍后重试');
+      }
       const json: ApiResponse<T> = await retryRes.json();
       if (json.code !== 0) throw new Error(json.message || '请求失败');
       return json;
@@ -116,7 +126,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<ApiRespo
     }
   }
 
-  const json: ApiResponse<T> = await res.json();
+  let json: ApiResponse<T>;
+  try {
+    json = await res.json();
+  } catch {
+    throw new Error('服务器返回数据异常，请稍后重试');
+  }
 
   if (json.code !== 0) {
     throw new Error(json.message || '请求失败');

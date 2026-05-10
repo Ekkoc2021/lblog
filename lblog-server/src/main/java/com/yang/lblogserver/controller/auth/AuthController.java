@@ -1,8 +1,12 @@
 package com.yang.lblogserver.controller.auth;
 
 import com.yang.lblogserver.common.ApiResponse;
+import com.yang.lblogserver.domain.Roles;
+import com.yang.lblogserver.domain.UserRoles;
 import com.yang.lblogserver.domain.Users;
+import com.yang.lblogserver.mapper.RolesMapper;
 import com.yang.lblogserver.mapper.SiteConfigMapper;
+import com.yang.lblogserver.mapper.UserRolesMapper;
 import com.yang.lblogserver.mapper.UsersMapper;
 import com.yang.lblogserver.security.model.LoginUser;
 import com.yang.lblogserver.security.service.LoginAttemptService;
@@ -35,19 +39,24 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final TokenService tokenService;
     private final UsersMapper usersMapper;
+    private final UserRolesMapper userRolesMapper;
+    private final RolesMapper rolesMapper;
     private final SiteConfigMapper siteConfigMapper;
     private final PasswordEncoder passwordEncoder;
     private final LoginAttemptService loginAttemptService;
     private final RegisterProtectionService registerProtectionService;
 
     public AuthController(AuthenticationManager authenticationManager, TokenService tokenService,
-                          UsersMapper usersMapper, SiteConfigMapper siteConfigMapper,
+                          UsersMapper usersMapper, UserRolesMapper userRolesMapper,
+                          RolesMapper rolesMapper, SiteConfigMapper siteConfigMapper,
                           PasswordEncoder passwordEncoder,
                           LoginAttemptService loginAttemptService,
                           RegisterProtectionService registerProtectionService) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
         this.usersMapper = usersMapper;
+        this.userRolesMapper = userRolesMapper;
+        this.rolesMapper = rolesMapper;
         this.siteConfigMapper = siteConfigMapper;
         this.passwordEncoder = passwordEncoder;
         this.loginAttemptService = loginAttemptService;
@@ -134,6 +143,15 @@ public class AuthController {
         user.setRole("user");
         user.setStatus(1);
         usersMapper.insertUser(user);
+
+        // 分配默认角色 "user"
+        Roles defaultRole = rolesMapper.selectByName("user");
+        if (defaultRole != null) {
+            UserRoles ur = new UserRoles();
+            ur.setUserId(user.getId());
+            ur.setRoleId(defaultRole.getId());
+            userRolesMapper.insert(ur);
+        }
 
         // 记录 IP
         registerProtectionService.markIpRegistered(ip);
