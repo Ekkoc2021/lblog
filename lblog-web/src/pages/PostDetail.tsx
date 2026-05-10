@@ -24,7 +24,6 @@ const PostDetail: React.FC = () => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [likeLoading, setLikeLoading] = useState(false);
-  const [readProgress, setReadProgress] = useState(0);
   const visitorIdRef = useRef<string>('');
   const fpRef = useRef<ReturnType<typeof FingerprintJS.load> | null>(null);
   const { imageBaseUrl } = useSiteData();
@@ -65,17 +64,6 @@ const PostDetail: React.FC = () => {
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [slug]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (docHeight <= 0) return;
-      setReadProgress(Math.min((scrollTop / docHeight) * 100, 100));
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const handleLike = async () => {
     if (!post || likeLoading || !visitorIdRef.current) return;
@@ -122,7 +110,6 @@ const PostDetail: React.FC = () => {
 
   return (
     <div className="page-enter" style={{ maxWidth: 1500, margin: '0 auto' }}>
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: 2, background: 'var(--color-primary)', zIndex: 200, width: `${readProgress}%` }} />
 
       <Button
         type="link"

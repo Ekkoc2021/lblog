@@ -78,7 +78,26 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     navigate('/');
   };
 
+  const isPostDetail = location.pathname.startsWith('/posts/');
+  const [readProgress, setReadProgress] = useState(0);
+
+  useEffect(() => {
+    if (!isPostDetail) return;
+    const handleScroll = () => {
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      if (h <= 0) return;
+      setReadProgress(Math.min((window.scrollY / h) * 100, 100));
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isPostDetail]);
+
   return (
+    <>
+      {isPostDetail && (
+        <div style={{ position: 'fixed', top: 0, left: 0, height: 3, background: 'var(--color-primary)', zIndex: 9999, width: `${readProgress}%`, boxShadow: '0 0 8px var(--color-primary)', transition: 'width 0.15s linear' }} />
+      )}
     <Layout style={{ minHeight: '100vh', background: 'var(--color-bg)' }}>
       <Header style={{
         background: 'var(--glass-header-bg)',
@@ -370,6 +389,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           })}
         </Drawer>
     </Layout>
+    </>
   );
 };
 
