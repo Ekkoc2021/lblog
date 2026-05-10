@@ -101,12 +101,20 @@ INSERT INTO site_config (config_key, config_value) VALUES
 
 ### 2. 启动后端
 
+开发环境（Swagger 可用）：
+
 ```bash
 cd lblog-server
 mvn spring-boot:run
 ```
 
-或通过 IntelliJ IDEA 运行 `LblogServerApplication`。
+或通过 IntelliJ IDEA 运行 `LblogServerApplication`（默认 profile，Swagger 开启）。
+
+生产环境（Swagger 关闭）：
+
+```bash
+java -jar lblog-server-*.jar --spring.profiles.active=prod
+```
 
 后端启动后访问：
 - API 基础路径：`http://localhost:8099/iblogserver/api/v1/`
@@ -181,10 +189,20 @@ config.setAllowedOrigins(List.of("http://localhost:3000"));
 
 ### 后端部署
 
-生产环境启动时会自动关闭 Swagger UI：
+Spring Boot 配置加载机制：**`application.yml` 始终加载**（公共配置），指定 profile 后会**叠加**对应的 `application-{profile}.yml`（覆盖同名 key）。
+
+生产环境启动：
 
 ```bash
 java -jar lblog-server-*.jar --spring.profiles.active=prod
+```
+
+此时加载顺序：`application.yml` → `application-prod.yml`（后者覆盖前者同名配置）。`application-prod.yml` 中关闭了 Swagger UI，其余数据库连接、端口等沿用 `application.yml` 的默认值。
+
+如需外置配置文件覆盖（推荐），启动时指定路径：
+
+```bash
+java -jar lblog-server.jar --spring.config.additional-location=file:./config/
 ```
 
 可通过环境变量或外部配置文件覆盖数据库连接等参数：
