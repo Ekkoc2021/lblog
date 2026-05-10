@@ -1,0 +1,8 @@
+# 生产环境配置
+# 启动方式: java -jar lblog-server.jar --spring.profiles.active=prod
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

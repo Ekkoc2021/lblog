@@ -89,10 +89,9 @@ INSERT INTO users (username, password_hash, nickname, role, status) VALUES
 -- 用户角色关联
 INSERT INTO user_roles (user_id, role_id) VALUES (1, 1);
 
--- 站点默认配置
+-- 站点默认配置：registration_enabled是否开启注册，image_cleanup_days垃圾图片清理控制（只清理过期了多少天后的图片）
 INSERT INTO site_config (config_key, config_value) VALUES
 ('registration_enabled', 'true'),
-('site_title', 'My Blog'),
 ('image_cleanup_days', '30');
 ```
 
@@ -143,9 +142,46 @@ npm run build
 
 产物：`dist/` 目录，可直接由 Nginx 托管或放入后端 `src/main/resources/static/`。
 
+## 端口与代理
+
+| 配置项 | 文件 | 说明 |
+|--------|------|------|
+| 后端端口 | `lblog-server/src/main/resources/application.yml` → `server.port` | 默认 8099 |
+| 前端 Dev 端口 | `lblog-web/vite.config.ts` → `server.port` | 默认 5173 |
+| 前端代理目标 | `lblog-web/vite.config.ts` → `server.proxy` | 代理 `/api`、`/uploads` 到后端 |
+| CORS 允许源 | `SecurityConfig.java` → `setAllowedOrigins` | 默认 `localhost:4200` |
+
+**修改示例**——将后端改为 8080，前端 Dev 改为 3000：
+
+`application.yml`：
+```yaml
+server:
+  port: 8080
+```
+
+`vite.config.ts`：
+```ts
+server: {
+  port: 3000,
+  proxy: {
+    '/api': { target: 'http://localhost:8080/iblogserver', changeOrigin: true },
+    '/uploads': { target: 'http://localhost:8080/iblogserver', changeOrigin: true },
+  },
+}
+```
+
+`SecurityConfig.java`：
+```java
+config.setAllowedOrigins(List.of("http://localhost:3000"));
+```
+
+> 三个位置需要同步：后端端口 ↔ 前端代理目标，前端 Dev 端口 ↔ CORS 允许源。
+
 ## 部署
 
 ### 后端部署
+
+生产环境启动时会自动关闭 Swagger UI：
 
 ```bash
 java -jar lblog-server-*.jar --spring.profiles.active=prod
