@@ -132,6 +132,298 @@ cp -r dist/* ../lblog-server/src/main/resources/static/
 cd ../lblog-server && mvn clean package -DskipTests
 ```
 
+## 数据库设计
+
+共 18 张表，默认数据库 `iblog`（MySQL 8），字符集 `utf8mb4`。
+
+### 核心内容
+
+```sql
+-- 文章元数据表
+CREATE TABLE `posts` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL COMMENT '文章标题',
+  `slug` varchar(255) NOT NULL COMMENT 'URL标识',
+  `excerpt` text COMMENT '摘要',
+  `featured_image` varchar(500) DEFAULT NULL COMMENT '特色图片',
+  `status` tinyint NOT NULL DEFAULT '0' COMMENT '0-草稿，1-已发布，2-私密',
+  `author_id` bigint DEFAULT NULL COMMENT '作者用户ID',
+  `category_id` bigint DEFAULT NULL COMMENT '所属分类ID',
+  `view_count` int NOT NULL DEFAULT '0' COMMENT '浏览量',
+  `like_count` int NOT NULL DEFAULT '0' COMMENT '点赞数',
+  `published_at` datetime DEFAULT NULL COMMENT '发布时间',
+  `comment_count` int NOT NULL DEFAULT '0' COMMENT '评论数',
+  `comment_enable` int NOT NULL DEFAULT '0' COMMENT '是否允许评论',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `deleted_at` datetime DEFAULT NULL COMMENT '软删除时间',
+  `is_delelte` int DEFAULT '0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_slug` (`slug`),
+  KEY `idx_author_id` (`author_id`),
+  KEY `idx_category_id` (`category_id`),
+  KEY `idx_status_published` (`status`,`published_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='文章元数据表';
+
+-- 文章内容表
+CREATE TABLE `post_contents` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `post_id` bigint NOT NULL COMMENT '关联文章ID',
+  `body` longtext NOT NULL COMMENT '文章正文（Markdown/HTML）',
+  `format` varchar(20) NOT NULL DEFAULT 'markdown' COMMENT '内容格式',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `is_delelte` int DEFAULT '0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_post_id` (`post_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='文章内容表';
+
+-- 分类表
+CREATE TABLE `categories` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL COMMENT '分类名',
+  `slug` varchar(100) NOT NULL COMMENT 'URL标识',
+  `parent_id` bigint DEFAULT NULL COMMENT '父分类ID',
+  `description` varchar(255) DEFAULT NULL COMMENT '分类描述',
+  `sort_order` int NOT NULL DEFAULT '0' COMMENT '排序',
+  `created_by` bigint DEFAULT NULL COMMENT '创建者用户ID',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `deleted_at` datetime DEFAULT NULL COMMENT '软删除时间',
+  `is_delelte` int DEFAULT '0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_slug` (`slug`),
+  KEY `idx_parent_id` (`parent_id`),
+  KEY `idx_created_by` (`created_by`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='分类表';
+
+-- 标签表
+CREATE TABLE `tags` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL COMMENT '标签名',
+  `slug` varchar(100) NOT NULL COMMENT 'URL标识',
+  `created_by` bigint DEFAULT NULL COMMENT '创建者用户ID',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `deleted_at` datetime DEFAULT NULL COMMENT '软删除时间',
+  `is_delelte` int DEFAULT '0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_slug` (`slug`),
+  KEY `idx_created_by` (`created_by`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='标签表';
+
+-- 专栏表
+CREATE TABLE `series` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) NOT NULL COMMENT '专栏名称',
+  `slug` varchar(255) NOT NULL COMMENT 'URL标识',
+  `description` text COMMENT '专栏简介',
+  `cover_image_url` varchar(500) DEFAULT NULL COMMENT '封面图URL',
+  `category_id` bigint DEFAULT NULL COMMENT '所属分类ID',
+  `is_completed` tinyint NOT NULL DEFAULT '0' COMMENT '0-未完结，1-已完结',
+  `sort_order` int NOT NULL DEFAULT '0' COMMENT '排序',
+  `created_by` bigint DEFAULT NULL COMMENT '创建者用户ID',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `deleted_at` datetime DEFAULT NULL COMMENT '软删除时间',
+  `is_delelte` int DEFAULT '0' COMMENT '是否删除',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_slug` (`slug`),
+  KEY `idx_category_id` (`category_id`),
+  KEY `idx_created_by` (`created_by`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='专栏表';
+
+-- 文章标签关联表
+CREATE TABLE `post_tags` (
+  `post_id` bigint NOT NULL,
+  `tag_id` bigint NOT NULL,
+  PRIMARY KEY (`post_id`,`tag_id`),
+  KEY `idx_tag_id` (`tag_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='文章标签关联表';
+
+-- 专栏文章关联表
+CREATE TABLE `series_posts` (
+  `series_id` bigint NOT NULL,
+  `post_id` bigint NOT NULL,
+  `sort_order` int NOT NULL DEFAULT '0' COMMENT '专栏内排序',
+  PRIMARY KEY (`series_id`,`post_id`),
+  KEY `idx_post_id` (`post_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='专栏文章关联表';
+```
+
+### 用户与权限
+
+```sql
+-- 用户表
+CREATE TABLE `users` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `username` varchar(50) NOT NULL COMMENT '登录名',
+  `password_hash` varchar(255) NOT NULL COMMENT '加密密码',
+  `nickname` varchar(100) DEFAULT NULL COMMENT '显示名称',
+  `email` varchar(100) DEFAULT NULL COMMENT '邮箱',
+  `avatar` varchar(500) DEFAULT NULL COMMENT '头像URL',
+  `role` varchar(20) NOT NULL DEFAULT 'author' COMMENT '角色：admin/author',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '1-正常，0-禁用',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `deleted_at` datetime DEFAULT NULL COMMENT '软删除时间',
+  `is_delelte` int DEFAULT '0' COMMENT '是否删除',
+  `last_login_at` datetime DEFAULT NULL COMMENT '最后登录时间',
+  `login_count` int DEFAULT '0' COMMENT '登录次数',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_username` (`username`),
+  UNIQUE KEY `uk_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户表';
+
+-- 用户令牌表
+CREATE TABLE `user_tokens` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `token_hash` varchar(64) NOT NULL COMMENT 'SHA-256(token)',
+  `token_type` varchar(10) NOT NULL COMMENT 'ACCESS / REFRESH',
+  `expires_at` datetime NOT NULL COMMENT '过期时间',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `revoked` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否吊销',
+  `replaced_by` varchar(64) DEFAULT NULL COMMENT 'rotation: 被哪个新 token_hash 替换',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_token_hash` (`token_hash`),
+  KEY `idx_user_id` (`user_id`),
+  KEY `idx_expires` (`expires_at`),
+  CONSTRAINT `fk_token_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户令牌表';
+
+-- 角色表
+CREATE TABLE `roles` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL COMMENT '角色名称：admin/author/user',
+  `label` varchar(50) NOT NULL COMMENT '显示名',
+  `description` varchar(255) DEFAULT NULL,
+  `sort_order` int NOT NULL DEFAULT '0',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色表';
+
+-- 权限表
+CREATE TABLE `permissions` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `code` varchar(100) NOT NULL COMMENT '权限编码',
+  `label` varchar(50) NOT NULL COMMENT '显示名',
+  `module` varchar(50) NOT NULL COMMENT '所属模块',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='权限表';
+
+-- 用户角色关联表
+CREATE TABLE `user_roles` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `user_id` bigint NOT NULL COMMENT '用户ID',
+  `role_id` bigint NOT NULL COMMENT '角色ID',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_role` (`user_id`,`role_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='用户角色关联表';
+
+-- 角色权限关联表
+CREATE TABLE `role_permissions` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `role_id` bigint NOT NULL COMMENT '角色ID',
+  `permission_id` bigint NOT NULL COMMENT '权限ID',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_role_perm` (`role_id`,`permission_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色权限关联表';
+```
+
+### 评论与互动
+
+```sql
+-- 评论表
+CREATE TABLE `comments` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `post_id` bigint NOT NULL,
+  `parent_id` bigint DEFAULT NULL,
+  `root_id` bigint DEFAULT NULL,
+  `user_id` bigint NOT NULL,
+  `author_name` varchar(50) NOT NULL,
+  `author_avatar` varchar(500) DEFAULT NULL,
+  `reply_to_uid` bigint DEFAULT NULL,
+  `reply_to_name` varchar(50) DEFAULT NULL,
+  `content` text NOT NULL,
+  `status` tinyint NOT NULL DEFAULT '0',
+  `like_count` int NOT NULL DEFAULT '0',
+  `reply_count` int NOT NULL DEFAULT '0',
+  `ip_address` varchar(45) DEFAULT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime NOT NULL,
+  `deleted_at` datetime DEFAULT NULL,
+  `is_delelte` int DEFAULT '0',
+  PRIMARY KEY (`id`),
+  KEY `idx_post_status` (`post_id`,`status`,`created_at`),
+  KEY `idx_root` (`root_id`),
+  KEY `idx_parent` (`parent_id`),
+  KEY `idx_user` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='评论表';
+
+-- 点赞记录表
+CREATE TABLE `like_records` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `post_id` bigint NOT NULL COMMENT '文章ID',
+  `visitor_id` varchar(64) NOT NULL COMMENT '浏览器指纹',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_post_visitor` (`post_id`,`visitor_id`),
+  KEY `idx_post_id` (`post_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='点赞记录表';
+```
+
+### 图片与配置
+
+```sql
+-- 图片库
+CREATE TABLE `images` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `url` varchar(500) NOT NULL COMMENT '访问URL',
+  `storage_path` varchar(500) NOT NULL COMMENT '存储路径',
+  `original_name` varchar(255) NOT NULL COMMENT '原始文件名',
+  `mime_type` varchar(50) NOT NULL COMMENT 'MIME类型',
+  `file_size` bigint NOT NULL DEFAULT '0' COMMENT '文件大小',
+  `width` int DEFAULT NULL COMMENT '图片宽度',
+  `height` int DEFAULT NULL COMMENT '图片高度',
+  `md5` varchar(32) DEFAULT NULL COMMENT '文件MD5',
+  `created_by` bigint DEFAULT NULL COMMENT '上传者用户ID',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `deleted_at` datetime DEFAULT NULL COMMENT '软删除时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_md5` (`md5`),
+  KEY `idx_created_by` (`created_by`),
+  KEY `idx_created_at` (`created_at`),
+  KEY `idx_url` (`url`(191))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='图片库';
+
+-- 图片引用关系
+CREATE TABLE `image_usages` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `image_id` bigint NOT NULL COMMENT '图片ID',
+  `ref_type` varchar(20) NOT NULL COMMENT '引用类型：post / user / album / ...',
+  `ref_id` bigint NOT NULL COMMENT '引用对象ID',
+  `field` varchar(20) NOT NULL COMMENT '引用字段：body / featured_image / avatar / cover / ...',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_usage` (`image_id`,`ref_type`,`ref_id`,`field`),
+  KEY `idx_image_id` (`image_id`),
+  KEY `idx_ref` (`ref_type`,`ref_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='图片引用关系';
+
+-- 站点配置
+CREATE TABLE `site_config` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `config_key` varchar(100) NOT NULL,
+  `config_value` varchar(500) NOT NULL DEFAULT '',
+  `created_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `config_key` (`config_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='站点配置';
+```
+
 ## 项目端口
 
 | 服务 | 端口 | 说明 |
