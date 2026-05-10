@@ -1,7 +1,7 @@
 package com.yang.lblogserver.mapper;
 
 import com.yang.lblogserver.domain.Posts;
-import com.yang.lblogserver.vo.HotPostVO;
+import com.yang.lblogserver.vo.response.HotPostVO;
 import com.yang.lblogserver.vo.admin.AuthorStatisticsVO;
 import com.yang.lblogserver.vo.admin.StatisticsVO;
 import org.apache.ibatis.annotations.Mapper;

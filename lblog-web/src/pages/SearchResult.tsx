@@ -60,7 +60,7 @@ const SearchResult: React.FC = () => {
   const renderContent = () => {
     if (!keyword.trim()) {
       return (
-        <Card style={{ borderRadius: 4 }}>
+        <Card style={{ borderRadius: 4, background: 'var(--color-bg-card)' }}>
           <EmptyState
             icon={<SearchOutlined style={{ fontSize: 64, color: 'var(--color-text-tertiary)' }} />}
             description="请输入关键词搜索文章"
@@ -79,7 +79,7 @@ const SearchResult: React.FC = () => {
 
     if (!loading && posts.length === 0) {
       return (
-        <Card style={{ borderRadius: 4 }}>
+        <Card style={{ borderRadius: 4, background: 'var(--color-bg-card)' }}>
           <EmptyState
             icon={<SearchOutlined style={{ fontSize: 64, color: 'var(--color-text-tertiary)' }} />}
             description={
@@ -96,7 +96,7 @@ const SearchResult: React.FC = () => {
 
     return (
       <>
-        <Card style={{ borderRadius: 4, marginBottom: 16 }}>
+        <Card style={{ borderRadius: 4, marginBottom: 16, background: 'var(--color-bg-card)' }}>
           <Text style={{ fontSize: 14, color: 'var(--color-text-secondary)' }}>
             搜索 "<Text strong style={{ color: 'var(--color-text)' }}>{keyword}</Text>"
             ，共找到 <Text strong style={{ color: 'var(--color-primary)' }}>{total}</Text> 篇文章

@@ -59,6 +59,7 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ items }) => {
     <Card
       size="small"
       title="目录"
+      style={{ background: 'var(--color-bg-card)' }}
       styles={{
         header: { padding: '8px 12px', fontWeight: 600, fontSize: 14 },
         body: { padding: 0, maxHeight: 'calc(100vh - 160px)', overflowY: 'auto' },

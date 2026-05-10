@@ -1,7 +1,7 @@
 package com.yang.lblogserver.service;
 
 import com.yang.lblogserver.common.PageResult;
-import com.yang.lblogserver.vo.CommentVO;
+import com.yang.lblogserver.vo.response.CommentVO;
 import com.yang.lblogserver.vo.admin.AdminCommentVO;
 
 import java.util.List;

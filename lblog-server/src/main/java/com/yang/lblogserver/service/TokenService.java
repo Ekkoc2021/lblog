@@ -1,7 +1,7 @@
 package com.yang.lblogserver.service;
 
 import com.yang.lblogserver.security.model.LoginUser;
-import com.yang.lblogserver.vo.TokenPairVO;
+import com.yang.lblogserver.vo.response.TokenPairVO;
 
 public interface TokenService {
 

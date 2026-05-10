@@ -1,6 +1,6 @@
 package com.yang.lblogserver.vo.admin;
 
-import com.yang.lblogserver.vo.CommentVO;
+import com.yang.lblogserver.vo.response.CommentVO;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "管理端评论（含文章标题）")

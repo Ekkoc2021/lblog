@@ -30,8 +30,23 @@ import CommentManage from './pages/admin/CommentManage';
 const AppContent: React.FC = () => {
   const { theme: currentTheme } = useTheme();
 
+  const themeConfig = {
+    algorithm: currentTheme === 'dark' ? theme.darkAlgorithm : undefined,
+    token: currentTheme === 'warm' ? {
+      colorBgContainer: '#faf5e8',
+      colorBgLayout: '#f4ecd8',
+      colorBgElevated: '#faf5e8',
+      colorFillAlter: '#efe4cc',
+      colorBorder: '#d9ccb4',
+      colorText: '#3d3025',
+      colorTextSecondary: '#8b7355',
+      colorPrimary: '#8b6914',
+      colorPrimaryBg: '#efe0c0',
+    } : undefined,
+  };
+
   return (
-    <ConfigProvider theme={{ algorithm: currentTheme === 'dark' ? theme.darkAlgorithm : undefined }}>
+    <ConfigProvider theme={themeConfig}>
       <SiteDataProvider>
       <AuthProvider>
         <MainLayout>

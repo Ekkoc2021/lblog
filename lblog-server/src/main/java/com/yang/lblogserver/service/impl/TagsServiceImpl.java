@@ -3,7 +3,7 @@ package com.yang.lblogserver.service.impl;
 import com.yang.lblogserver.domain.Tags;
 import com.yang.lblogserver.mapper.TagsMapper;
 import com.yang.lblogserver.service.TagsService;
-import com.yang.lblogserver.vo.TagVO;
+import com.yang.lblogserver.vo.response.TagVO;
 import com.yang.lblogserver.vo.admin.CreateTagRequest;
 import org.springframework.stereotype.Service;
 

@@ -23,7 +23,7 @@
         created_by,created_at,updated_at,deleted_at,is_delelte
     </sql>
 
-    <resultMap id="CategoryWithCountMap" type="com.yang.lblogserver.vo.CategoryVO">
+    <resultMap id="CategoryWithCountMap" type="com.yang.lblogserver.vo.response.CategoryVO">
         <id property="id" column="id" />
         <result property="name" column="name" />
         <result property="slug" column="slug" />

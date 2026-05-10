@@ -100,7 +100,7 @@ const PostDetail: React.FC = () => {
   if (loading) {
     return (
       <div style={{ maxWidth: 900, margin: '80px auto', padding: '0 24px' }}>
-        <Card style={{ borderRadius: 16, boxShadow: 'var(--shadow-card)', border: 'none' }}>
+        <Card style={{ borderRadius: 16, boxShadow: 'var(--shadow-card)', border: 'none', background: 'var(--color-bg-card)' }}>
           <Skeleton active avatar paragraph={{ rows: 8 }} />
         </Card>
       </div>
@@ -109,7 +109,7 @@ const PostDetail: React.FC = () => {
 
   if (error || !post) {
     return (
-      <Card style={{ borderRadius: 16 }}>
+      <Card style={{ borderRadius: 16, background: 'var(--color-bg-card)' }}>
         <EmptyState
           icon={<div style={{ fontSize: 48 }}>📄</div>}
           description="文章不存在或已被删除"
@@ -135,7 +135,7 @@ const PostDetail: React.FC = () => {
 
       <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
         <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
-            <Card id="post-content" style={{ borderRadius: 16, boxShadow: 'var(--shadow-card)', border: 'none' }} styles={{ body: { padding: '24px 28px', overflow: 'hidden' } }}>
+            <Card id="post-content" style={{ borderRadius: 16, boxShadow: 'var(--shadow-card)', border: 'none', background: 'var(--color-bg-card)' }} styles={{ body: { padding: '24px 28px', overflow: 'hidden' } }}>
               <Title level={2} style={{ marginTop: 0, marginBottom: 16, lineHeight: 1.4, fontSize: 28, fontWeight: 700, color: 'var(--color-text)', letterSpacing: '-0.02em' }}>
                 {post.title}
               </Title>
@@ -213,7 +213,7 @@ const PostDetail: React.FC = () => {
             )}
 
             {(post.prevPost || post.nextPost) && (
-              <Card style={{ marginTop: 16, borderRadius: 16, boxShadow: 'var(--shadow-card)', border: 'none' }} styles={{ body: { padding: '12px 16px' } }}>
+              <Card style={{ marginTop: 16, borderRadius: 16, boxShadow: 'var(--shadow-card)', border: 'none', background: 'var(--color-bg-card)' }} styles={{ body: { padding: '12px 16px' } }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16 }}>
                   <div style={{ flex: 1, textAlign: 'left' }}>
                     {post.prevPost ? (

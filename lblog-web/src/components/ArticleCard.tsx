@@ -30,7 +30,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ post, keyword, onClick }) => 
   <Card
     hoverable
     className="article-card"
-    style={{ marginBottom: 16, borderRadius: 16, boxShadow: 'var(--shadow-card)', border: 'none' }}
+    style={{ marginBottom: 16, borderRadius: 16, boxShadow: 'var(--shadow-card)', border: 'none', background: 'var(--color-bg-card)' }}
     styles={{ body: { padding: '20px 24px' } }}
     onClick={onClick}
   >

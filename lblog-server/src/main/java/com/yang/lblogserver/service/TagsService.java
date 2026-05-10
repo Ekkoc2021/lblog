@@ -1,6 +1,6 @@
 package com.yang.lblogserver.service;
 
-import com.yang.lblogserver.vo.TagVO;
+import com.yang.lblogserver.vo.response.TagVO;
 import com.yang.lblogserver.vo.admin.CreateTagRequest;
 
 import java.util.List;

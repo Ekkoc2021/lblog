@@ -50,7 +50,7 @@ const Home: React.FC = () => {
   return (
     <div className="page-enter">
       {loading && posts.length === 0 ? (
-        <Card style={{ borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', border: 'none', marginBottom: 16 }}>
+        <Card style={{ borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', border: 'none', marginBottom: 16, background: 'var(--color-bg-card)' }}>
           {[1,2,3,4,5].map(i => (
             <div key={i} style={{ padding: '16px 0', borderBottom: i < 5 ? '1px solid var(--color-border)' : 'none' }}>
               <Skeleton active avatar paragraph={{ rows: 2 }} />
@@ -60,7 +60,7 @@ const Home: React.FC = () => {
       ) : (
         <Row gutter={20}>
           <Col xs={24} sm={24} md={17}>
-            <Card style={{ borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', border: 'none' }} styles={{ body: { padding: 0 } }}>
+            <Card style={{ borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)', border: 'none', background: 'var(--color-bg-card)' }} styles={{ body: { padding: 0 } }}>
               <Tabs
                 activeKey={activeTab}
                 onChange={setActiveTab}

@@ -5,7 +5,7 @@ import com.yang.lblogserver.domain.SeriesPosts;
 import com.yang.lblogserver.mapper.SeriesMapper;
 import com.yang.lblogserver.mapper.SeriesPostsMapper;
 import com.yang.lblogserver.service.SeriesService;
-import com.yang.lblogserver.vo.SeriesVO;
+import com.yang.lblogserver.vo.response.SeriesVO;
 import com.yang.lblogserver.vo.admin.CreateSeriesRequest;
 import org.springframework.stereotype.Service;
 

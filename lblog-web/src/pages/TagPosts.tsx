@@ -62,7 +62,7 @@ const TagPosts: React.FC = () => {
   return (
     <Row gutter={20}>
       <Col xs={24} sm={24} md={17}>
-        <Card style={{ borderRadius: 4 }} styles={{ body: { padding: 0 } }}>
+        <Card style={{ borderRadius: 4, background: 'var(--color-bg-card)' }} styles={{ body: { padding: 0 } }}>
           <div style={{ padding: '16px 16px 0' }}>
             <Title level={4} style={{ margin: 0 }}>#{tag?.name || slug}</Title>
           </div>

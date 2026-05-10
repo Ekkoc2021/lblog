@@ -1,6 +1,6 @@
 package com.yang.lblogserver.service;
 
-import com.yang.lblogserver.vo.SeriesVO;
+import com.yang.lblogserver.vo.response.SeriesVO;
 import com.yang.lblogserver.vo.admin.CreateSeriesRequest;
 
 import java.util.List;

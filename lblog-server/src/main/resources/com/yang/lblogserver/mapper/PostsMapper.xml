@@ -64,7 +64,7 @@
         </choose>
     </select>
 
-    <select id="selectHotPosts" resultType="com.yang.lblogserver.vo.HotPostVO">
+    <select id="selectHotPosts" resultType="com.yang.lblogserver.vo.response.HotPostVO">
         SELECT id, title, slug, view_count AS viewCount
         FROM posts
         WHERE status = 1 AND is_delelte = 0 AND deleted_at IS NULL

@@ -211,7 +211,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
   };
 
   return (
-    <Card id="comments" style={{ borderRadius: 4, marginTop: 24 }} title={<span><MessageOutlined /> 评论 ({total})</span>}>
+    <Card id="comments" style={{ borderRadius: 4, marginTop: 24, background: 'var(--color-bg-card)' }} title={<span><MessageOutlined /> 评论 ({total})</span>}>
       {/* 顶部输入框 — 只发顶级评论 */}
       {isAuthenticated ? (
         <div style={{ marginBottom: 20 }}>

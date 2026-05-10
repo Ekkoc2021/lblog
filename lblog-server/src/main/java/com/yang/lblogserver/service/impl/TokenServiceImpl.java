@@ -7,8 +7,8 @@ import com.yang.lblogserver.security.model.TokenRecord;
 import com.yang.lblogserver.security.repository.TokenRepository;
 import com.yang.lblogserver.security.util.TokenGenerator;
 import com.yang.lblogserver.service.TokenService;
-import com.yang.lblogserver.vo.TokenPairVO;
-import com.yang.lblogserver.vo.UserInfoVO;
+import com.yang.lblogserver.vo.response.TokenPairVO;
+import com.yang.lblogserver.vo.response.UserInfoVO;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;

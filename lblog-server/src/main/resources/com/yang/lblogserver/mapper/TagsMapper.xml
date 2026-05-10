@@ -20,7 +20,7 @@
         deleted_at,is_delelte
     </sql>
 
-    <resultMap id="TagWithCountMap" type="com.yang.lblogserver.vo.TagVO">
+    <resultMap id="TagWithCountMap" type="com.yang.lblogserver.vo.response.TagVO">
         <id property="id" column="id" />
         <result property="name" column="name" />
         <result property="slug" column="slug" />

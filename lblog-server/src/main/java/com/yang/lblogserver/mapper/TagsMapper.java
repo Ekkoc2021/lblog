@@ -1,7 +1,7 @@
 package com.yang.lblogserver.mapper;
 
 import com.yang.lblogserver.domain.Tags;
-import com.yang.lblogserver.vo.TagVO;
+import com.yang.lblogserver.vo.response.TagVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

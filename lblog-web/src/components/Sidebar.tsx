@@ -27,7 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({ hotPosts, posts, tags, categories, se
         </Space>
       }
       className="sidebar-card"
-      style={{ borderRadius: 16, boxShadow: 'var(--shadow-card)', border: 'none' }}
+      style={{ borderRadius: 16, boxShadow: 'var(--shadow-card)', border: 'none', background: 'var(--color-bg-card)' }}
       styles={{ body: { padding: '4px 16px 12px' } }}
     >
       {hotList.map((post, index) => (
@@ -61,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ hotPosts, posts, tags, categories, se
         </Space>
       }
       className="sidebar-card"
-      style={{ borderRadius: 16, marginTop: 20, boxShadow: 'var(--shadow-card)', border: 'none' }}
+      style={{ borderRadius: 16, marginTop: 20, boxShadow: 'var(--shadow-card)', border: 'none', background: 'var(--color-bg-card)' }}
       styles={{ body: { padding: '12px 16px 16px' } }}
     >
       <Space wrap size={[8, 8]}>
@@ -86,7 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({ hotPosts, posts, tags, categories, se
         </Space>
       }
       className="sidebar-card"
-      style={{ borderRadius: 16, marginTop: 20, boxShadow: 'var(--shadow-card)', border: 'none' }}
+      style={{ borderRadius: 16, marginTop: 20, boxShadow: 'var(--shadow-card)', border: 'none', background: 'var(--color-bg-card)' }}
       styles={{ body: { padding: '12px 16px 16px' } }}
     >
       <Space wrap size={[8, 8]}>
@@ -111,7 +111,7 @@ const Sidebar: React.FC<SidebarProps> = ({ hotPosts, posts, tags, categories, se
         </Space>
       }
       className="sidebar-card"
-      style={{ borderRadius: 16, marginTop: 20, boxShadow: 'var(--shadow-card)', border: 'none' }}
+      style={{ borderRadius: 16, marginTop: 20, boxShadow: 'var(--shadow-card)', border: 'none', background: 'var(--color-bg-card)' }}
       styles={{ body: { padding: '4px 16px 12px' } }}
     >
       {seriesList.map((series: Series, index: number) => (

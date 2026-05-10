@@ -1,7 +1,7 @@
 package com.yang.lblogserver.mapper;
 
 import com.yang.lblogserver.domain.Series;
-import com.yang.lblogserver.vo.SeriesVO;
+import com.yang.lblogserver.vo.response.SeriesVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

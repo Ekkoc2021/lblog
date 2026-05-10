@@ -6,7 +6,7 @@ import com.yang.lblogserver.security.model.LoginUser;
 import com.yang.lblogserver.service.ImagesService;
 import com.yang.lblogserver.storage.FileStorage;
 import com.yang.lblogserver.storage.StorageResult;
-import com.yang.lblogserver.vo.UploadImageVO;
+import com.yang.lblogserver.vo.response.UploadImageVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;

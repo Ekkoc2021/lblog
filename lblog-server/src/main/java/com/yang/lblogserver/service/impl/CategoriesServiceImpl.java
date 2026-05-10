@@ -3,7 +3,7 @@ package com.yang.lblogserver.service.impl;
 import com.yang.lblogserver.domain.Categories;
 import com.yang.lblogserver.mapper.CategoriesMapper;
 import com.yang.lblogserver.service.CategoriesService;
-import com.yang.lblogserver.vo.CategoryVO;
+import com.yang.lblogserver.vo.response.CategoryVO;
 import com.yang.lblogserver.vo.admin.CreateCategoryRequest;
 import org.springframework.stereotype.Service;
 

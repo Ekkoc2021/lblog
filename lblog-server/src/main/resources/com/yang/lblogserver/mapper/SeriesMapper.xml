@@ -26,7 +26,7 @@
         deleted_at,is_delelte
     </sql>
 
-    <resultMap id="SeriesWithCountMap" type="com.yang.lblogserver.vo.SeriesVO">
+    <resultMap id="SeriesWithCountMap" type="com.yang.lblogserver.vo.response.SeriesVO">
         <id property="id" column="id" />
         <result property="title" column="title" />
         <result property="slug" column="slug" />

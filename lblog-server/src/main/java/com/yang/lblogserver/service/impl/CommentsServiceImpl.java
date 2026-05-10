@@ -6,7 +6,7 @@ import com.yang.lblogserver.domain.Posts;
 import com.yang.lblogserver.mapper.CommentsMapper;
 import com.yang.lblogserver.mapper.PostsMapper;
 import com.yang.lblogserver.service.CommentsService;
-import com.yang.lblogserver.vo.CommentVO;
+import com.yang.lblogserver.vo.response.CommentVO;
 import com.yang.lblogserver.vo.admin.AdminCommentVO;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
