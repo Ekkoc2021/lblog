@@ -69,7 +69,34 @@ lblog/
 
 ### 1. 数据库
 
-在 MySQL 中创建数据库并执行建表语句（见 `lblog-server/src/main/resources/sql/` 或联系项目维护者获取最新 DDL）。
+创建数据库并执行建表语句（见下方「数据库设计」章节），然后插入必要的初始数据：
+
+```sql
+USE iblog;
+
+-- 角色数据（必须）
+INSERT INTO roles (name, label, description, sort_order) VALUES
+('admin', '管理员', '拥有所有权限', 0),
+('author', '作者', '可以管理自己的文章和评论', 1),
+('user', '用户', '只能浏览和评论', 2);
+
+-- 默认管理员（必须，启动前至少需要一个 admin 用户）
+-- password_hash 使用 BCrypt 加密，请在项目中运行以下代码生成后替换：
+--   new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().encode("your-password")
+INSERT INTO users (username, password_hash, nickname, role, status) VALUES
+('admin', '${BCRYPT_HASH}', 'Admin', 'admin', 1);
+
+-- 用户角色关联
+INSERT INTO user_roles (user_id, role_id) VALUES (1, 1);
+
+-- 站点默认配置
+INSERT INTO site_config (config_key, config_value) VALUES
+('registration_enabled', 'true'),
+('site_title', 'My Blog'),
+('image_cleanup_days', '30');
+```
+
+> **注意**：至少需要一个 admin 用户才能登录后台。`password_hash` 需使用 BCrypt 加密，可通过在线工具或 `spring-boot-starter-security` 的 `PasswordEncoder` 生成。
 
 默认连接：`192.168.1.5:3306/iblog`（可在 `application.yml` 中修改）。
 
