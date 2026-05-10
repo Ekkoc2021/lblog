@@ -366,7 +366,7 @@ const PostEditor: React.FC = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: 'calc(100vh - 112px)' }}>
       {/* 顶部操作栏 */}
-      <Card styles={{ body: { padding: '12px 24px' } }} style={{ marginBottom: 16, borderRadius: 8 }}>
+      <Card styles={{ body: { padding: '12px 24px' } }} style={{ marginBottom: 16, borderRadius: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <Button icon={<ArrowLeftOutlined />} onClick={handleBack}>返回</Button>
           <Input
@@ -404,7 +404,7 @@ const PostEditor: React.FC = () => {
           style={{ display: 'flex', gap: 0, flex: 1, minHeight: 400, position: 'relative' }}>
           <Card
             title="Markdown 编辑器"
-            style={{ width: `${leftRatio * 100}%`, borderRadius: 8, minWidth: 0, overflow: 'hidden' }}
+            style={{ width: `${leftRatio * 100}%`, borderRadius: 16, minWidth: 0, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
             styles={{ body: { padding: 0, height: 'calc(100% - 57px)' } }}
           >
             <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -456,17 +456,17 @@ const PostEditor: React.FC = () => {
             style={{
               width: 6,
               cursor: "col-resize",
-              background: dragging ? "#1e80ff" : "transparent",
+              background: dragging ? "#0071e3" : "transparent",
               flexShrink: 0,
               transition: dragging ? "none" : "background 0.2s",
               borderRadius: 3,
               margin: "0 5px",
             }}
-            onMouseEnter={e => { if (!dragging) e.currentTarget.style.background = "#e8e8e8"; }}
+            onMouseEnter={e => { if (!dragging) e.currentTarget.style.background = "#e5e5ea"; }}
             onMouseLeave={e => { if (!dragging) e.currentTarget.style.background = "transparent"; }}
           />
 
-          <Card title="预览" style={{ width: `${(1 - leftRatio) * 100}%`, borderRadius: 8, minWidth: 0, overflow: 'hidden' }} styles={{ body: { padding: 16, height: 'calc(100% - 57px)', overflow: 'auto' } }}>
+          <Card title="预览" style={{ width: `${(1 - leftRatio) * 100}%`, borderRadius: 16, minWidth: 0, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }} styles={{ body: { padding: 16, height: 'calc(100% - 57px)', overflow: 'auto' } }}>
             {body ? (
               <MarkdownRenderer content={body} imageBaseUrl={imageBaseUrl} />
             ) : (

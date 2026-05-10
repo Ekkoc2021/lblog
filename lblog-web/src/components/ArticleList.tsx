@@ -36,7 +36,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
       </div>
     )}
     {!loading && dataSource.length > 0 && dataSource.length >= total && (
-      <div style={{ textAlign: 'center', marginTop: 16, color: '#8a919f', fontSize: 13 }}>
+      <div style={{ textAlign: 'center', marginTop: 16, color: 'var(--color-text-secondary)', fontSize: 13 }}>
         已展示全部
       </div>
     )}

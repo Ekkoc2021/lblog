@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Card, Avatar, Typography, Button, Input, Divider, message, Spin, Tag } from 'antd';
+import { Card, Avatar, Typography, Button, Input, Divider, message, Spin, Tag, Skeleton } from 'antd';
 import { MessageOutlined, UserOutlined } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { getComments, getCommentReplies, createComment } from '../services/api';
@@ -160,23 +160,23 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
   const renderComment = (item: Comment, rootId?: number) => {
     const reply = inlineReplies[item.id];
     return (
-      <div key={item.id} style={{ padding: '12px 0', borderBottom: '1px solid #f0f0f0' }}>
+      <div key={item.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--color-border)' }}>
         <div style={{ display: 'flex', gap: 10 }}>
-          <Avatar size={32} icon={<UserOutlined />} style={{ background: '#1e80ff', flexShrink: 0 }} />
+          <Avatar size={32} icon={<UserOutlined />} style={{ background: 'var(--color-primary)', flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-              <Text strong style={{ fontSize: 13 }}>{item.author.nickname}</Text>
-              <Text style={{ color: '#bbb', fontSize: 12 }}>{formatTime(item.createdAt)}</Text>
+              <Text strong style={{ fontSize: 13, color: 'var(--color-text)' }}>{item.author.nickname}</Text>
+              <Text style={{ color: 'var(--color-text-tertiary)', fontSize: 12 }}>{formatTime(item.createdAt)}</Text>
               {item.status === 0 && <Tag color="orange" style={{ fontSize: 10, lineHeight: '16px', padding: '0 4px', margin: 0 }}>待审核</Tag>}
               {item.status === 2 && <Tag color="red" style={{ fontSize: 10, lineHeight: '16px', padding: '0 4px', margin: 0 }}>未通过</Tag>}
             </div>
-            <div style={{ fontSize: 14, lineHeight: 1.6, color: '#333', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
-              {item.replyTo && <Text style={{ color: '#1e80ff' }}>@{item.replyTo.nickname} </Text>}
+            <div style={{ fontSize: 14, lineHeight: 1.6, color: 'var(--color-text)', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+              {item.replyTo && <Text style={{ color: 'var(--color-primary)' }}>@{item.replyTo.nickname} </Text>}
               {item.content}
             </div>
             {isAuthenticated && (
               <div style={{ marginTop: 6 }}>
-                <Button type="link" size="small" style={{ color: '#8a919f', padding: 0, fontSize: 12 }}
+                <Button type="link" size="small" style={{ color: 'var(--color-text-secondary)', padding: 0, fontSize: 12 }}
                   onClick={() => openInlineReply(item.id, item.id, rootId ?? item.id, item.author.nickname, item.content)}>
                   回复
                 </Button>
@@ -184,10 +184,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
             )}
             {/* 内联回复框 */}
             {reply && (
-              <div style={{ marginTop: 8, padding: '8px 12px', background: '#fafafa', borderRadius: 4 }}>
-                <div style={{ marginBottom: 6, fontSize: 13, color: '#666' }}>
+              <div style={{ marginTop: 8, padding: '8px 12px', background: 'var(--color-bg-hover)', borderRadius: 4 }}>
+                <div style={{ marginBottom: 6, fontSize: 13, color: 'var(--color-text-secondary)' }}>
                   回复 @{reply.replyToName}
-                  {reply.replyContent && <Text style={{ color: '#999' }}>：{reply.replyContent.slice(0, 5)}{reply.replyContent.length > 5 ? '...' : ''}</Text>}
+                  {reply.replyContent && <Text style={{ color: 'var(--color-text-tertiary)' }}>：{reply.replyContent.slice(0, 5)}{reply.replyContent.length > 5 ? '...' : ''}</Text>}
                   <Button type="link" size="small" style={{ padding: '0 8px', fontSize: 12 }} onClick={() => closeInlineReply(item.id)}>取消</Button>
                 </div>
                 <TextArea
@@ -216,7 +216,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
       {isAuthenticated ? (
         <div style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', gap: 10 }}>
-            <Avatar size={32} icon={<UserOutlined />} style={{ background: '#1e80ff', flexShrink: 0 }} />
+            <Avatar size={32} icon={<UserOutlined />} style={{ background: 'var(--color-primary)', flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <TextArea
                 rows={3}
@@ -233,7 +233,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
           </div>
         </div>
       ) : (
-        <div style={{ textAlign: 'center', padding: '16px 0', color: '#8a919f', fontSize: 13, marginBottom: 20 }}>
+        <div style={{ textAlign: 'center', padding: '16px 0', color: 'var(--color-text-secondary)', fontSize: 13, marginBottom: 20 }}>
           登录后参与评论
         </div>
       )}
@@ -269,10 +269,14 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
         </div>
       ))}
 
-      {loading && <div style={{ textAlign: 'center', padding: 20 }}><Spin /></div>}
+      {loading && comments.length === 0 && [1,2,3].map(i => (
+            <div key={i} style={{ padding: '12px 0', borderBottom: '1px solid var(--color-border)' }}>
+              <Skeleton active avatar paragraph={{ rows: 1 }} />
+            </div>
+          ))}
 
       {!loading && comments.length === 0 && (
-        <div style={{ textAlign: 'center', padding: 20, color: '#8a919f' }}>暂无评论</div>
+        <div style={{ textAlign: 'center', padding: 20, color: 'var(--color-text-secondary)' }}>暂无评论</div>
       )}
 
       {comments.length < total && (

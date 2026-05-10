@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { Layout, Input, Typography, Avatar, Popover, Button, Divider, message, Tag, Drawer } from 'antd';
-import { UserOutlined, LogoutOutlined, FileTextOutlined, MenuOutlined } from '@ant-design/icons';
+import { UserOutlined, LogoutOutlined, FileTextOutlined, MenuOutlined, BulbOutlined, BulbFilled, BookOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useSearchHistory } from '../hooks/useSearchHistory';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import LoginModal from '../components/LoginModal';
 import UserSettingsDrawer from '../components/UserSettingsDrawer';
 
@@ -23,6 +24,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [searchParams] = useSearchParams();
   const { history, addToHistory, removeFromHistory, clearHistory } = useSearchHistory();
   const { isAuthenticated, logout, user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === 'dark';
+  const isWarm = theme === 'warm';
   const [searchValue, setSearchValue] = useState('');
   const [loginModalVisible, setLoginModalVisible] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -75,33 +79,34 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh', background: '#f4f5f5' }}>
+    <Layout style={{ minHeight: '100vh', background: 'var(--color-bg)' }}>
       <Header style={{
-        background: '#fff',
-        borderBottom: '1px solid #e8e8e8',
-        padding: isMobile ? '0 12px' : '0 24px',
+        background: 'var(--glass-header-bg)',
+        backdropFilter: 'saturate(180%) blur(20px)',
+        WebkitBackdropFilter: 'saturate(180%) blur(20px)',
+        borderBottom: '1px solid var(--glass-header-border)',
+        padding: isMobile ? '0 16px' : '0 32px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         position: 'sticky',
         top: 0,
         zIndex: 100,
-        boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
           {isMobile && (
             <Button
               type="text"
-              icon={<MenuOutlined style={{ fontSize: 18, color: '#555' }} />}
+              icon={<MenuOutlined style={{ fontSize: 18, color: 'var(--color-text)' }} />}
               onClick={() => setDrawerOpen(true)}
               style={{ marginRight: 8 }}
             />
           )}
           <div
-            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', marginRight: isMobile ? 0 : 32 }}
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', marginRight: isMobile ? 0 : 40 }}
             onClick={() => navigate('/')}
           >
-            <Text strong style={{ fontSize: 20, color: '#1e80ff' }}>LBlog</Text>
+            <Text strong style={{ fontSize: 22, color: 'var(--color-text)', letterSpacing: '-0.02em' }}>LBlog</Text>
           </div>
           {!isMobile && [{ key: '/', label: '首页' }, ...(user?.role === 'admin' ? [adminNavItem] : [])].map(item => {
             const isActive = item.key === '/' ? location.pathname === '/' : location.pathname.startsWith(item.key);
@@ -114,36 +119,43 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   display: 'flex',
                   alignItems: 'center',
                   padding: '0 4px',
-                  margin: '0 12px',
+                  margin: '0 16px',
                   cursor: 'pointer',
                   position: 'relative',
-                  color: isActive ? '#1e80ff' : '#555',
+                  color: isActive ? 'var(--color-text)' : 'var(--color-text-secondary)',
                   fontSize: 15,
                   fontWeight: isActive ? 600 : 400,
                   whiteSpace: 'nowrap',
-                  transition: 'color 0.2s',
+                  transition: 'color 0.2s ease',
                 }}
-                onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = '#1e80ff'; }}
-                onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = '#555'; }}
+                onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = 'var(--color-text)'; }}
+                onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
               >
                 {item.label}
                 {isActive && (
                   <div style={{
                     position: 'absolute',
                     bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: 3,
-                    background: '#1e80ff',
-                    borderRadius: '3px 3px 0 0',
+                    left: '25%',
+                    right: '25%',
+                    height: 2,
+                    background: 'var(--color-text)',
+                    borderRadius: 1,
                   }} />
                 )}
               </div>
             );
           })}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginRight: 8 }}>
-          <div style={{ position: 'relative', width: 'clamp(160px, 25vw, 320px)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Button
+            type="text"
+            icon={isDark ? <BulbFilled /> : isWarm ? <BookOutlined /> : <BulbOutlined />}
+            onClick={toggleTheme}
+            style={{ color: 'var(--color-text-secondary)' }}
+            title={isDark ? '暗色模式' : isWarm ? '书页模式' : '亮色模式'}
+          />
+          <div style={{ position: 'relative', width: 'clamp(160px, 25vw, 300px)' }}>
             <Search
               placeholder="搜索文章"
               allowClear
@@ -160,11 +172,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 top: '100%',
                 left: 0,
                 right: 0,
-                background: '#fff',
-                border: '1px solid #e8e8e8',
-                borderTop: 'none',
-                borderRadius: '0 0 6px 6px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                marginTop: 4,
+                background: 'var(--color-bg-card)',
+                border: '1px solid var(--color-border)',
+                borderRadius: 12,
+                boxShadow: 'var(--shadow-dropdown)',
                 zIndex: 200,
                 maxHeight: 320,
                 overflow: 'auto',
@@ -178,17 +190,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                       navigate(`/search?q=${encodeURIComponent(keyword)}`);
                     }}
                     style={{
-                      padding: '2px 16px',
-                      lineHeight: 1.6,
+                      padding: '10px 20px',
                       cursor: 'pointer',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      fontSize: 13,
-                      color: '#333',
+                      fontSize: 14,
+                      color: 'var(--color-text)',
                       transition: 'background 0.15s',
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = '#f5f5f5'; }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--color-bg-hover)'; }}
                     onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
                   >
                     <span>{keyword}</span>
@@ -199,14 +210,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                         removeFromHistory(keyword);
                       }}
                       style={{
-                        color: '#ccc',
-                        fontSize: 14,
-                        padding: '0 4px',
+                        color: 'var(--color-text-tertiary)',
+                        fontSize: 16,
                         lineHeight: 1,
                         cursor: 'pointer',
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.color = '#999'; }}
-                      onMouseLeave={e => { e.currentTarget.style.color = '#ccc'; }}
+                      onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-tertiary)'; }}
                     >×</span>
                   </div>
                 ))}
@@ -217,16 +227,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     setShowHistory(false);
                   }}
                   style={{
-                    padding: '3px 16px',
+                    padding: '10px 20px',
                     textAlign: 'center',
-                    fontSize: 12,
-                    color: '#999',
+                    fontSize: 13,
+                    color: 'var(--color-text-tertiary)',
                     cursor: 'pointer',
-                    borderTop: '1px solid #f0f0f0',
+                    borderTop: '1px solid var(--color-border)',
                     transition: 'color 0.15s',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.color = '#1e80ff'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = '#999'; }}
+                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--color-primary)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--color-text-tertiary)'; }}
                 >
                   清空搜索历史
                 </div>
@@ -239,22 +249,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               placement="bottomRight"
               arrow={false}
               content={
-                <div style={{ width: 220, padding: 4 }}>
+                <div style={{ width: 240, padding: 4 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', gap: 12 }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
-                        <Avatar src={user?.avatar || undefined} icon={user?.avatar ? undefined : <UserOutlined />} style={{ background: user?.avatar ? undefined : '#1e80ff' }}>{!user?.avatar && (user?.nickname?.[0] || 'U')}</Avatar>
-                        {user?.role && <Tag color={user.role === 'admin' ? 'red' : user.role === 'author' ? 'blue' : 'default'} style={{ fontSize: 10, lineHeight: '16px', padding: '0 5px', margin: 0 }}>{user.role === 'admin' ? '管理员' : user.role === 'author' ? '作者' : '用户'}</Tag>}
+                        <Avatar src={user?.avatar || undefined} icon={user?.avatar ? undefined : <UserOutlined />} style={{ background: user?.avatar ? undefined : 'var(--color-primary)' }} size={44}>{!user?.avatar && (user?.nickname?.[0] || 'U')}</Avatar>
+                        {user?.role && <Tag color={user.role === 'admin' ? 'red' : user.role === 'author' ? 'blue' : 'default'} style={{ fontSize: 10, lineHeight: '16px', padding: '0 6px', margin: 0, borderRadius: 8 }}>{user.role === 'admin' ? '管理员' : user.role === 'author' ? '作者' : '用户'}</Tag>}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: 14 }}>{user?.nickname ?? '用户'}</div>
-                        <div style={{ color: '#999', fontSize: 12 }}>{user?.username ?? '-'}</div>
-                        <div style={{ color: '#bbb', fontSize: 11, marginTop: 2 }}>{user?.email ?? '-'}</div>
+                        <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--color-text)' }}>{user?.nickname ?? '用户'}</div>
+                        <div style={{ color: 'var(--color-text-secondary)', fontSize: 12 }}>{user?.username ?? '-'}</div>
+                        <div style={{ color: 'var(--color-text-tertiary)', fontSize: 11, marginTop: 2 }}>{user?.email ?? '-'}</div>
                       </div>
                     </div>
-                    <Button type="text" size="small" style={{ color: '#999', marginTop: 2 }} onClick={() => setSettingsVisible(true)}>设置</Button>
+                    <Button type="text" size="small" style={{ color: 'var(--color-text-secondary)', marginTop: 2 }} onClick={() => setSettingsVisible(true)}>设置</Button>
                   </div>
-                  <Divider style={{ margin: '10px 0' }} />
+                  <Divider style={{ margin: '12px 0' }} />
                   <div style={{ display: 'flex', gap: 8 }}>
                     <Button
                       type="text"
@@ -288,18 +298,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <Avatar
                   src={user?.avatar || undefined}
                   icon={user?.avatar ? undefined : <UserOutlined />}
-                  style={{ background: user?.avatar ? undefined : '#1e80ff', cursor: 'pointer' }}
+                  size={36}
+                  style={{ background: user?.avatar ? undefined : 'var(--color-primary)', cursor: 'pointer' }}
                 >{!user?.avatar && (user?.nickname?.[0] || 'U')}</Avatar>
               </span>
             </Popover>
           ) : (
-            <Button type="text" icon={<UserOutlined />} onClick={() => setLoginModalVisible(true)} style={{ color: '#555' }}>
+            <Button type="text" icon={<UserOutlined />} onClick={() => setLoginModalVisible(true)} style={{ color: 'var(--color-text-secondary)', fontWeight: 500 }}>
               登录
             </Button>
           )}
         </div>
       </Header>
-      <Content style={{ padding: location.pathname.startsWith('/author') ? 0 : '20px 0' }}>
+      <Content style={{ padding: location.pathname.startsWith('/author') ? 0 : '32px 0' }}>
         {location.pathname.startsWith('/author') ? (
           children
         ) : (
@@ -308,8 +319,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </div>
         )}
       </Content>
-      <Footer style={{ textAlign: 'center', background: '#f4f5f5', color: '#999' }}>
-        LBlog ©{new Date().getFullYear()} — Powered by React + Ant Design
+      <Footer style={{ textAlign: 'center', background: 'var(--color-bg)', color: 'var(--color-text-tertiary)', fontSize: 13 }}>
+        LBlog &copy;{new Date().getFullYear()} Powered by React + Ant Design
       </Footer>
         <UserSettingsDrawer
           open={settingsVisible}
@@ -331,7 +342,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           onClose={() => setDrawerOpen(false)}
           open={drawerOpen}
           width={200}
-          styles={{ body: { padding: '12px 0' } }}
+          styles={{ body: { padding: '16px 0' } }}
         >
           {[{ key: '/', label: '首页' }, ...(user?.role === 'admin' ? [adminNavItem] : [])].map(item => {
             const isActive = item.key === '/' ? location.pathname === '/' : location.pathname.startsWith(item.key);
@@ -346,10 +357,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   padding: '14px 24px',
                   cursor: 'pointer',
                   fontSize: 16,
-                  color: isActive ? '#1e80ff' : '#333',
+                  color: isActive ? 'var(--color-text)' : 'var(--color-text-secondary)',
                   fontWeight: isActive ? 600 : 400,
-                  background: isActive ? '#f0f7ff' : 'transparent',
-                  borderRight: isActive ? '3px solid #1e80ff' : '3px solid transparent',
+                  background: isActive ? 'var(--color-bg)' : 'transparent',
+                  borderRight: isActive ? '3px solid var(--color-primary)' : '3px solid transparent',
+                  transition: 'all 0.2s ease',
                 }}
               >
                 {item.label}

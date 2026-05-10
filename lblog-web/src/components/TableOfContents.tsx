@@ -82,14 +82,14 @@ const TableOfContents: React.FC<TableOfContentsProps> = ({ items }) => {
               paddingBottom: 3,
               fontSize: 13,
               lineHeight: 1.6,
-              borderLeft: activeId === item.id ? '2px solid #1e80ff' : '2px solid transparent',
-              background: activeId === item.id ? '#f0f5ff' : 'transparent',
+              borderLeft: activeId === item.id ? '2px solid var(--color-primary)' : '2px solid transparent',
+              background: activeId === item.id ? 'var(--color-primary-bg)' : 'transparent',
               transition: 'all 0.15s',
               cursor: 'pointer',
             }}
           >
             <span style={{
-              color: activeId === item.id ? '#1e80ff' : '#666',
+              color: activeId === item.id ? 'var(--color-primary)' : 'var(--color-text-secondary)',
               fontWeight: activeId === item.id ? 500 : 400,
               display: 'block',
               overflow: 'hidden',

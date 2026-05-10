@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Layout, Menu, Button, Spin } from 'antd';
+import { Layout, Menu, Button, Skeleton } from 'antd';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import {
   FileTextOutlined,
@@ -39,7 +39,9 @@ const AdminLayout: React.FC = () => {
     return (
       <>
         {!loginVisible && (
-          <div style={{ textAlign: 'center', padding: 80 }}><Spin size="large" /></div>
+          <div style={{ maxWidth: 800, margin: '80px auto', padding: '0 32px' }}>
+            <Skeleton active paragraph={{ rows: 12 }} />
+          </div>
         )}
         <LoginModal
           open={loginVisible}
@@ -53,14 +55,14 @@ const AdminLayout: React.FC = () => {
   const selectedKey = '/' + location.pathname.split('/').slice(1, 3).join('/');
 
   return (
-    <Layout style={{ minHeight: 'calc(100vh - 64px)', background: '#f0f2f5' }}>
+    <Layout style={{ minHeight: 'calc(100vh - 64px)', background: 'var(--color-bg)' }}>
       <Sider
         theme="light"
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
         width={200}
-        style={{ borderRight: '1px solid #e8e8e8' }}
+        style={{ borderRight: '1px solid var(--color-border)', background: 'var(--color-bg)' }}
       >
         <Menu
           mode="inline"
@@ -75,14 +77,14 @@ const AdminLayout: React.FC = () => {
             icon={<ArrowLeftOutlined />}
             onClick={() => navigate('/')}
             size="small"
-            style={{ color: '#999' }}
+            style={{ color: 'var(--color-text-secondary)' }}
           >
             {collapsed ? '' : '返回前台'}
           </Button>
         </div>
       </Sider>
-      <Layout style={{ background: '#f0f2f5' }}>
-        <Content style={{ padding: 24 }}>
+      <Layout style={{ background: 'var(--color-bg)' }}>
+        <Content style={{ padding: 32 }}>
           <Outlet />
         </Content>
       </Layout>

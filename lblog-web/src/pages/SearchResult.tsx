@@ -62,7 +62,7 @@ const SearchResult: React.FC = () => {
       return (
         <Card style={{ borderRadius: 4 }}>
           <EmptyState
-            icon={<SearchOutlined style={{ fontSize: 64, color: '#d9d9d9' }} />}
+            icon={<SearchOutlined style={{ fontSize: 64, color: 'var(--color-text-tertiary)' }} />}
             description="请输入关键词搜索文章"
           />
         </Card>
@@ -81,7 +81,7 @@ const SearchResult: React.FC = () => {
       return (
         <Card style={{ borderRadius: 4 }}>
           <EmptyState
-            icon={<SearchOutlined style={{ fontSize: 64, color: '#d9d9d9' }} />}
+            icon={<SearchOutlined style={{ fontSize: 64, color: 'var(--color-text-tertiary)' }} />}
             description={
               <span>
                 未找到与 "<Text strong>{keyword}</Text>" 相关的文章
@@ -97,9 +97,9 @@ const SearchResult: React.FC = () => {
     return (
       <>
         <Card style={{ borderRadius: 4, marginBottom: 16 }}>
-          <Text style={{ fontSize: 14, color: '#8a919f' }}>
-            搜索 "<Text strong style={{ color: '#333' }}>{keyword}</Text>"
-            ，共找到 <Text strong style={{ color: '#1e80ff' }}>{total}</Text> 篇文章
+          <Text style={{ fontSize: 14, color: 'var(--color-text-secondary)' }}>
+            搜索 "<Text strong style={{ color: 'var(--color-text)' }}>{keyword}</Text>"
+            ，共找到 <Text strong style={{ color: 'var(--color-primary)' }}>{total}</Text> 篇文章
           </Text>
         </Card>
         <ArticleList

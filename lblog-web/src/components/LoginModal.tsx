@@ -84,7 +84,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onSuccess }) => 
           <BookOutlined style={{ fontSize: 24, color: '#fff' }} />
         </div>
         <div style={{ fontWeight: 600, fontSize: 18 }}>{isRegister ? '注册' : '登录'}</div>
-        <div style={{ color: '#999', fontSize: 13, marginTop: 2 }}>{isRegister ? '创建你的账号' : '欢迎回来'}</div>
+        <div style={{ color: 'var(--color-text-tertiary)', fontSize: 13, marginTop: 2 }}>{isRegister ? '创建你的账号' : '欢迎回来'}</div>
       </div>
 
       {isRegister ? (
@@ -94,19 +94,19 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onSuccess }) => 
             { pattern: /^[a-zA-Z0-9_]+$/, message: '只能包含字母、数字、下划线' },
             { min: 3, max: 20, message: '3-20 位' },
           ]}>
-            <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} placeholder="用户名" />
+            <Input prefix={<UserOutlined style={{ color: 'var(--color-text-tertiary)' }} />} placeholder="用户名" />
           </Form.Item>
           <Form.Item name="nickname">
-            <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} placeholder="昵称（可选）" />
+            <Input prefix={<UserOutlined style={{ color: 'var(--color-text-tertiary)' }} />} placeholder="昵称（可选）" />
           </Form.Item>
           <Form.Item name="email" rules={[{ type: 'email', message: '邮箱格式不正确' }]}>
-            <Input prefix={<MailOutlined style={{ color: '#bfbfbf' }} />} placeholder="邮箱（可选）" />
+            <Input prefix={<MailOutlined style={{ color: 'var(--color-text-tertiary)' }} />} placeholder="邮箱（可选）" />
           </Form.Item>
           <Form.Item name="password" rules={[
             { required: true, message: '请输入密码' },
             { min: 6, message: '密码至少 6 位' },
           ]}>
-            <Input.Password prefix={<LockOutlined style={{ color: '#bfbfbf' }} />} placeholder="密码" />
+            <Input.Password prefix={<LockOutlined style={{ color: 'var(--color-text-tertiary)' }} />} placeholder="密码" />
           </Form.Item>
           <Form.Item name="confirmPassword" dependencies={['password']} rules={[
             { required: true, message: '请确认密码' },
@@ -117,7 +117,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onSuccess }) => 
               },
             }),
           ]}>
-            <Input.Password prefix={<LockOutlined style={{ color: '#bfbfbf' }} />} placeholder="确认密码" />
+            <Input.Password prefix={<LockOutlined style={{ color: 'var(--color-text-tertiary)' }} />} placeholder="确认密码" />
           </Form.Item>
           <Form.Item style={{ marginBottom: 8 }}>
             <Button type="primary" htmlType="submit" block loading={loading} size="large">
@@ -125,17 +125,17 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onSuccess }) => 
             </Button>
           </Form.Item>
           <div style={{ textAlign: 'center', fontSize: 13 }}>
-            <span style={{ color: '#999' }}>已有账号？</span>
+            <span style={{ color: 'var(--color-text-tertiary)' }}>已有账号？</span>
             <Button type="link" style={{ padding: 0 }} onClick={toggleMode}>去登录</Button>
           </div>
         </Form>
       ) : (
         <Form form={form} onFinish={handleLogin} size="large" autoComplete="off">
           <Form.Item name="username" rules={[{ required: true, message: '请输入用户名' }]}>
-            <Input prefix={<UserOutlined style={{ color: '#bfbfbf' }} />} placeholder="用户名" />
+            <Input prefix={<UserOutlined style={{ color: 'var(--color-text-tertiary)' }} />} placeholder="用户名" />
           </Form.Item>
           <Form.Item name="password" rules={[{ required: true, message: '请输入密码' }]}>
-            <Input.Password prefix={<LockOutlined style={{ color: '#bfbfbf' }} />} placeholder="密码" />
+            <Input.Password prefix={<LockOutlined style={{ color: 'var(--color-text-tertiary)' }} />} placeholder="密码" />
           </Form.Item>
           <Form.Item style={{ marginBottom: 8 }}>
             <Button type="primary" htmlType="submit" block loading={loading} size="large">
@@ -143,7 +143,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onSuccess }) => 
             </Button>
           </Form.Item>
           <div style={{ textAlign: 'center', fontSize: 13 }}>
-            <span style={{ color: '#999' }}>没有账号？</span>
+            <span style={{ color: 'var(--color-text-tertiary)' }}>没有账号？</span>
             <Button type="link" style={{ padding: 0 }} onClick={toggleMode}>去注册</Button>
           </div>
         </Form>

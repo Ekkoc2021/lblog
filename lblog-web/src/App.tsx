@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ConfigProvider, theme } from 'antd';
 import { AuthProvider } from './contexts/AuthContext';
 import { SiteDataProvider } from './contexts/SiteDataContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import MainLayout from './layouts/MainLayout';
 import AdminLayout from './layouts/AdminLayout';
 import Home from './pages/Home';
@@ -25,9 +27,11 @@ import ImageManage from './pages/admin/ImageManage';
 import UserManage from './pages/admin/UserManage';
 import CommentManage from './pages/admin/CommentManage';
 
-function App() {
+const AppContent: React.FC = () => {
+  const { theme: currentTheme } = useTheme();
+
   return (
-    <BrowserRouter>
+    <ConfigProvider theme={{ algorithm: currentTheme === 'dark' ? theme.darkAlgorithm : undefined }}>
       <SiteDataProvider>
       <AuthProvider>
         <MainLayout>
@@ -61,6 +65,16 @@ function App() {
         </MainLayout>
       </AuthProvider>
       </SiteDataProvider>
+    </ConfigProvider>
+  );
+};
+
+function App() {
+  return (
+    <BrowserRouter>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

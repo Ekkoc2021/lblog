@@ -66,7 +66,7 @@ const SeriesPosts: React.FC = () => {
           <div style={{ padding: '16px 16px 0' }}>
             <Title level={4} style={{ margin: 0 }}>{series?.title || slug}</Title>
             {series?.description && (
-              <p style={{ margin: '4px 0 0', color: '#8a919f', fontSize: 13 }}>{series.description}</p>
+              <p style={{ margin: '4px 0 0', color: 'var(--color-text-secondary)', fontSize: 13 }}>{series.description}</p>
             )}
           </div>
           <Tabs
