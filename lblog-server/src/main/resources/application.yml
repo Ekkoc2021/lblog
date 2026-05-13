@@ -2,6 +2,10 @@ server:
   port: 8099
   servlet:
     context-path: /iblogserver
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 mybatis:
   # 或者如果有多个路径可以使用通配符或逗号分隔
@@ -89,7 +93,16 @@ spring:
         # IP黑名单（共同存在时，deny优先于allow）
         deny:
 
-#日志配置 无特殊需求无需更改
+  ai:
+    openai:
+      api-key: sk-5bc99d693c42462fb6b8abfeea207726
+      base-url: ${AI_OPENAI_BASE_URL:https://api.deepseek.com}
+      chat:
+        options:
+          model: ${AI_OPENAI_MODEL:deepseek-chat}
+          temperature: 0.7
+          max-tokens: 8192
+
 logging:
   config: classpath:log4j2.xml
   # 控制台输出日志
@@ -113,3 +126,7 @@ lblog:
     access-token-expire-minutes: 120
     refresh-token-expire-days: 7
     token-byte-size: 32
+  diagram:
+    enabled: true
+    model: ${AI_OPENAI_MODEL:deepseek-chat}
+    max-tokens: ${AI_DIAGRAM_MAX_TOKENS:16384}

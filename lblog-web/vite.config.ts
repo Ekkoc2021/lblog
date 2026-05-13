@@ -12,6 +12,11 @@ export default defineConfig({
         headers: {
           Origin: 'http://localhost:4200',
         },
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq) => {
+            proxyReq.setHeader('Connection', 'keep-alive')
+          })
+        },
       },
       '/uploads': {
         target: 'http://localhost:8099/iblogserver',
