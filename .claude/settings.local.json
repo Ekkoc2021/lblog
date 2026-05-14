@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "mcp__idea__get_run_configurations",
+      "mcp__idea__execute_run_configuration",
+      "Bash(powershell \"Get-Process chrome -ErrorAction SilentlyContinue | Stop-Process -Force\")",
+      "Bash(\"D:/ProgramFile/other/Google/Chrome/Application/chrome.exe\" --remote-debugging-port=9222 --no-first-run --no-default-browser-check --user-data-dir=\"D:/ProgramFile/other/Google/Chrome/UserData\" --new-window \"http://localhost:5173\")",
+      "mcp__browser-connect__browser_connect",
+      "Bash(powershell \"Select-String -Path 'C:\\\\\\\\Users\\\\\\\\Administrator\\\\\\\\AppData\\\\\\\\Local\\\\\\\\JetBrains\\\\\\\\IntelliJIdea2026.1\\\\\\\\tmp\\\\\\\\ij_run__LblogServerApplication_2877688438669166730.log' -Pattern 'Started LblogServerApplication'\")",
+      "Bash(powershell \"Select-String -Path 'C:\\\\\\\\Users\\\\\\\\Administrator\\\\\\\\AppData\\\\\\\\Local\\\\\\\\JetBrains\\\\\\\\IntelliJIdea2026.1\\\\\\\\tmp\\\\\\\\ij_run__LblogServerApplication_2877688438669166730.log' -SimpleMatch 'ERROR' -Tail 3\")",
+      "mcp__browser-connect__debug_localhost",
+      "mcp__browser-connect__browser_list_tabs",
+      "mcp__browser-connect__console_search",
+      "mcp__browser-connect__network_analyze",
+      "Bash(powershell *)",
+      "mcp__browser-connect__network_export_har",
+      "Bash(curl -s -X POST http://localhost:8099/iblogserver/api/v1/draw/chat -H 'Content-Type: application/json' -d '{\"messages\":[{\"role\":\"user\",\"content\":\"画一个微服务架构图\"}]}' --max-time 10)",
+      "Bash(curl *)",
+      "Bash(python3 *)",
+      "Bash(node -e ' *)",
+      "Bash(node *)",
+      "Bash(jps -lvm)"
+    ]
+  }
+}
