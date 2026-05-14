@@ -11,9 +11,10 @@ interface ToolItem {
 interface DrawFloatingButtonProps {
   onOpenDraw: () => void
   onPositionChange?: (pos: { left: number; top: number }) => void
+  hidden?: boolean
 }
 
-const DrawFloatingButton: React.FC<DrawFloatingButtonProps> = ({ onOpenDraw, onPositionChange }) => {
+const DrawFloatingButton: React.FC<DrawFloatingButtonProps> = ({ onOpenDraw, onPositionChange, hidden }) => {
   const [hover, setHover] = useState(false)
   const [pos, setPos] = useState({ left: 0, top: 0 })
   const dragging = useRef(false)
@@ -63,6 +64,8 @@ const DrawFloatingButton: React.FC<DrawFloatingButtonProps> = ({ onOpenDraw, onP
     if (dragging.current) return
     hideTimer.current = window.setTimeout(() => setHover(false), 300)
   }
+
+  if (hidden) return null
 
   return (
     <div style={{

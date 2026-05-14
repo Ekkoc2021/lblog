@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ConfigProvider, theme } from 'antd';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SiteDataProvider } from './contexts/SiteDataContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { DiagramProvider } from './contexts/diagram-context';
@@ -87,8 +87,8 @@ return (
             </Routes>
           </MainLayout>
 
-          {/* 写作工具箱 */}
-          <DrawFloatingButton onOpenDraw={() => setShowDrawPage(true)} onPositionChange={setToolboxPos} />
+          {/* 写作工具箱：仅登录用户可见 */}
+          <ToolboxButton showDrawPage={showDrawPage} onOpenDraw={() => setShowDrawPage(true)} onPositionChange={setToolboxPos} />
 
           {/* AI 绘图面板 —— 从按钮位置缩放展开 */}
           <div style={{
@@ -113,6 +113,16 @@ return (
     </ConfigProvider>
   );
 };
+
+/** 工具箱包装器：仅在登录且角色为 admin/author 时显示 */
+function ToolboxButton({ showDrawPage, onOpenDraw, onPositionChange }: {
+  showDrawPage: boolean; onOpenDraw: () => void; onPositionChange: (pos: { left: number; top: number }) => void
+}) {
+  const { isAuthenticated, user } = useAuth();
+  if (!isAuthenticated || !user) return null;
+  if (user.role !== 'admin' && user.role !== 'author') return null;
+  return <DrawFloatingButton onOpenDraw={onOpenDraw} onPositionChange={onPositionChange} hidden={showDrawPage} />;
+}
 
 function App() {
   return (

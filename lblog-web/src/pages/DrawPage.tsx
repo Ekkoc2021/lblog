@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Input } from 'antd'
-import { SendHorizonal, MessageSquarePlus, Bot } from 'lucide-react'
+import { SendHorizonal, MessageSquarePlus, Bot, PenTool } from 'lucide-react'
 import { DrawIoEmbed } from 'react-drawio'
 import { useDiagram } from '../contexts/diagram-context'
 import { drawChatStream } from '../services/draw'
@@ -22,6 +22,8 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isDrawioReady, setIsDrawioReady] = useState(false)
+  const [chatCollapsed, setChatCollapsed] = useState(false)
+  const [docTitle, setDocTitle] = useState('无标题图表')
   const abortRef = useRef<AbortController | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -120,18 +122,23 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
         padding: '8px 16px', borderBottom: '1px solid #e5e5ea', flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Bot size={18} color="#1677ff" />
-          <span style={{ fontWeight: 600, fontSize: 14, color: '#1d1d1f' }}>绘图工具</span>
+          <PenTool size={18} color="#1677ff" />
+          <input
+            value={docTitle}
+            onChange={e => setDocTitle(e.target.value)}
+            placeholder="输入图表名称"
+            style={{ fontSize: 14, fontWeight: 600, border: 'none', outline: 'none', background: 'none', padding: '2 6', width: 200, color: '#1d1d1f', borderBottom: '1px dashed transparent' }}
+            onMouseEnter={e => e.currentTarget.style.borderBottomColor = '#d9d9d9'}
+            onMouseLeave={e => e.currentTarget.style.borderBottomColor = 'transparent'}
+          />
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
           <button type="button" onClick={onClose}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4 10', borderRadius: 6, color: '#666', fontSize: 15, lineHeight: 1 }}
-            title="最小化"
+            style={{ width: 32, height: 32, borderRadius: 6, border: 'none', background: 'none', cursor: 'pointer', color: '#666', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            title="收起到工具箱"
+            onMouseEnter={e => { e.currentTarget.style.background = '#e5e5ea'; e.currentTarget.style.color = '#000' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = '#666' }}
           >−</button>
-          <button type="button" onClick={() => { abortRef.current?.abort(); onClose() }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4 10', borderRadius: 6, color: '#666', fontSize: 15, lineHeight: 1 }}
-            title="关闭"
-          >✕</button>
         </div>
       </div>
 
@@ -182,18 +189,39 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
         </div>
       </div>
 
+      {/* 分割线 */}
+      <div
+        onClick={() => setChatCollapsed(v => !v)}
+        onMouseEnter={e => e.currentTarget.style.background = '#e5e5ea'}
+        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+        style={{ width: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, alignSelf: 'stretch', transition: 'background 0.15s', position: 'relative' }}
+        title={chatCollapsed ? '展开对话' : '收起对话'}
+      >
+        <div style={{ width: 3, height: 28, borderRadius: 2, background: chatCollapsed ? '#1677ff' : '#d9d9d9', transition: 'background 0.2s' }} />
+        {chatCollapsed && (
+          <span style={{ position: 'absolute', color: '#1677ff', fontSize: 10 }}>▶</span>
+        )}
+      </div>
+
       {/* 右侧：Chat 面板 */}
       <div style={{
-        width: 380,
         flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
-        padding: '8px 8px 8px 0',
       }}>
+        {/* 可收起区域 */}
         <div style={{
-          flex: 1,
+          width: chatCollapsed ? 0 : 380,
+          overflow: 'hidden',
+          transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
           display: 'flex',
           flexDirection: 'column',
+          flex: 1,
+        }}>
+          <div style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
           background: '#fff',
           borderRadius: 12,
           boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
@@ -210,7 +238,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Bot size={20} color="#1677ff" />
-              <span style={{ fontWeight: 600, fontSize: 14, color: '#1d1d1f' }}>绘图工具</span>
+              <span style={{ fontWeight: 600, fontSize: 14, color: '#1d1d1f' }}>对话</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <button type="button" onClick={handleNewChat} disabled={isLoading}
@@ -218,19 +246,6 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
                 title="新建对话"
               >
                 <MessageSquarePlus size={16} />
-              </button>
-              <span style={{ width: 1, height: 16, background: '#e5e5ea', margin: '0 4' }} />
-              <button type="button" onClick={onClose}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2 8', borderRadius: 6, color: '#666', fontSize: 16, lineHeight: 1 }}
-                title="最小化"
-              >
-                −
-              </button>
-              <button type="button" onClick={() => { abortRef.current?.abort(); onClose() }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2 8', borderRadius: 6, color: '#666', fontSize: 16, lineHeight: 1 }}
-                title="关闭"
-              >
-                ✕
               </button>
             </div>
           </div>
@@ -301,7 +316,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
       </div>
       </div>
     </div>
+    </div>
   )
 }
-
 export default DrawPage
