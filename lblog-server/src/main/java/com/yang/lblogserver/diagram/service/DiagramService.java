@@ -73,7 +73,6 @@ public class DiagramService {
     private final DisplayDiagramTool displayDiagramTool; // @Tool 定义（由 Spring AI 自动生成 schema）
     private final ScheduledExecutorService heartbeatScheduler; // 15s 心跳定时器
     private final ObjectMapper objectMapper;          // Jackson JSON 序列化（SSE payload 编码）
-
     public DiagramService(ChatClient.Builder chatClientBuilder,
                           PromptManager promptManager,
                           DiagramProperties diagramProperties,
