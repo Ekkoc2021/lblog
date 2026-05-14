@@ -56,26 +56,7 @@ public class PromptManager {
             - For large diagrams with many elements, use vertical stacking or grid layouts that stay within bounds
             - Avoid spreading elements too far apart horizontally - users should see the complete diagram without a page break line
 
-            Note that:
-            - Use proper tool calls to generate or edit diagrams;
-              - never return raw XML in text responses,
-              - never use display_diagram to generate messages that you want to send user directly. e.g. to generate a "hello" text box when you want to greet user.
-            - Focus on producing clean, professional diagrams that effectively communicate the intended information through thoughtful layout and design choices.
-            - When artistic drawings are requested, creatively compose them using standard diagram shapes and connectors while maintaining visual clarity.
-            - Return XML only via tool calls, never in text responses.
-            - If user asks you to replicate a diagram based on an image, remember to match the diagram style and layout as closely as possible. Especially, pay attention to the lines and shapes, for example, if the lines are straight or curved, and if the shapes are rounded or square.
-            - NEVER include XML comments (<!-- ... -->) in your generated XML. Draw.io strips comments, which breaks diagram patterns.
-
-            When using edit_diagram tool:
-            - Use operations: update (modify cell by id), add (new cell), delete (remove cell by id)
-            - For update/add: provide cell_id and complete new_xml (full mxCell element including mxGeometry)
-            - For delete: only cell_id is needed
-            - Find the cell_id from "Current diagram XML" in system context
-            - Example update: {"operations": [{"operation": "update", "cell_id": "3", "new_xml": "<mxCell id=\\"3\\" value=\\"New Label\\" style=\\"rounded=1;\\" vertex=\\"1\\" parent=\\"1\\">\\n  <mxGeometry x=\\"100\\" y=\\"100\\" width=\\"120\\" height=\\"60\\" as=\\"geometry\\"/>\\n</mxCell>"}]}
-            - Example delete: {"operations": [{"operation": "delete", "cell_id": "5"}]}
-            - Example add: {"operations": [{"operation": "add", "cell_id": "new1", "new_xml": "<mxCell id=\\"new1\\" value=\\"New Box\\" style=\\"rounded=1;\\" vertex=\\"1\\" parent=\\"1\\">\\n  <mxGeometry x=\\"400\\" y=\\"200\\" width=\\"120\\" height=\\"60\\" as=\\"geometry\\"/>\\n</mxCell>"}]}
-
-            ⚠️ JSON ESCAPING: Every " inside new_xml MUST be escaped as \\". Example: id=\\"5\\" value=\\"Label\\"
+            CRITICAL: You MUST call display_diagram with XML output. Never just describe what you would draw. Generate the actual diagram using the tool.
 
             ## Draw.io XML Structure Reference
 
@@ -222,48 +203,7 @@ public class PromptManager {
             </mxCell>
             ```
 
-            ### append_diagram Details
-
-            **WHEN TO USE:** Only call this tool when display_diagram output was truncated (you'll see an error message about truncation).
-
-            **CRITICAL RULES:**
-            1. Do NOT include any wrapper tags - just continue the mxCell elements
-            2. Continue from EXACTLY where your previous output stopped
-            3. Complete the remaining mxCell elements
-            4. If still truncated, call append_diagram again with the next fragment
-
-            **Example:** If previous output ended with `<mxCell id="x" style="rounded=1`, continue with `;" vertex="1">...` and complete the remaining elements.
-
-            ### edit_diagram Details
-
-            edit_diagram uses ID-based operations to modify cells directly by their id attribute.
-
-            **Operations:**
-            - **update**: Replace an existing cell. Provide cell_id and new_xml.
-            - **add**: Add a new cell. Provide cell_id (new unique id) and new_xml.
-            - **delete**: Remove a cell. **Cascade is automatic**: children AND edges (source/target) are auto-deleted. Only specify ONE cell_id.
-
-            **Input Format:**
-            ```json
-            {
-              "operations": [
-                {"operation": "update", "cell_id": "3", "new_xml": "<mxCell ...complete element...>"},
-                {"operation": "add", "cell_id": "new1", "new_xml": "<mxCell ...new element...>"},
-                {"operation": "delete", "cell_id": "5"}
-              ]
-            }
-            ```
-
-            **Examples:**
-
-            Change label:
-            ```json
-            {"operations": [{"operation": "update", "cell_id": "3", "new_xml": "<mxCell id=\\"3\\" value=\\"New Label\\" style=\\"rounded=1;\\" vertex=\\"1\\" parent=\\"1\\">\\n  <mxGeometry x=\\"100\\" y=\\"100\\" width=\\"120\\" height=\\"60\\" as=\\"geometry\\"/>\\n</mxCell>"}]}
-            ```
-
-            Add new shape:
-            ```json
-            {"operations": [{"operation": "add", "cell_id": "new1", "new_xml": "<mxCell id=\\"new1\\" value=\\"New Box\\" style=\\"rounded=1;fillColor=#dae8fc;\\" vertex=\\"1\\" parent=\\"1\\">\\n  <mxGeometry x=\\"400\\" y=\\"200\\" width=\\"120\\" height=\\"60\\" as=\\"geometry\\"/>\\n</mxCell>"}]}
+            <!-- v1 only supports display_diagram -->
             ```
 
             Delete container (children & edges auto-deleted):

@@ -70,24 +70,34 @@ public class DiagramService {
 
             DisplayDiagramTool.bindEmitter(emitter);
 
-            chatClient.prompt()
-                    .messages(messages)
-                    .tools(displayDiagramTool)
-                    .stream()
-                    .chatResponse()
-                    .subscribe(
-                            response -> handleChatResponse(response, emitter),
-                            error -> {
-                                heartbeat.cancel(false);
-                                log.error("Stream error", error);
-                                emitter.completeWithError(error);
-                            },
-                            () -> {
-                                heartbeat.cancel(false);
-                                sendDone(emitter, request.getSessionId());
-                                emitter.complete();
-                            }
-                    );
+            try {
+                ChatResponse response = chatClient.prompt()
+                        .messages(messages)
+                        .tools(displayDiagramTool)
+                        .call()
+                        .chatResponse();
+
+                if (response != null && response.getResult() != null) {
+                    String text = response.getResult().getOutput().getText();
+                    if (text != null && !text.isEmpty()) {
+                        String payload = objectMapper.writeValueAsString(Map.of(
+                                "type", "text-delta",
+                                "delta", text
+                        ));
+                        emitter.send(payload);
+                    }
+                }
+            } catch (Exception e) {
+                log.error("Error in chat stream", e);
+                emitter.completeWithError(e);
+                return;
+            } finally {
+                heartbeat.cancel(false);
+                DisplayDiagramTool.unbindEmitter();
+            }
+
+            sendDone(emitter, request.getSessionId());
+            emitter.complete();
         } catch (Exception e) {
             log.error("Error in chat stream", e);
             emitter.completeWithError(e);
