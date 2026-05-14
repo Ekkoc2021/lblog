@@ -113,36 +113,31 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
   }, [onDrawioLoad])
 
   return (
-    <div style={{ height: '100%', background: '#f5f5f7', display: 'flex' }}>
-      {/* 左侧收起手柄 */}
-      <div
-        onClick={onClose}
-        style={{
-          width: 28,
-          cursor: 'pointer',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 4,
-          background: '#f5f5f7',
-          flexShrink: 0,
-          borderRight: '1px solid #e5e5ea',
-          transition: 'background 0.2s',
-          userSelect: 'none',
-        }}
-        title="收起面板，返回博客"
-        onMouseEnter={(e) => e.currentTarget.style.background = '#e5e5ea'}
-        onMouseLeave={(e) => e.currentTarget.style.background = '#f5f5f7'}
-      >
-        <svg width="12" height="24" viewBox="0 0 12 24" fill="none">
-          <path d="M8 4L3 12L8 20" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-        <span style={{ writingMode: 'vertical-rl', fontSize: 11, color: '#999', letterSpacing: 2 }}>
-          收起
-        </span>
+    <div style={{ height: '100%', background: '#f5f5f7', display: 'flex', flexDirection: 'column' }}>
+      {/* 全局标题栏 */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '8px 16px', borderBottom: '1px solid #e5e5ea', flexShrink: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Bot size={18} color="#1677ff" />
+          <span style={{ fontWeight: 600, fontSize: 14, color: '#1d1d1f' }}>绘图工具</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <button type="button" onClick={onClose}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4 10', borderRadius: 6, color: '#666', fontSize: 15, lineHeight: 1 }}
+            title="最小化"
+          >−</button>
+          <button type="button" onClick={() => { abortRef.current?.abort(); onClose() }}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4 10', borderRadius: 6, color: '#666', fontSize: 15, lineHeight: 1 }}
+            title="关闭"
+          >✕</button>
+        </div>
       </div>
-      {/* 左侧：Draw.io 画布 */}
+
+      {/* 内容区 */}
+      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+        {/* Draw.io 画布 */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 8, minWidth: 0 }}>
         <div style={{
           flex: 1,
@@ -215,14 +210,27 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Bot size={20} color="#1677ff" />
-              <span style={{ fontWeight: 600, fontSize: 14, color: '#1d1d1f' }}>AI 绘图助手</span>
+              <span style={{ fontWeight: 600, fontSize: 14, color: '#1d1d1f' }}>绘图工具</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <button type="button" onClick={handleNewChat} disabled={isLoading}
-                style={{ background: 'none', border: 'none', cursor: isLoading ? 'not-allowed' : 'pointer', padding: 6, borderRadius: 6, color: '#666', opacity: isLoading ? 0.5 : 1 }}
+                style={{ background: 'none', border: 'none', cursor: isLoading ? 'not-allowed' : 'pointer', padding: '4 8', borderRadius: 6, color: '#666', opacity: isLoading ? 0.5 : 1 }}
                 title="新建对话"
               >
-                <MessageSquarePlus size={18} />
+                <MessageSquarePlus size={16} />
+              </button>
+              <span style={{ width: 1, height: 16, background: '#e5e5ea', margin: '0 4' }} />
+              <button type="button" onClick={onClose}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2 8', borderRadius: 6, color: '#666', fontSize: 16, lineHeight: 1 }}
+                title="最小化"
+              >
+                −
+              </button>
+              <button type="button" onClick={() => { abortRef.current?.abort(); onClose() }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2 8', borderRadius: 6, color: '#666', fontSize: 16, lineHeight: 1 }}
+                title="关闭"
+              >
+                ✕
               </button>
             </div>
           </div>
@@ -290,6 +298,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
             )}
           </div>
         </div>
+      </div>
       </div>
     </div>
   )

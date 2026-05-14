@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ConfigProvider, theme } from 'antd';
 import { AuthProvider } from './contexts/AuthContext';
@@ -34,6 +34,7 @@ import CommentManage from './pages/admin/CommentManage';
 const AppContent: React.FC = () => {
   const { theme: currentTheme } = useTheme();
   const [showDrawPage, setShowDrawPage] = useState(false);
+  const [toolboxPos, setToolboxPos] = useState({ left: 0, top: 0 });
 
   const themeConfig = {
     algorithm: currentTheme === 'dark' ? theme.darkAlgorithm : undefined,
@@ -50,11 +51,7 @@ const AppContent: React.FC = () => {
     } : undefined,
   };
 
-  const handleToggle = useCallback(() => {
-    setShowDrawPage(prev => !prev);
-  }, []);
-
-  return (
+return (
     <ConfigProvider theme={themeConfig}>
       <SiteDataProvider>
       <AuthProvider>
@@ -90,8 +87,8 @@ const AppContent: React.FC = () => {
             </Routes>
           </MainLayout>
 
-          {/* 浮动按钮 */}
-          <DrawFloatingButton onClick={handleToggle} active={showDrawPage} />
+          {/* 写作工具箱 */}
+          <DrawFloatingButton onOpenDraw={() => setShowDrawPage(true)} onPositionChange={setToolboxPos} />
 
           {/* AI 绘图面板 —— 从按钮位置缩放展开 */}
           <div style={{
@@ -101,7 +98,7 @@ const AppContent: React.FC = () => {
             width: '100vw',
             height: '100vh',
             zIndex: 999,
-            transformOrigin: 'bottom right',
+            transformOrigin: `${toolboxPos.left + 18}px ${toolboxPos.top + 18}px`,
             transform: showDrawPage ? 'scale(1)' : 'scale(0)',
             opacity: showDrawPage ? 1 : 0,
             transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease',
