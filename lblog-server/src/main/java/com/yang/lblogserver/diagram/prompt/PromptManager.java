@@ -4,6 +4,23 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * AI 系统提示词（System Prompt）组装。
+ *
+ * 提示词结构（6 层）：
+ *   第①层 角色约束  — "你是 draw.io 图表生成专家"
+ *   第②层 行为约束  — 回复语言、对话风格、必须调用 tool
+ *   第③层 布局规则  — x/y 坐标范围、间距、容器大小
+ *   第④层 Edge 路由 — 7 条连线不重叠规则
+ *   第⑤层 XML 规范  — 只输出 mxCell、禁止嵌套、特殊字符转义
+ *   第⑥层 运行时注入 — buildXmlContext() 拼接当前图表 XML
+ *
+ * 提示词来自 next-ai-draw-io/lib/system-prompts.ts 的 Java 移植。
+ * 原始约 1900 tokens（DEFAULT）/ 4400 tokens（EXTENDED）。
+ *
+ * 工具说明：v1 仅实现 display_diagram，提示词中删除了
+ * edit_diagram / append_diagram / get_shape_library 的说明。
+ */
 @Component
 public class PromptManager {
 
