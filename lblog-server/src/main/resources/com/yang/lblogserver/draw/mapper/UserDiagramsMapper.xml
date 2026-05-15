@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.draw.mapper.UserDiagramsMapper">
+
+    <resultMap id="BaseResultMap" type="com.yang.lblogserver.draw.domain.UserDiagram">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="tags" property="tags"/>
+        <result column="xml_data" property="xmlData"/>
+        <result column="thumbnail" property="thumbnail"/>
+        <result column="file_size" property="fileSize"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="deleted_at" property="deletedAt"/>
+    </resultMap>
+
+    <resultMap id="ListResultMap" type="com.yang.lblogserver.draw.domain.UserDiagram">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="tags" property="tags"/>
+        <result column="thumbnail" property="thumbnail"/>
+        <result column="file_size" property="fileSize"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_diagrams (user_id, title, description, tags, xml_data, thumbnail, file_size)
+        VALUES (#{userId}, #{title}, #{description}, #{tags}, #{xmlData}, #{thumbnail}, #{fileSize})
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT * FROM user_diagrams WHERE id = #{id} AND deleted_at IS NULL
+    </select>
+
+    <select id="selectList" resultMap="ListResultMap">
+        SELECT id, user_id, title, description, tags, thumbnail, file_size, created_at, updated_at
+        FROM user_diagrams
+        WHERE user_id = #{userId} AND deleted_at IS NULL
+        <if test="keyword != null and keyword != ''">
+            AND (title LIKE CONCAT('%', #{keyword}, '%')
+                 OR description LIKE CONCAT('%', #{keyword}, '%')
+                 OR tags LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY updated_at DESC
+    </select>
+
+    <select id="countList" resultType="int">
+        SELECT COUNT(*) FROM user_diagrams
+        WHERE user_id = #{userId} AND deleted_at IS NULL
+        <if test="keyword != null and keyword != ''">
+            AND (title LIKE CONCAT('%', #{keyword}, '%')
+                 OR description LIKE CONCAT('%', #{keyword}, '%')
+                 OR tags LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </select>
+
+    <update id="updateContent">
+        UPDATE user_diagrams
+        SET title = #{title}, description = #{description}, tags = #{tags},
+            xml_data = #{xmlData}, thumbnail = #{thumbnail}, file_size = #{fileSize}
+        WHERE id = #{id} AND user_id = #{userId} AND deleted_at IS NULL
+    </update>
+
+    <update id="updateMeta">
+        UPDATE user_diagrams
+        SET title = #{title}, description = #{description}, tags = #{tags}
+        WHERE id = #{id} AND user_id = #{userId} AND deleted_at IS NULL
+    </update>
+
+    <update id="softDelete">
+        UPDATE user_diagrams SET deleted_at = NOW()
+        WHERE id = #{id} AND user_id = #{userId} AND deleted_at IS NULL
+    </update>
+
+    <update id="restore">
+        UPDATE user_diagrams SET deleted_at = NULL
+        WHERE id = #{id} AND user_id = #{userId}
+    </update>
+
+</mapper>
