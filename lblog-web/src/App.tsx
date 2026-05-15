@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ConfigProvider, theme } from 'antd';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SiteDataProvider } from './contexts/SiteDataContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
-import { DiagramProvider } from './contexts/diagram-context';
+import { DiagramProvider, useDiagram } from './contexts/diagram-context';
 import DrawFloatingButton from './components/DrawFloatingButton';
 import DrawPage from './pages/DrawPage';
 import MainLayout from './layouts/MainLayout';
@@ -56,6 +56,9 @@ return (
       <SiteDataProvider>
       <AuthProvider>
         <DiagramProvider>
+          {/* 登出时清空画布，防止下一用户看到残留数据 */}
+          <DiagramAuthGuard />
+
           {/* 博客内容 */}
           <MainLayout>
             <Routes>
@@ -113,6 +116,30 @@ return (
     </ConfigProvider>
   );
 };
+
+/** 登出时自动清空画布，防止下一用户看到残留数据 */
+function DiagramAuthGuard() {
+  const { isAuthenticated, user } = useAuth();
+  const { clearDiagram } = useDiagram();
+  const prevUserId = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    const uid = user?.id;
+    if (prevUserId.current !== undefined && uid !== prevUserId.current) {
+      clearDiagram();
+    }
+    prevUserId.current = uid;
+  }, [user, clearDiagram]);
+
+  // 登出时也清空
+  useEffect(() => {
+    if (!isAuthenticated) {
+      clearDiagram();
+    }
+  }, [isAuthenticated, clearDiagram]);
+
+  return null;
+}
 
 /** 工具箱包装器：仅在登录且角色为 admin/author 时显示 */
 function ToolboxButton({ showDrawPage, onOpenDraw, onPositionChange }: {

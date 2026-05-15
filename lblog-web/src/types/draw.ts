@@ -12,6 +12,14 @@ export interface DrawChatRequest {
     customSystemMessage?: string
 }
 
+/** 当前编辑会话状态 */
+export interface DiagramSessionState {
+    diagramId: number | null
+    title: string
+    isDirty: boolean
+    lastSavedAt: string | null
+}
+
 export interface SseEvent {
     type: 'text-delta' | 'tool-call' | 'done' | 'error' | 'heartbeat'
     name?: string

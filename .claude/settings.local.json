@@ -20,7 +20,18 @@
       "Bash(python3 *)",
       "Bash(node -e ' *)",
       "Bash(node *)",
-      "Bash(jps -lvm)"
+      "Bash(jps -lvm)",
+      "mcp__idea__build_project",
+      "Bash(jps -l)",
+      "Bash(awk '{print $1}')",
+      "mcp__idea__xdebug_control_session",
+      "mcp__idea__xdebug_start_debugger_session",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //PID 9744 //F)",
+      "Bash(git *)",
+      "Bash(taskkill //PID 21624 //F)",
+      "Bash(D:/ProgramFile/other/Google/Chrome/Application/chrome.exe --remote-debugging-port=9222 --no-first-run --no-default-browser-check --user-data-dir=D:/ProgramFile/other/Google/Chrome/UserData http://localhost:5173)",
+      "mcp__mysql__mysql_query"
     ]
   }
 }

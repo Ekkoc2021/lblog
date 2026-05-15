@@ -31,7 +31,7 @@ export async function refreshToken(): Promise<ApiResponse<TokenPairVO>> {
   });
 }
 
-async function request<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
+export async function request<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
   const token = getToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -139,7 +139,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<ApiRespo
   return json;
 }
 
-function buildQuery(params?: Record<string, string | number | boolean | undefined | null>): string {
+export function buildQuery(params?: Record<string, string | number | boolean | undefined | null>): string {
   if (!params) return '';
   const q = Object.entries(params)
     .filter(([, v]) => v !== undefined && v !== null)

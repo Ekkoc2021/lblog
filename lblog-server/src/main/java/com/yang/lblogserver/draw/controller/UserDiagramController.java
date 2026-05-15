@@ -22,7 +22,7 @@ import java.util.Map;
 @Tag(name = "用户图表", description = "用户绘图存储管理")
 @Validated
 @RestController
-@RequestMapping("/api/v1/diagrams")
+@RequestMapping("/api/v1/draw/diagrams")
 public class UserDiagramController {
 
     private final UserDiagramsService userDiagramsService;

@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { Input } from 'antd'
-import { SendHorizonal, MessageSquarePlus, Bot, PenTool } from 'lucide-react'
+import { Input, Dropdown, message } from 'antd'
+import type { MenuProps } from 'antd'
+import { SendHorizonal, MessageSquarePlus, Bot, PenTool, Save, FolderOpen } from 'lucide-react'
 import { DrawIoEmbed } from 'react-drawio'
 import { useDiagram } from '../contexts/diagram-context'
 import { drawChatStream } from '../services/draw'
 import type { ChatMessageDTO, SseEvent } from '../types/draw'
+import SaveDiagramModal from '../components/SaveDiagramModal'
+import DiagramManagerModal from '../components/DiagramManagerModal'
 
 interface DrawPageProps {
   onClose: () => void
@@ -17,21 +20,48 @@ const HELP_TIPS = [
 ]
 
 const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
-  const { chartXML, loadDiagram, drawioRef, onDrawioLoad, handleDiagramAutoSave } = useDiagram()
+  const {
+    chartXML, loadDiagram, drawioRef, onDrawioLoad, handleDiagramAutoSave,
+    sessionId, sessionTitle, isDirty, saving, handleExportResult,
+    setSessionTitle, saveDiagram, saveAsDiagram, openDiagram,
+  } = useDiagram()
+
   const [messages, setMessages] = useState<ChatMessageDTO[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isDrawioReady, setIsDrawioReady] = useState(false)
   const [chatCollapsed, setChatCollapsed] = useState(false)
-  const [docTitle, setDocTitle] = useState('无标题图表')
+  const [docTitle, setDocTitle] = useState(sessionTitle)
   const abortRef = useRef<AbortController | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // 弹窗状态
+  const [saveModalOpen, setSaveModalOpen] = useState(false)
+  const [saveModalMode, setSaveModalMode] = useState<'save' | 'saveAs'>('save')
+  const [managerOpen, setManagerOpen] = useState(false)
+
+  // 同步 sessionTitle → docTitle
+  useEffect(() => {
+    setDocTitle(sessionTitle)
+  }, [sessionTitle])
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [])
 
   useEffect(() => { scrollToBottom() }, [messages, scrollToBottom])
+
+  // beforeunload 提示
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty])
 
   const handleSend = useCallback(() => {
     const text = input.trim()
@@ -114,6 +144,76 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
     onDrawioLoad()
   }, [onDrawioLoad])
 
+  // ---- 存储操作 ----
+
+  const handleSave = useCallback(async () => {
+    if (sessionId !== null) {
+      try {
+        await saveDiagram()
+        message.success('已保存')
+      } catch (e: any) {
+        message.error(e.message || '保存失败')
+      }
+    } else {
+      setSaveModalMode('save')
+      setSaveModalOpen(true)
+    }
+  }, [sessionId, saveDiagram])
+
+  const handleSaveAs = useCallback(() => {
+    setSaveModalMode('saveAs')
+    setSaveModalOpen(true)
+  }, [])
+
+  // 键盘快捷键（用 ref 避免闭包过期）
+  const handleSaveRef = useRef(handleSave)
+  const handleSaveAsRef = useRef(handleSaveAs)
+  handleSaveRef.current = handleSave
+  handleSaveAsRef.current = handleSaveAs
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        if (e.shiftKey) {
+          handleSaveAsRef.current()
+        } else {
+          handleSaveRef.current()
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+        e.preventDefault()
+        setManagerOpen(true)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
+
+  const handleSaveModalSave = async (title: string, description?: string, tags?: string) => {
+    await saveAsDiagram(title, description, tags)
+    message.success('已保存')
+  }
+
+  const handleOpenFromManager = async (id: number) => {
+    if (isDirty) {
+      // 已通过 beforeunload 确认放弃更改时可以进入
+    }
+    await openDiagram(id)
+  }
+
+  const handleDocTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value
+    setDocTitle(v)
+    setSessionTitle(v)
+  }
+
+  // 保存按钮下拉菜单（仅已有图表时显示"另存为"）
+  const saveMenuItems: MenuProps['items'] = [
+    { key: 'save', label: '保存', onClick: handleSave },
+    ...(sessionId !== null ? [{ key: 'saveAs', label: '另存为...', onClick: handleSaveAs }] : []),
+  ]
+
   return (
     <div style={{ height: '100%', background: '#f5f5f7', display: 'flex', flexDirection: 'column' }}>
       {/* 全局标题栏 */}
@@ -123,15 +223,53 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <PenTool size={18} color="#1677ff" />
+
+          {/* 打开按钮 */}
+          <button type="button" onClick={() => setManagerOpen(true)}
+            style={{ height: 30, padding: '0 10px', borderRadius: 6, border: '1px solid #d9d9d9', background: '#fff', cursor: 'pointer', color: '#333', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4 }}
+            title="打开图表 (Ctrl+O)"
+          >
+            <FolderOpen size={14} />
+            打开
+          </button>
+
+          {/* 保存按钮（带下拉） */}
+          <Dropdown menu={{ items: saveMenuItems }} trigger={['click']}>
+            <button type="button"
+              style={{ height: 30, padding: '0 10px', borderRadius: 6, border: '1px solid #1677ff', background: '#1677ff', cursor: 'pointer', color: '#fff', fontSize: 12, display: 'flex', alignItems: 'center', gap: 4, opacity: saving ? 0.6 : 1 }}
+              title="保存 (Ctrl+S)"
+              disabled={saving}
+            >
+              <Save size={14} />
+              {saving ? '保存中...' : '保存'}
+            </button>
+          </Dropdown>
+
+          {/* 标题输入 */}
           <input
             value={docTitle}
-            onChange={e => setDocTitle(e.target.value)}
+            onChange={handleDocTitleChange}
             placeholder="输入图表名称"
             style={{ fontSize: 14, fontWeight: 600, border: 'none', outline: 'none', background: 'none', padding: '2 6', width: 200, color: '#1d1d1f', borderBottom: '1px dashed transparent' }}
             onMouseEnter={e => e.currentTarget.style.borderBottomColor = '#d9d9d9'}
             onMouseLeave={e => e.currentTarget.style.borderBottomColor = 'transparent'}
           />
+
+          {/* Dirty 指示 */}
+          {isDirty && (
+            <span style={{ fontSize: 12, color: '#ff4d4f', display: 'flex', alignItems: 'center', gap: 3 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff4d4f', display: 'inline-block' }} />
+              未保存
+            </span>
+          )}
+          {!isDirty && sessionId !== null && (
+            <span style={{ fontSize: 12, color: '#52c41a', display: 'flex', alignItems: 'center', gap: 3 }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#52c41a', display: 'inline-block' }} />
+              已保存
+            </span>
+          )}
         </div>
+
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <button type="button" onClick={onClose}
             style={{ width: 32, height: 32, borderRadius: 6, border: 'none', background: 'none', cursor: 'pointer', color: '#666', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -159,17 +297,18 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
             <DrawIoEmbed
               ref={drawioRef}
               xml={chartXML || undefined}
+              autosave={true}
+              exportFormat="xmlsvg"
               urlParameters={{
                 ui: 'kennedy',
                 spin: false,
                 libraries: false,
                 saveAndExit: false,
-                noSaveBtn: true,
                 noExitBtn: true,
-                modified: false,
               }}
               onLoad={handleDrawioLoad}
               onAutoSave={handleDiagramAutoSave}
+              onExport={handleExportResult}
             />
           </div>
           {!isDrawioReady && (
@@ -316,6 +455,22 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
       </div>
       </div>
     </div>
+
+      {/* 保存对话框 */}
+      <SaveDiagramModal
+        open={saveModalOpen}
+        onClose={() => setSaveModalOpen(false)}
+        onSave={handleSaveModalSave}
+        initialTitle={docTitle}
+        mode={saveModalMode}
+      />
+
+      {/* 图表浏览器 */}
+      <DiagramManagerModal
+        open={managerOpen}
+        onClose={() => setManagerOpen(false)}
+        onOpenDiagram={handleOpenFromManager}
+      />
     </div>
   )
 }
