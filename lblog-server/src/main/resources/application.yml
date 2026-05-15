@@ -10,7 +10,7 @@ server:
 mybatis:
   # 或者如果有多个路径可以使用通配符或逗号分隔
   # mybatis.mapper-locations=classpath*:mapper/**/*.xml,classpath*:com/example/mapper/*.xml
-  mapper-locations: classpath:com/yang/lblogserver/mapper/*.xml
+  mapper-locations: classpath*:com/yang/lblogserver/**/mapper/*.xml
   configuration:
     #    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl mybatis.configuration.
     log-impl: org.apache.ibatis.logging.log4j2.Log4j2Impl # 使用log4j输出日志

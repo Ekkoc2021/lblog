@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.auth.mapper.UserTokenMapper">
+
+    <resultMap id="BaseResultMap" type="com.yang.lblogserver.auth.domain.UserToken">
+            <id property="id" column="id" />
+            <result property="userId" column="user_id" />
+            <result property="tokenHash" column="token_hash" />
+            <result property="tokenType" column="token_type" />
+            <result property="expiresAt" column="expires_at" />
+            <result property="createdAt" column="created_at" />
+            <result property="revoked" column="revoked" />
+            <result property="replacedBy" column="replaced_by" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,user_id,token_hash,token_type,expires_at,
+        created_at,revoked,replaced_by
+    </sql>
+
+    <insert id="insert" parameterType="com.yang.lblogserver.auth.domain.UserToken">
+        INSERT INTO user_tokens (user_id, token_hash, token_type, expires_at, created_at, revoked, replaced_by)
+        VALUES (#{userId}, #{tokenHash}, #{tokenType}, #{expiresAt}, #{createdAt}, #{revoked}, #{replacedBy})
+    </insert>
+
+    <select id="findByTokenHash" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_tokens
+        WHERE token_hash = #{tokenHash}
+        LIMIT 1
+    </select>
+
+    <select id="findByTokenHashForUpdate" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_tokens
+        WHERE token_hash = #{tokenHash}
+        LIMIT 1
+        FOR UPDATE
+    </select>
+
+    <select id="findValidByUserId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_tokens
+        WHERE user_id = #{userId}
+          AND revoked = 0
+          AND expires_at > NOW()
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="findByUserId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM user_tokens
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
+
+    <update id="revoke">
+        UPDATE user_tokens
+        SET revoked = 1
+        WHERE token_hash = #{tokenHash}
+    </update>
+
+    <update id="revokeAllByUserId">
+        UPDATE user_tokens
+        SET revoked = 1
+        WHERE user_id = #{userId}
+          AND revoked = 0
+    </update>
+
+    <update id="revokeAllByUserIdAndType">
+        UPDATE user_tokens
+        SET revoked = 1
+        WHERE user_id = #{userId}
+          AND token_type = #{tokenType}
+          AND revoked = 0
+    </update>
+
+    <delete id="deleteExpired">
+        DELETE FROM user_tokens
+        WHERE expires_at <![CDATA[ < ]]> NOW()
+          AND revoked = 1
+    </delete>
+
+    <update id="updateReplacedBy">
+        UPDATE user_tokens
+        SET replaced_by = #{replacedBy}
+        WHERE token_hash = #{tokenHash}
+    </update>
+
+    <select id="countValidByUserId" resultType="int">
+        SELECT COUNT(*)
+        FROM user_tokens
+        WHERE user_id = #{userId}
+          AND revoked = 0
+          AND expires_at > NOW()
+    </select>
+
+</mapper>

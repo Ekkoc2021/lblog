@@ -1,0 +1,30 @@
+package com.yang.lblogserver.blog.mapper;
+
+import com.yang.lblogserver.blog.domain.Series;
+import com.yang.lblogserver.blog.vo.SeriesVO;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
+
+@Mapper
+public interface SeriesMapper {
+
+    List<SeriesVO> selectSeriesWithCount(@Param("limit") int limit,
+                                         @Param("categoryId") Long categoryId,
+                                         @Param("createdBy") Long createdBy);
+
+    // ---- Admin ----
+
+    int insertSeries(Series series);
+
+    int updateSeries(Series series);
+
+    int softDeleteSeries(@Param("id") Long id);
+
+    int countBySlug(@Param("slug") String slug, @Param("excludeId") Long excludeId);
+
+    Series selectById(@Param("id") Long id);
+
+    List<Series> selectBatchIds(List<Long> ids);
+}

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.image.mapper.ImageUsageMapper">
+
+    <resultMap id="BaseResultMap" type="com.yang.lblogserver.image.domain.ImageUsage">
+        <id property="id" column="id"/>
+        <result property="imageId" column="image_id"/>
+        <result property="refType" column="ref_type"/>
+        <result property="refId" column="ref_id"/>
+        <result property="field" column="field"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, image_id, ref_type, ref_id, field
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO image_usages (image_id, ref_type, ref_id, field)
+        VALUES (#{imageId}, #{refType}, #{refId}, #{field})
+    </insert>
+
+    <delete id="deleteByRef">
+        DELETE FROM image_usages
+        WHERE ref_type = #{refType} AND ref_id = #{refId}
+    </delete>
+
+    <delete id="deleteByRefAndField">
+        DELETE FROM image_usages
+        WHERE ref_type = #{refType} AND ref_id = #{refId} AND field = #{field}
+    </delete>
+
+    <select id="selectByRef" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM image_usages
+        WHERE ref_type = #{refType} AND ref_id = #{refId}
+    </select>
+
+    <select id="selectByImageId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM image_usages
+        WHERE image_id = #{imageId}
+    </select>
+
+    <select id="existsByImageId" resultType="int">
+        SELECT COUNT(1)
+        FROM image_usages
+        WHERE image_id = #{imageId}
+    </select>
+
+</mapper>

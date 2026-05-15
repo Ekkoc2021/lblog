@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.blog.mapper.SeriesPostsMapper">
+
+    <resultMap id="BaseResultMap" type="com.yang.lblogserver.blog.domain.SeriesPosts">
+            <id property="seriesId" column="series_id" />
+            <id property="postId" column="post_id" />
+            <result property="sortOrder" column="sort_order" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        series_id,post_id,sort_order
+    </sql>
+
+    <select id="selectByPostId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM series_posts
+        WHERE post_id = #{postId}
+        LIMIT 1
+    </select>
+
+    <select id="selectPrevPost" resultType="com.yang.lblogserver.blog.vo.PrevNextPostVO">
+        SELECT p.id, p.title, p.slug
+        FROM posts p
+        JOIN series_posts sp ON p.id = sp.post_id
+        WHERE sp.series_id = #{seriesId}
+          AND sp.sort_order &lt; #{sortOrder}
+          AND p.status = 1 AND p.is_delelte = 0 AND p.deleted_at IS NULL
+        ORDER BY sp.sort_order DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectNextPost" resultType="com.yang.lblogserver.blog.vo.PrevNextPostVO">
+        SELECT p.id, p.title, p.slug
+        FROM posts p
+        JOIN series_posts sp ON p.id = sp.post_id
+        WHERE sp.series_id = #{seriesId}
+          AND sp.sort_order &gt; #{sortOrder}
+          AND p.status = 1 AND p.is_delelte = 0 AND p.deleted_at IS NULL
+        ORDER BY sp.sort_order ASC
+        LIMIT 1
+    </select>
+
+    <!-- ========== Admin ========== -->
+
+    <delete id="deleteBySeriesId">
+        DELETE FROM series_posts WHERE series_id = #{seriesId}
+    </delete>
+
+    <delete id="deleteByPostId">
+        DELETE FROM series_posts WHERE post_id = #{postId}
+    </delete>
+
+    <insert id="insertBatch">
+        INSERT INTO series_posts (series_id, post_id, sort_order) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.seriesId}, #{item.postId}, #{item.sortOrder})
+        </foreach>
+    </insert>
+
+    <insert id="insert">
+        INSERT INTO series_posts (series_id, post_id, sort_order)
+        VALUES (#{seriesId}, #{postId}, #{sortOrder})
+    </insert>
+
+    <update id="updateSortOrder">
+        UPDATE series_posts SET sort_order = #{sortOrder}
+        WHERE series_id = #{seriesId} AND post_id = #{postId}
+    </update>
+
+    <select id="selectByPostIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM series_posts
+        WHERE post_id IN
+        <foreach collection="list" item="postId" open="(" separator="," close=")">
+            #{postId}
+        </foreach>
+    </select>
+</mapper>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.blog.mapper.SeriesMapper">
+
+    <resultMap id="BaseResultMap" type="com.yang.lblogserver.blog.domain.Series">
+            <id property="id" column="id" />
+            <result property="title" column="title" />
+            <result property="slug" column="slug" />
+            <result property="description" column="description" />
+            <result property="coverImageUrl" column="cover_image_url" />
+            <result property="categoryId" column="category_id" />
+            <result property="isCompleted" column="is_completed" />
+            <result property="sortOrder" column="sort_order" />
+            <result property="createdBy" column="created_by" />
+            <result property="createdAt" column="created_at" />
+            <result property="updatedAt" column="updated_at" />
+            <result property="deletedAt" column="deleted_at" />
+            <result property="isDelelte" column="is_delelte" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,title,slug,description,cover_image_url,category_id,
+        is_completed,sort_order,created_by,created_at,updated_at,
+        deleted_at,is_delelte
+    </sql>
+
+    <resultMap id="SeriesWithCountMap" type="com.yang.lblogserver.blog.vo.SeriesVO">
+        <id property="id" column="id" />
+        <result property="title" column="title" />
+        <result property="slug" column="slug" />
+        <result property="description" column="description" />
+        <result property="coverImageUrl" column="cover_image_url" />
+        <result property="categoryId" column="category_id" />
+        <result property="isCompleted" column="is_completed" />
+        <result property="sortOrder" column="sort_order" />
+        <result property="postCount" column="post_count" />
+    </resultMap>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM series
+        WHERE id = #{id} AND is_delelte = 0
+    </select>
+
+    <select id="selectBatchIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM series
+        WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <insert id="insertSeries" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO series (title, slug, description, cover_image_url, category_id,
+                            is_completed, sort_order, created_by, created_at, updated_at, is_delelte)
+        VALUES (#{title}, #{slug}, #{description}, #{coverImageUrl}, #{categoryId},
+                #{isCompleted}, #{sortOrder}, #{createdBy}, NOW(), NOW(), 0)
+    </insert>
+
+    <update id="updateSeries">
+        UPDATE series
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="slug != null">slug = #{slug},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="coverImageUrl != null">cover_image_url = #{coverImageUrl},</if>
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="isCompleted != null">is_completed = #{isCompleted},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            updated_at = NOW()
+        </set>
+        WHERE id = #{id} AND is_delelte = 0
+    </update>
+
+    <select id="countBySlug" resultType="int">
+        SELECT COUNT(1) FROM series
+        WHERE slug = #{slug} AND is_delelte = 0 AND deleted_at IS NULL
+        <if test="excludeId != null">AND id != #{excludeId}</if>
+    </select>
+
+    <update id="softDeleteSeries">
+        UPDATE series SET is_delelte = 1, deleted_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <select id="selectSeriesWithCount" resultMap="SeriesWithCountMap">
+        SELECT s.id, s.title, s.slug, s.description, s.cover_image_url,
+               s.category_id, s.is_completed, s.sort_order,
+               COUNT(sp.post_id) AS post_count
+        FROM series s
+        LEFT JOIN series_posts sp ON s.id = sp.series_id
+        LEFT JOIN posts p ON sp.post_id = p.id AND p.status = 1 AND p.is_delelte = 0 AND p.deleted_at IS NULL
+        WHERE s.is_delelte = 0 AND s.deleted_at IS NULL
+        <if test="createdBy != null">AND s.created_by = #{createdBy}</if>
+        <if test="categoryId != null">
+            AND s.category_id = #{categoryId}
+        </if>
+        GROUP BY s.id, s.title, s.slug, s.description, s.cover_image_url,
+                 s.category_id, s.is_completed, s.sort_order
+        ORDER BY s.sort_order ASC, s.id ASC
+    </select>
+</mapper>

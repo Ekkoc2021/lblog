@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.site.mapper.SiteConfigMapper">
+
+    <select id="selectConfigValue" resultType="string">
+        SELECT config_value FROM site_config
+        WHERE config_key = #{configKey}
+        LIMIT 1
+    </select>
+
+    <update id="updateConfigValue">
+        INSERT INTO site_config (config_key, config_value) VALUES (#{configKey}, #{configValue})
+        ON DUPLICATE KEY UPDATE config_value = #{configValue}
+    </update>
+
+    <select id="selectAll" resultType="com.yang.lblogserver.site.domain.SiteConfig">
+        SELECT id, config_key AS configKey, config_value AS configValue, created_at AS createdAt, updated_at AS updatedAt
+        FROM site_config
+        ORDER BY id ASC
+    </select>
+
+    <delete id="deleteByKey">
+        DELETE FROM site_config WHERE config_key = #{configKey}
+    </delete>
+
+</mapper>

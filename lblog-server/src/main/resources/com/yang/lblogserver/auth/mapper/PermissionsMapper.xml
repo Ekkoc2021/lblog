@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.auth.mapper.PermissionsMapper">
+
+    <resultMap id="BaseResultMap" type="com.yang.lblogserver.auth.domain.Permissions">
+        <id property="id" column="id" />
+        <result property="code" column="code" />
+        <result property="label" column="label" />
+        <result property="module" column="module" />
+        <result property="createdAt" column="created_at" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, code, label, module, created_at
+    </sql>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM permissions
+        ORDER BY module, id
+    </select>
+
+    <select id="selectByCode" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM permissions
+        WHERE code = #{code}
+        LIMIT 1
+    </select>
+
+</mapper>
