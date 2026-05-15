@@ -94,12 +94,11 @@ spring:
         deny:
 
   ai:
-    openai:
+    deepseek:
       api-key: sk-5bc99d693c42462fb6b8abfeea207726
-      base-url: ${AI_OPENAI_BASE_URL:https://api.deepseek.com}
       chat:
         options:
-          model: ${AI_OPENAI_MODEL:deepseek-chat}
+          model: ${AI_DEEPSEEK_MODEL:deepseek-chat}
           temperature: 0.7
           max-tokens: 8192
 
@@ -128,5 +127,5 @@ lblog:
     token-byte-size: 32
   diagram:
     enabled: true
-    model: ${AI_OPENAI_MODEL:deepseek-chat}
+    model: ${AI_DEEPSEEK_MODEL:deepseek-chat}
     max-tokens: ${AI_DIAGRAM_MAX_TOKENS:16384}

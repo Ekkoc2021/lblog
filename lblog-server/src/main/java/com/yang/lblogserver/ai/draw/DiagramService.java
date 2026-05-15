@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
+import org.springframework.ai.deepseek.DeepSeekChatModel;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -33,13 +34,13 @@ public class DiagramService {
     private final ScheduledExecutorService heartbeatScheduler;
     private final ObjectMapper objectMapper;
 
-    public DiagramService(ChatClient.Builder chatClientBuilder,
+    public DiagramService(DeepSeekChatModel deepSeekChatModel,
                           PromptManager promptManager,
                           DiagramProperties diagramProperties,
                           DisplayDiagramTool displayDiagramTool,
                           ScheduledExecutorService heartbeatScheduler,
                           ObjectMapper objectMapper) {
-        this.chatClient = chatClientBuilder.build();
+        this.chatClient = ChatClient.builder(deepSeekChatModel).build();
         this.promptManager = promptManager;
         this.diagramProperties = diagramProperties;
         this.displayDiagramTool = displayDiagramTool;
