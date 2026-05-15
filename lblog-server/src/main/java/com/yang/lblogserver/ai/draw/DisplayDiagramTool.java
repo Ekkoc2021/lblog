@@ -2,19 +2,15 @@ package com.yang.lblogserver.ai.draw;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yang.lblogserver.draw.util.MxCellValidator;
+import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Map;
 
-/**
- * AI 可调用的 display_diagram 工具。
- */
 @Component
 public class DisplayDiagramTool {
-
-    private static final ThreadLocal<SseEmitter> EMITTER_HOLDER = new ThreadLocal<>();
 
     private final ObjectMapper objectMapper;
 
@@ -22,17 +18,9 @@ public class DisplayDiagramTool {
         this.objectMapper = objectMapper;
     }
 
-    public static void bindEmitter(SseEmitter emitter) {
-        EMITTER_HOLDER.set(emitter);
-    }
-
-    public static void unbindEmitter() {
-        EMITTER_HOLDER.remove();
-    }
-
     @Tool(name = "display_diagram", description = "Generate draw.io XML for a diagram. Call this when user asks to draw a diagram.")
-    public String execute(String xml) {
-        SseEmitter emitter = EMITTER_HOLDER.get();
+    public String execute(String xml, ToolContext ctx) {
+        SseEmitter emitter = (SseEmitter) ctx.getContext().get("emitter");
 
         MxCellValidator validator = new MxCellValidator();
         String error = validator.validate(xml);

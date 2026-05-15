@@ -21,9 +21,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-/**
- * AI 绘图核心编排服务。
- */
 @Service
 public class DiagramService {
 
@@ -67,12 +64,11 @@ public class DiagramService {
                 return;
             }
 
-            DisplayDiagramTool.bindEmitter(emitter);
-
             try {
                 ChatResponse response = chatClient.prompt()
                         .messages(messages)
                         .tools(displayDiagramTool)
+                        .toolContext(Map.of("emitter", emitter))
                         .call()
                         .chatResponse();
 
@@ -92,7 +88,6 @@ public class DiagramService {
                 return;
             } finally {
                 heartbeat.cancel(false);
-                DisplayDiagramTool.unbindEmitter();
             }
 
             sendDone(emitter, request.getSessionId());
