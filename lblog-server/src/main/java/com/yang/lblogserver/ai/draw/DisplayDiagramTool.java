@@ -13,16 +13,17 @@ import java.util.Map;
 public class DisplayDiagramTool {
 
     private final ObjectMapper objectMapper;
+    private final MxCellValidator validator;
 
-    public DisplayDiagramTool(ObjectMapper objectMapper) {
+    public DisplayDiagramTool(ObjectMapper objectMapper, MxCellValidator validator) {
         this.objectMapper = objectMapper;
+        this.validator = validator;
     }
 
     @Tool(name = "display_diagram", description = "Generate draw.io XML for a diagram. Call this when user asks to draw a diagram.")
     public String execute(String xml, ToolContext ctx) {
         SseEmitter emitter = (SseEmitter) ctx.getContext().get("emitter");
 
-        MxCellValidator validator = new MxCellValidator();
         String error = validator.validate(xml);
 
         String wrappedXml = xml;
