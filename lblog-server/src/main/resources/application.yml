@@ -93,14 +93,8 @@ spring:
         # IP黑名单（共同存在时，deny优先于allow）
         deny:
 
-  ai:
-    deepseek:
-      api-key: sk-5bc99d693c42462fb6b8abfeea207726
-      chat:
-        options:
-          model: ${AI_DEEPSEEK_MODEL:deepseek-v4-flash}
-          temperature: 0.7
-          max-tokens: 16384
+  config:
+    import: application-ai.yml
 
 logging:
   config: classpath:log4j2.xml
