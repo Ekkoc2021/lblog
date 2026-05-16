@@ -26,10 +26,13 @@ public class DiagramConfig {
 
     @Bean("heartbeatScheduler")
     public ScheduledExecutorService heartbeatScheduler() {
-        return Executors.newSingleThreadScheduledExecutor(r -> {
+        ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(1);
+        executor.setThreadFactory(r -> {
             Thread t = new Thread(r, "diagram-heartbeat");
             t.setDaemon(true);
             return t;
         });
+        executor.setRemoveOnCancelPolicy(true);
+        return executor;
     }
 }

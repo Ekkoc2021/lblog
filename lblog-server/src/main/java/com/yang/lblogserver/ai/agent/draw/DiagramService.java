@@ -14,7 +14,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -50,13 +49,20 @@ public class DiagramService {
 
     @Async("diagramTaskExecutor")
     public void chatStream(DrawChatRequest request, SseEmitter emitter) {
+        Thread asyncThread = Thread.currentThread();
+
         ScheduledFuture<?> heartbeat = heartbeatScheduler.scheduleAtFixedRate(() -> {
             try {
                 emitter.send(objectMapper.writeValueAsString(Map.of("type", "heartbeat")));
             } catch (Exception e) {
+                // 心跳检测失败,直接中断ai主线程,后续响应没有任何意义
+                // emitter发送失败自动关闭
+                asyncThread.interrupt();
                 throw new RuntimeException(e);
             }
         }, 15, 15, TimeUnit.SECONDS);
+
+        emitter.onCompletion(() -> heartbeat.cancel(false));
 
         try {
             List<Message> messages = buildMessages(request);
@@ -97,6 +103,8 @@ public class DiagramService {
         } catch (Exception e) {
             log.error("Error in chat stream", e);
             emitter.completeWithError(e);
+        } finally {
+            heartbeat.cancel(false);
         }
     }
 
@@ -126,28 +134,6 @@ public class DiagramService {
         return messages;
     }
 
-    private void handleChatResponse(ChatResponse response, SseEmitter emitter) {
-        try {
-            var result = response.getResult();
-            if (result == null || result.getOutput() == null) return;
-
-            var message = result.getOutput();
-            String text = message.getText();
-            if (text != null && !text.isEmpty()) {
-                String payload = objectMapper.writeValueAsString(Map.of(
-                        "type", "text-delta",
-                        "delta", text
-                ));
-                emitter.send(payload);
-            }
-        } catch (IOException e) {
-            log.warn("SSE emitter disconnected", e);
-            emitter.complete();
-        } catch (Exception e) {
-            log.error("Failed to serialize SSE payload", e);
-        }
-    }
-
     private void sendDone(SseEmitter emitter, String sessionId) {
         try {
             String payload = objectMapper.writeValueAsString(Map.of(
@@ -160,8 +146,4 @@ public class DiagramService {
         }
     }
 
-    private void handleError(Throwable error, SseEmitter emitter) {
-        log.error("Stream error", error);
-        emitter.completeWithError(error);
-    }
 }
