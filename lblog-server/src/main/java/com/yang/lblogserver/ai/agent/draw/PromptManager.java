@@ -279,8 +279,6 @@ public class PromptManager {
     }
 
     public String buildSystemPrompt(String modelId, boolean minimalStyle) {
-        String modelName = modelId != null ? modelId : "AI";
-
         Map<String, String> p = promptService.getPromptMap("draw");
         boolean hasDbData = !p.isEmpty();
 
@@ -312,7 +310,7 @@ public class PromptManager {
             prompt = defaultPrompt + "\n\n" + styleContent;
         }
 
-        return prompt.replace("{{MODEL_NAME}}", modelName);
+        return prompt;
     }
 
     public String buildXmlContext(String currentXml, String previousXml) {

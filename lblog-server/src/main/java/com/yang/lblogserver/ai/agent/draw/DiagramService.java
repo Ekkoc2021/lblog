@@ -1,6 +1,5 @@
 package com.yang.lblogserver.ai.agent.draw;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
@@ -31,20 +30,17 @@ public class DiagramService {
     private final DiagramProperties diagramProperties;
     private final DisplayDiagramTool displayDiagramTool;
     private final ScheduledExecutorService heartbeatScheduler;
-    private final ObjectMapper objectMapper;
 
     public DiagramService(DeepSeekChatModel deepSeekChatModel,
                           PromptManager promptManager,
                           DiagramProperties diagramProperties,
                           DisplayDiagramTool displayDiagramTool,
-                          ScheduledExecutorService heartbeatScheduler,
-                          ObjectMapper objectMapper) {
+                          ScheduledExecutorService heartbeatScheduler) {
         this.chatClient = ChatClient.builder(deepSeekChatModel).build();
         this.promptManager = promptManager;
         this.diagramProperties = diagramProperties;
         this.displayDiagramTool = displayDiagramTool;
         this.heartbeatScheduler = heartbeatScheduler;
-        this.objectMapper = objectMapper;
     }
 
     @Async("diagramTaskExecutor")
@@ -53,7 +49,7 @@ public class DiagramService {
 
         ScheduledFuture<?> heartbeat = heartbeatScheduler.scheduleAtFixedRate(() -> {
             try {
-                emitter.send(objectMapper.writeValueAsString(Map.of("type", "heartbeat")));
+                emitter.send(SseEmitter.event().data("{}"));
             } catch (Exception e) {
                 // 心跳检测失败,直接中断ai主线程,后续响应没有任何意义
                 // emitter发送失败自动关闭
@@ -82,11 +78,8 @@ public class DiagramService {
                 if (response != null && response.getResult() != null) {
                     String text = response.getResult().getOutput().getText();
                     if (text != null && !text.isEmpty()) {
-                        String payload = objectMapper.writeValueAsString(Map.of(
-                                "type", "text-delta",
-                                "delta", text
-                        ));
-                        emitter.send(payload);
+                        emitter.send(SseEmitter.event()
+                                .data(Map.of("type", "text-delta", "delta", text)));
                     }
                 }
             } catch (Exception e) {
@@ -112,7 +105,7 @@ public class DiagramService {
         List<Message> messages = new ArrayList<>();
 
         String systemPrompt = promptManager.buildSystemPrompt(
-                diagramProperties.getModel(), request.getMinimalStyle() != null && request.getMinimalStyle());
+                null, request.getMinimalStyle() != null && request.getMinimalStyle());
         String xmlContext = promptManager.buildXmlContext(request.getXml(), request.getPreviousXml());
         messages.add(new SystemMessage(systemPrompt + "\n\n" + xmlContext));
 
@@ -136,11 +129,8 @@ public class DiagramService {
 
     private void sendDone(SseEmitter emitter, String sessionId) {
         try {
-            String payload = objectMapper.writeValueAsString(Map.of(
-                    "type", "done",
-                    "sessionId", sessionId != null ? sessionId : ""
-            ));
-            emitter.send(payload);
+            emitter.send(SseEmitter.event()
+                    .data(Map.of("type", "done", "sessionId", sessionId != null ? sessionId : "")));
         } catch (Exception e) {
             log.warn("Failed to send done event", e);
         }

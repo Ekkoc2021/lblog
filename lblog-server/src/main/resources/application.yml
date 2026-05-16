@@ -98,9 +98,9 @@ spring:
       api-key: sk-5bc99d693c42462fb6b8abfeea207726
       chat:
         options:
-          model: ${AI_DEEPSEEK_MODEL:deepseek-chat}
+          model: ${AI_DEEPSEEK_MODEL:deepseek-v4-flash}
           temperature: 0.7
-          max-tokens: 8192
+          max-tokens: 16384
 
 logging:
   config: classpath:log4j2.xml
@@ -117,6 +117,8 @@ logging:
     com.chinamobile.cmss.bdpaas.resource.monitor: DEBUG
     com.yang.home.cipherkey.mapper: DEBUG
     org.mybatis: DEBUG
+    org.springframework.ai.deepseek: DEBUG
+    org.springframework.web.client: TRACE
 
 # 自定义配置
 lblog:
@@ -127,8 +129,6 @@ lblog:
     token-byte-size: 32
   diagram:
     enabled: true
-    model: ${AI_DEEPSEEK_MODEL:deepseek-chat}
-    max-tokens: ${AI_DIAGRAM_MAX_TOKENS:16384}
     disconnect-check-interval-seconds: 5
   ai:
     prompt:

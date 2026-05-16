@@ -1,6 +1,5 @@
 package com.yang.lblogserver.ai.agent.draw;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yang.lblogserver.draw.util.MxCellValidator;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
@@ -12,11 +11,9 @@ import java.util.Map;
 @Component
 public class DisplayDiagramTool {
 
-    private final ObjectMapper objectMapper;
     private final MxCellValidator validator;
 
-    public DisplayDiagramTool(ObjectMapper objectMapper, MxCellValidator validator) {
-        this.objectMapper = objectMapper;
+    public DisplayDiagramTool(MxCellValidator validator) {
         this.validator = validator;
     }
 
@@ -40,12 +37,9 @@ public class DisplayDiagramTool {
 
         if (emitter != null) {
             try {
-                String payload = objectMapper.writeValueAsString(Map.of(
-                        "type", "tool-call",
-                        "name", "display_diagram",
-                        "arguments", Map.of("xml", wrappedXml)
-                ));
-                emitter.send(payload);
+                emitter.send(SseEmitter.event()
+                        .data(Map.of("type", "tool-call", "name", "display_diagram",
+                                "arguments", Map.of("xml", wrappedXml))));
             } catch (Exception e) {
                 emitter.completeWithError(e);
             }

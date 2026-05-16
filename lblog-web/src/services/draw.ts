@@ -20,28 +20,59 @@ export function drawChatStream(
         headers['Authorization'] = `Bearer ${token}`
     }
 
-    let completed = false
+    let finished = false
+    let lastEventTime = Date.now()
+    const HEARTBEAT_TIMEOUT = 30000
+    let heartbeatTimer: ReturnType<typeof setInterval> | null = null
+
+    const finish = () => {
+        if (finished) return
+        finished = true
+        if (heartbeatTimer) clearInterval(heartbeatTimer)
+        onComplete()
+    }
 
     fetch('/api/v1/draw/chat', {
         method: 'POST',
         headers,
         body: JSON.stringify(request),
         signal: controller.signal,
-    })
-        .then(async (response) => {
-            if (!response.ok) {
-                let msg = `HTTP ${response.status}: ${response.statusText}`
-                try {
-                    const body = await response.json()
-                    if (body?.message) msg = body.message
-                } catch {}
-                throw new Error(msg)
+    }).then(async (response) => {
+        if (!response.ok) {
+            let msg = `HTTP ${response.status}: ${response.statusText}`
+            try {
+                const body = await response.json()
+                if (body?.message) msg = body.message
+            } catch { /* ignore */ }
+            throw new Error(msg)
+        }
+
+        const reader = response.body?.getReader()
+        if (!reader) {
+            throw new Error('Response body not readable')
+        }
+
+        // 定时检查是否长时间无事件（后端异常断开但未关连接）
+        heartbeatTimer = setInterval(() => {
+            if (finished) return
+            if (Date.now() - lastEventTime > HEARTBEAT_TIMEOUT) {
+                finish()
             }
+        }, 5000)
 
-            const text = await response.text()
-            const allLines = text.split('\n')
+        const decoder = new TextDecoder()
+        let buffer = ''
 
-            for (const line of allLines) {
+        while (true) {
+            const { done: streamDone, value } = await reader.read()
+            if (streamDone) break
+
+            lastEventTime = Date.now()
+            buffer += decoder.decode(value, { stream: true })
+            const lines = buffer.split('\n')
+            buffer = lines.pop() || ''
+
+            for (const line of lines) {
                 const trimmed = line.trim()
                 if (!trimmed || trimmed.startsWith(':')) continue
                 if (trimmed.startsWith('data:')) {
@@ -51,27 +82,28 @@ export function drawChatStream(
                         if (data.type === 'error') {
                             onError(new Error(data.content || 'Unknown error'))
                         } else if (data.type === 'done') {
-                            completed = true
-                            onComplete()
+                            finish()
+                            return
                         } else if (data.type === 'heartbeat') {
                             continue
                         } else {
                             onEvent(data as SseEvent)
                         }
-                    } catch {
-                    }
+                    } catch { /* ignore parse errors */ }
                 }
             }
+        }
 
-            if (!completed) {
-                onComplete()
-            }
-        })
-        .catch((err) => {
-            if (err.name === 'AbortError') return
-            onError(err instanceof Error ? err : new Error(String(err)))
-            onComplete()
-        })
+        // 流正常结束但没有 done 事件
+        finish()
+    }).catch((err) => {
+        if (err.name === 'AbortError') {
+            finish()
+            return
+        }
+        onError(err instanceof Error ? err : new Error(String(err)))
+        finish()
+    })
 
     return controller
 }

@@ -3,12 +3,12 @@ package com.yang.lblogserver.ai.agent.draw.controller;
 import com.yang.lblogserver.ai.agent.draw.DiagramService;
 import com.yang.lblogserver.ai.agent.draw.DrawChatRequest;
 import com.yang.lblogserver.ai.agent.draw.DrawConfigVO;
-import com.yang.lblogserver.ai.agent.draw.DiagramProperties;
 import com.yang.lblogserver.ai.agent.draw.config.DrawRateLimiter;
 import com.yang.lblogserver.common.ApiResponse;
 import com.yang.lblogserver.site.mapper.SiteConfigMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Value;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -22,16 +22,17 @@ import java.util.concurrent.TimeUnit;
 public class DiagramController {
 
     private final DiagramService diagramService;
-    private final DiagramProperties diagramProperties;
     private final DrawRateLimiter drawRateLimiter;
     private final SiteConfigMapper siteConfigMapper;
+    private final String modelName;
 
-    public DiagramController(DiagramService diagramService, DiagramProperties diagramProperties,
-                             DrawRateLimiter drawRateLimiter, SiteConfigMapper siteConfigMapper) {
+    public DiagramController(DiagramService diagramService,
+                             DrawRateLimiter drawRateLimiter, SiteConfigMapper siteConfigMapper,
+                             @Value("${spring.ai.deepseek.chat.options.model}") String modelName) {
         this.diagramService = diagramService;
-        this.diagramProperties = diagramProperties;
         this.drawRateLimiter = drawRateLimiter;
         this.siteConfigMapper = siteConfigMapper;
+        this.modelName = modelName;
     }
 
     private boolean isAiDrawEnabled() {
@@ -68,8 +69,7 @@ public class DiagramController {
     public ApiResponse<DrawConfigVO> getConfig() {
         DrawConfigVO config = new DrawConfigVO(
                 isAiDrawEnabled(),
-                diagramProperties.getModel(),
-                diagramProperties.getMaxTokens()
+                modelName
         );
         return ApiResponse.success(config);
     }

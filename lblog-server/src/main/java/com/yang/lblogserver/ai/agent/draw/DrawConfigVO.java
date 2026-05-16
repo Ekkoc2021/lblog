@@ -8,5 +8,4 @@ import lombok.Data;
 public class DrawConfigVO {
     private boolean enabled;
     private String model;
-    private int maxTokens;
 }
