@@ -1,4 +1,4 @@
-package com.yang.lblogserver.ai.draw;
+package com.yang.lblogserver.ai.agent.draw;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yang.lblogserver.draw.util.MxCellValidator;

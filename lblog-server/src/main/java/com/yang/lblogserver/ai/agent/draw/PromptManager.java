@@ -1,4 +1,4 @@
-package com.yang.lblogserver.ai.draw;
+package com.yang.lblogserver.ai.agent.draw;
 
 import com.yang.lblogserver.ai.prompt.service.AiPromptService;
 import org.springframework.stereotype.Component;

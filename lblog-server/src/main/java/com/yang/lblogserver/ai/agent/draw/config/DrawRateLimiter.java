@@ -1,4 +1,4 @@
-package com.yang.lblogserver.ai.config;
+package com.yang.lblogserver.ai.agent.draw.config;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;

@@ -1,4 +1,4 @@
-package com.yang.lblogserver.ai.draw;
+package com.yang.lblogserver.ai.agent.draw;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

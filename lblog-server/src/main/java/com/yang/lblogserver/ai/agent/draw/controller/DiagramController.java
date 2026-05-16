@@ -1,10 +1,10 @@
-package com.yang.lblogserver.ai.draw.controller;
+package com.yang.lblogserver.ai.agent.draw.controller;
 
-import com.yang.lblogserver.ai.config.DrawRateLimiter;
-import com.yang.lblogserver.ai.draw.DiagramService;
-import com.yang.lblogserver.ai.draw.DrawChatRequest;
-import com.yang.lblogserver.ai.draw.DrawConfigVO;
-import com.yang.lblogserver.ai.draw.DiagramProperties;
+import com.yang.lblogserver.ai.agent.draw.config.DrawRateLimiter;
+import com.yang.lblogserver.ai.agent.draw.DiagramService;
+import com.yang.lblogserver.ai.agent.draw.DrawChatRequest;
+import com.yang.lblogserver.ai.agent.draw.DrawConfigVO;
+import com.yang.lblogserver.ai.agent.draw.DiagramProperties;
 import com.yang.lblogserver.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -1,4 +1,4 @@
-package com.yang.lblogserver.ai.config;
+package com.yang.lblogserver.ai.agent.draw.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
