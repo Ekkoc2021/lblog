@@ -214,6 +214,7 @@ export interface RegisterRequest {
 export interface SiteConfig {
   imageBaseUrl: string;
   imageMaxSize: number;
+  aiDrawChatEnabled?: boolean;
 }
 
 export interface CreateSeriesRequest {

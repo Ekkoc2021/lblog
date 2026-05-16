@@ -2,6 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Commit 规则
+
+- **禁止自动提交代码。** 必须等用户明确要求「提交」或「commit」后才执行 git commit 操作。
+- 用户说「给一个 commit 信息」时只提供信息，不执行提交。
+
 ## 项目边界
 
 **本仓库是 lblog-web（前端）。** Claude Code 的操作范围应当限制在 `lblog-web` 目录内。
@@ -18,6 +23,12 @@ npm run build    # Run tsc -b && vite build (typecheck then bundle)
 npm run lint     # ESLint (typescript-eslint + react-hooks rules)
 npm run preview  # Preview production build
 ```
+
+> **关闭 Vite 开发服务器（Windows）：**
+> ```powershell
+> powershell "Get-Process node | Stop-Process -Force"
+> ```
+> **注意：** 不要用 `pkill` 等 Linux 命令，Windows 下无效。
 
 ## Tech Stack
 
@@ -100,6 +111,8 @@ powershell "Get-Process chrome | Stop-Process -Force"
 > **注意**：必须同时指定 `--remote-debugging-port` 和 `--user-data-dir` 参数，缺一不可。否则 Chrome 无法开启 DevTools 调试端口。
 
 启动后通过 `mcp__browser-connect__browser_list_tabs` 查看标签页，用 `mcp__browser-connect__browser_connect` 连接指定标签页。
+
+> **只使用 Chrome 浏览器调试**：禁止使用 Edge 或其他浏览器的 MCP 连接。所有浏览器调试操作必须通过上述 Chrome 实例完成。
 
 ## TypeScript Conventions
 

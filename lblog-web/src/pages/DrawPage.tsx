@@ -4,6 +4,7 @@ import type { MenuProps } from 'antd'
 import { SendHorizonal, MessageSquarePlus, Bot, PenTool, Save, FolderOpen } from 'lucide-react'
 import { DrawIoEmbed } from 'react-drawio'
 import { useDiagram } from '../contexts/diagram-context'
+import { getSiteConfig } from '../services/api'
 import { drawChatStream } from '../services/draw'
 import type { ChatMessageDTO, SseEvent } from '../types/draw'
 import SaveDiagramModal from '../components/SaveDiagramModal'
@@ -20,6 +21,10 @@ const HELP_TIPS = [
 ]
 
 const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
+  const [aiChatEnabled, setAiChatEnabled] = useState(false)
+  useEffect(() => {
+    getSiteConfig().then(r => setAiChatEnabled(r.data?.aiDrawChatEnabled ?? false)).catch(() => {})
+  }, [])
   const {
     chartXML, loadDiagram, drawioRef, onDrawioLoad, handleDiagramAutoSave,
     sessionId, sessionTitle, isDirty, saving, handleExportResult,
@@ -328,6 +333,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
         </div>
       </div>
 
+      {aiChatEnabled && (<>
       {/* 分割线 */}
       <div
         onClick={() => setChatCollapsed(v => !v)}
@@ -454,6 +460,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
         </div>
       </div>
       </div>
+      </>)}
     </div>
 
       {/* 保存对话框 */}

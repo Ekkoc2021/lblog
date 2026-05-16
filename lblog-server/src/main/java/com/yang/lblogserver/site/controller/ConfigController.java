@@ -27,8 +27,10 @@ public class ConfigController {
     @GetMapping("/config")
     public ApiResponse<SiteConfigVO> getConfig() {
         String regEnabled = siteConfigMapper.selectConfigValue("registration_enabled");
+        String aiDrawChat = siteConfigMapper.selectConfigValue("ai_draw_chat_enabled");
         return ApiResponse.success(new SiteConfigVO(
-                fileStorage.getBaseUrl(), IMAGE_MAX_SIZE, "true".equals(regEnabled)));
+                fileStorage.getBaseUrl(), IMAGE_MAX_SIZE,
+                "true".equals(regEnabled), "true".equals(aiDrawChat)));
     }
 
     @Operation(summary = "设置注册开关", description = "管理员控制是否允许新用户注册")
