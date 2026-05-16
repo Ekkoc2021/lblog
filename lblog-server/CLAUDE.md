@@ -92,3 +92,11 @@ MySQL 8 on `192.168.1.5:3306/iblog`. Druid connection pool configured in `applic
 - Slug uniqueness is checked before creating/updating posts and series
 - Series posts use "full replace" semantics — reorder/link endpoints send the complete ordered post ID list
 - Posts use soft delete (`deleted_at` + `is_delelte` flag)
+
+## Output Documents
+
+设计文档、审查报告、技术债务清单等输出文档统一存放在项目根目录下按日期命名的文件夹中：
+
+- 格式：`M-D/`（如 `5-16/`、`5-8/`）
+- 目录不存在则自动创建，已存在则直接补充
+- 文件名用英文 kebab-case，清晰表达文档内容

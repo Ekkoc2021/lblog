@@ -129,3 +129,9 @@ lblog:
     enabled: true
     model: ${AI_DEEPSEEK_MODEL:deepseek-chat}
     max-tokens: ${AI_DIAGRAM_MAX_TOKENS:16384}
+  ai:
+    prompt:
+      file-location: classpath:prompts/
+      cache-enabled: true
+      cache-max-size: 100
+      cache-ttl-seconds: 0

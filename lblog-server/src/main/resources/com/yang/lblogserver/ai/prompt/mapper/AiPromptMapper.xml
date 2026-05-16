@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.ai.prompt.mapper.AiPromptMapper">
+
+    <resultMap id="BaseResultMap" type="com.yang.lblogserver.ai.prompt.domain.AiPrompt">
+        <id column="id" property="id"/>
+        <result column="module" property="module"/>
+        <result column="prompt_key" property="promptKey"/>
+        <result column="content" property="content"/>
+        <result column="version" property="version"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="description" property="description"/>
+        <result column="is_active" property="isActive"/>
+        <result column="effective_from" property="effectiveFrom"/>
+        <result column="effective_to" property="effectiveTo"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <sql id="baseColumns">
+        id, module, prompt_key, content, version, sort_order, description,
+        is_active, effective_from, effective_to,
+        created_by, updated_by, created_at, updated_at
+    </sql>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="baseColumns"/>
+        FROM ai_prompts WHERE id = #{id}
+    </select>
+
+    <select id="selectActive" resultMap="BaseResultMap">
+        SELECT <include refid="baseColumns"/>
+        FROM ai_prompts
+        WHERE module = #{module} AND prompt_key = #{promptKey} AND is_active = 1
+        ORDER BY version DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectList" resultMap="BaseResultMap">
+        SELECT <include refid="baseColumns"/>
+        FROM ai_prompts
+        <where>
+            <if test="module != null">AND module = #{module}</if>
+            <if test="promptKey != null">AND prompt_key = #{promptKey}</if>
+            <if test="isActive != null">AND is_active = #{isActive}</if>
+        </where>
+        ORDER BY sort_order ASC, version DESC
+    </select>
+
+    <select id="selectByModule" resultMap="BaseResultMap">
+        SELECT <include refid="baseColumns"/>
+        FROM ai_prompts
+        WHERE module = #{module} AND is_active = 1
+        ORDER BY sort_order ASC, version DESC
+    </select>
+
+    <select id="selectVersions" resultMap="BaseResultMap">
+        SELECT <include refid="baseColumns"/>
+        FROM ai_prompts
+        WHERE module = #{module} AND prompt_key = #{promptKey}
+        ORDER BY version DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_prompts (module, prompt_key, content, version, sort_order,
+                                description, is_active,
+                                effective_from, effective_to, created_by, updated_by)
+        VALUES (#{module}, #{promptKey}, #{content}, #{version}, #{sortOrder},
+                #{description}, #{isActive},
+                #{effectiveFrom}, #{effectiveTo}, #{createdBy}, #{updatedBy})
+    </insert>
+
+    <update id="deactivate">
+        UPDATE ai_prompts SET is_active = 0 WHERE id = #{id}
+    </update>
+
+    <update id="activateVersion">
+        UPDATE ai_prompts
+        SET is_active = CASE WHEN version = #{version} THEN 1 ELSE 0 END
+        WHERE module = #{module} AND prompt_key = #{promptKey}
+    </update>
+
+    <select id="countByModuleAndKey" resultType="int">
+        SELECT COUNT(1) FROM ai_prompts
+        WHERE module = #{module} AND prompt_key = #{promptKey}
+    </select>
+
+</mapper>

@@ -1,11 +1,15 @@
 package com.yang.lblogserver.ai.draw;
 
+import com.yang.lblogserver.ai.prompt.service.AiPromptService;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * AI 系统提示词（System Prompt）组装。
+ *
+ * 提示词来源优先级：DB > 文件(markdown) > 硬编码常量（兜底）
  *
  * 提示词结构（6 层）：
  *   第①层 角色约束  — "你是 draw.io 图表生成专家"
@@ -268,20 +272,44 @@ public class PromptManager {
 
     private static final String EXTENDED_SYSTEM_PROMPT = DEFAULT_SYSTEM_PROMPT + EXTENDED_ADDITIONS;
 
+    private final AiPromptService promptService;
+
+    public PromptManager(AiPromptService promptService) {
+        this.promptService = promptService;
+    }
+
     public String buildSystemPrompt(String modelId, boolean minimalStyle) {
         String modelName = modelId != null ? modelId : "AI";
 
-        String prompt;
-        if (modelId != null && EXTENDED_PROMPT_MODEL_PATTERNS.stream().anyMatch(modelId::contains)) {
-            prompt = EXTENDED_SYSTEM_PROMPT;
+        Map<String, String> p = promptService.getPromptMap("draw");
+        boolean hasDbData = !p.isEmpty();
+
+        String defaultPrompt;
+        String styleContent;
+
+        if (hasDbData) {
+            defaultPrompt = p.getOrDefault("system-default", DEFAULT_SYSTEM_PROMPT);
+            if (modelId != null && EXTENDED_PROMPT_MODEL_PATTERNS.stream().anyMatch(modelId::contains)) {
+                String extended = p.get("system-extended");
+                if (extended != null) {
+                    defaultPrompt += "\n\n" + extended;
+                }
+            }
+            styleContent = minimalStyle ? p.getOrDefault("style-minimal", MINIMAL_STYLE_INSTRUCTION)
+                                        : p.getOrDefault("style-normal", STYLE_INSTRUCTIONS);
         } else {
-            prompt = DEFAULT_SYSTEM_PROMPT;
+            defaultPrompt = DEFAULT_SYSTEM_PROMPT;
+            if (modelId != null && EXTENDED_PROMPT_MODEL_PATTERNS.stream().anyMatch(modelId::contains)) {
+                defaultPrompt += "\n\n" + EXTENDED_ADDITIONS;
+            }
+            styleContent = minimalStyle ? MINIMAL_STYLE_INSTRUCTION : STYLE_INSTRUCTIONS;
         }
 
+        String prompt;
         if (minimalStyle) {
-            prompt = MINIMAL_STYLE_INSTRUCTION + prompt;
+            prompt = styleContent + "\n" + defaultPrompt;
         } else {
-            prompt += STYLE_INSTRUCTIONS;
+            prompt = defaultPrompt + "\n\n" + styleContent;
         }
 
         return prompt.replace("{{MODEL_NAME}}", modelName);
