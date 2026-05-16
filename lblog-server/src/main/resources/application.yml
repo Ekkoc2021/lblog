@@ -129,6 +129,7 @@ lblog:
     enabled: true
     model: ${AI_DEEPSEEK_MODEL:deepseek-chat}
     max-tokens: ${AI_DIAGRAM_MAX_TOKENS:16384}
+    disconnect-check-interval-seconds: 5
   ai:
     prompt:
       file-location: classpath:prompts/

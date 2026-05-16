@@ -60,7 +60,7 @@ public class DiagramService {
                 asyncThread.interrupt();
                 throw new RuntimeException(e);
             }
-        }, 15, 15, TimeUnit.SECONDS);
+        }, diagramProperties.getDisconnectCheckIntervalSeconds(), diagramProperties.getDisconnectCheckIntervalSeconds(), TimeUnit.SECONDS);
 
         emitter.onCompletion(() -> heartbeat.cancel(false));
 
