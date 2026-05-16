@@ -30,7 +30,12 @@ export function drawChatStream(
     })
         .then(async (response) => {
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+                let msg = `HTTP ${response.status}: ${response.statusText}`
+                try {
+                    const body = await response.json()
+                    if (body?.message) msg = body.message
+                } catch {}
+                throw new Error(msg)
             }
 
             const text = await response.text()
