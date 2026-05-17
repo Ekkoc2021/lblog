@@ -6,6 +6,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.scheduling.annotation.Async;
@@ -41,6 +42,61 @@ public class DiagramService {
         this.diagramProperties = diagramProperties;
         this.displayDiagramTool = displayDiagramTool;
         this.heartbeatScheduler = heartbeatScheduler;
+    }
+
+    @Async("diagramTaskExecutor")
+    public void chatNonStream(DrawChatRequest request, SseEmitter emitter) {
+        Thread asyncThread = Thread.currentThread();
+
+        ScheduledFuture<?> heartbeat = heartbeatScheduler.scheduleAtFixedRate(() -> {
+            try {
+                emitter.send(SseEmitter.event().data("{}"));
+            } catch (Exception e) {
+                asyncThread.interrupt();
+                throw new RuntimeException(e);
+            }
+        }, diagramProperties.getDisconnectCheckIntervalSeconds(), diagramProperties.getDisconnectCheckIntervalSeconds(), TimeUnit.SECONDS);
+
+        emitter.onCompletion(() -> heartbeat.cancel(false));
+
+        try {
+            List<Message> messages = buildMessages(request);
+            if (messages.isEmpty()) {
+                emitter.complete();
+                return;
+            }
+
+            ChatResponse response = chatClient.prompt()
+                    .messages(messages)
+                    .tools(displayDiagramTool)
+                    .toolContext(Map.of("emitter", emitter))
+                    .call()
+                    .chatResponse();
+
+            if (response != null && response.getResult() != null) {
+                String text = response.getResult().getOutput().getText();
+                if (text != null && !text.isEmpty()) {
+                    try {
+                        emitter.send(SseEmitter.event()
+                                .data(Map.of("type", "text-delta", "delta", text)));
+                    } catch (Exception e) {
+                        log.warn("Failed to send delta", e);
+                    }
+                }
+            }
+
+            sendDone(emitter, request.getSessionId());
+            emitter.complete();
+
+        } catch (Exception e) {
+            if (e instanceof WebClientResponseException wcre) {
+                log.error("API error: status={}, body={}", wcre.getStatusCode(), wcre.getResponseBodyAsString());
+            }
+            log.error("Error in non-stream chat", e);
+            emitter.completeWithError(e);
+        } finally {
+            heartbeat.cancel(false);
+        }
     }
 
     @Async("diagramTaskExecutor")

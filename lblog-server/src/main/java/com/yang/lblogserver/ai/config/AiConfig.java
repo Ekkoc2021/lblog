@@ -1,12 +1,12 @@
 package com.yang.lblogserver.ai.config;
 
-import com.yang.lblogserver.ai.advisor.LocalToolCallAdvisor;
+import com.yang.lblogserver.ai.advisor.DeepSeekToolCallAdvisor;
 import io.micrometer.observation.ObservationRegistry;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.api.BaseAdvisor;
 import org.springframework.ai.deepseek.DeepSeekChatModel;
 import org.springframework.ai.deepseek.DeepSeekChatOptions;
-import org.springframework.ai.deepseek.ReasoningChatModel;
+import org.springframework.ai.deepseek.DeepSeekReasoningChatModel;
 import org.springframework.ai.deepseek.api.DeepSeekApi;
 import org.springframework.ai.model.tool.DefaultToolExecutionEligibilityPredicate;
 import org.springframework.ai.model.tool.ToolCallingManager;
@@ -24,11 +24,11 @@ public class AiConfig {
     }
 
     @Bean
-    public ReasoningChatModel reasoningChatModel(DeepSeekApi deepSeekApi,
+    public DeepSeekReasoningChatModel reasoningChatModel(DeepSeekApi deepSeekApi,
                                                   ToolCallingManager toolCallingManager,
                                                   @Value("${spring.ai.deepseek.chat.options.model}") String modelName) {
         var options = DeepSeekChatOptions.builder().model(modelName).build();
-        return new ReasoningChatModel(
+        return new DeepSeekReasoningChatModel(
                 deepSeekApi, options, toolCallingManager,
                 new RetryTemplate(),
                 ObservationRegistry.NOOP,
@@ -39,7 +39,7 @@ public class AiConfig {
     public ChatClient drawChatClient(DeepSeekChatModel chatModel, ToolCallingManager toolCallingManager) {
         return ChatClient.builder(chatModel)
                 .defaultAdvisors(
-                        new LocalToolCallAdvisor(
+                        new DeepSeekToolCallAdvisor(
                                 toolCallingManager,
                                 BaseAdvisor.HIGHEST_PRECEDENCE + 1,
                                 true,

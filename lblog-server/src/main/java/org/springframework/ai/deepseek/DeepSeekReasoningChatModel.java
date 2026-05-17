@@ -23,9 +23,9 @@ import java.util.List;
  * 参考 Spring AI Issue #6016:
  * https://github.com/spring-projects/spring-ai/issues/6016
  */
-public class ReasoningChatModel extends DeepSeekChatModel {
+public class DeepSeekReasoningChatModel extends DeepSeekChatModel {
 
-    public ReasoningChatModel(
+    public DeepSeekReasoningChatModel(
             DeepSeekApi deepSeekApi, DeepSeekChatOptions options,
             ToolCallingManager toolCallingManager, RetryTemplate retryTemplate,
             ObservationRegistry observationRegistry,

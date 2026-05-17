@@ -21,21 +21,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class LocalToolCallAdvisor extends ToolCallAdvisor {
+public class DeepSeekToolCallAdvisor extends ToolCallAdvisor {
 
     private final boolean streamResponses;
 
-    protected LocalToolCallAdvisor(ToolCallingManager toolCallingManager, int advisorOrder) {
+    protected DeepSeekToolCallAdvisor(ToolCallingManager toolCallingManager, int advisorOrder) {
         super(toolCallingManager, advisorOrder);
         this.streamResponses = false;
     }
 
-    protected LocalToolCallAdvisor(ToolCallingManager toolCallingManager, int advisorOrder, boolean conversationHistoryEnabled) {
+    protected DeepSeekToolCallAdvisor(ToolCallingManager toolCallingManager, int advisorOrder, boolean conversationHistoryEnabled) {
         super(toolCallingManager, advisorOrder, conversationHistoryEnabled);
         this.streamResponses = false;
     }
 
-    public LocalToolCallAdvisor(ToolCallingManager toolCallingManager, int advisorOrder, boolean conversationHistoryEnabled, boolean streamToolCallResponses) {
+    public DeepSeekToolCallAdvisor(ToolCallingManager toolCallingManager, int advisorOrder, boolean conversationHistoryEnabled, boolean streamToolCallResponses) {
         super(toolCallingManager, advisorOrder, conversationHistoryEnabled, streamToolCallResponses);
         this.streamResponses = streamToolCallResponses;
     }
@@ -74,6 +74,7 @@ public class LocalToolCallAdvisor extends ToolCallAdvisor {
         final ChatClientRequest finalRequest = processedRequest;
         StreamAdvisorChain chainCopy = streamAdvisorChain.copy(this);
 
+        // 放行到下一个 advisor,实际获取流结果
         Flux<ChatClientResponse> stream = chainCopy.nextStream(processedRequest);
 
         // 从流式 chunk 中拼接 reasoningContent（每个 chunk 只带一小段）
