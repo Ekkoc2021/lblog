@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Input, Dropdown, message } from 'antd'
 import type { MenuProps } from 'antd'
-import { SendHorizonal, MessageSquarePlus, Bot, PenTool, Save, FolderOpen } from 'lucide-react'
+import { SendHorizonal, MessageSquarePlus, Bot, PenTool, Save, FolderOpen, PanelRightClose } from 'lucide-react'
 import { DrawIoEmbed } from 'react-drawio'
 import { useDiagram } from '../contexts/diagram-context'
 import { getSiteConfig } from '../services/api'
@@ -39,11 +39,15 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isDrawioReady, setIsDrawioReady] = useState(false)
-  const [chatCollapsed, setChatCollapsed] = useState(false)
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [panelWidth, setPanelWidth] = useState(380)
+  const [isDragging, setIsDragging] = useState(false)
   const [docTitle, setDocTitle] = useState(sessionTitle)
   const abortRef = useRef<AbortController | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const reasoningAccumRef = useRef('')
+  const panelWidthRef = useRef(380)
+  const contentAreaRef = useRef<HTMLDivElement>(null)
 
   // 弹窗状态
   const [saveModalOpen, setSaveModalOpen] = useState(false)
@@ -165,6 +169,43 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
     setIsDrawioReady(true)
     onDrawioLoad()
   }, [onDrawioLoad])
+
+  // ---- 可拖动分割线 ----
+  const handleDividerMouseDown = useCallback((e: React.MouseEvent) => {
+    if (isCollapsed) return
+    e.preventDefault()
+
+    const startX = e.clientX
+    const startWidth = panelWidthRef.current
+
+    setIsDragging(true)
+    document.body.style.userSelect = 'none'
+    document.body.style.cursor = 'col-resize'
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const maxWidth = (contentAreaRef.current?.clientWidth ?? 800) * 0.5
+      const newWidth = Math.max(280, Math.min(startWidth - (moveEvent.clientX - startX), maxWidth))
+      panelWidthRef.current = newWidth
+      setPanelWidth(newWidth)
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+      document.body.style.userSelect = ''
+      document.body.style.cursor = ''
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }, [isCollapsed])
+
+  const handleDividerClick = useCallback(() => {
+    if (isCollapsed) {
+      setIsCollapsed(false)
+    }
+  }, [isCollapsed])
 
   // ---- 存储操作 ----
 
@@ -303,7 +344,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
       </div>
 
       {/* 内容区 */}
-      <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+      <div ref={contentAreaRef} style={{ flex: 1, display: 'flex', minHeight: 0 }}>
         {/* Draw.io 画布 */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 8, minWidth: 0 }}>
         <div style={{
@@ -351,39 +392,51 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
       </div>
 
       {aiChatEnabled && (<>
-      {/* 分割线 */}
+      {/* 分割线（可拖动） */}
       <div
-        onClick={() => setChatCollapsed(v => !v)}
-        onMouseEnter={e => e.currentTarget.style.background = '#e5e5ea'}
+        onMouseDown={handleDividerMouseDown}
+        onClick={handleDividerClick}
+        onMouseEnter={e => { e.currentTarget.style.background = isCollapsed ? '#d6e4ff' : '#e5e5ea' }}
         onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-        style={{ width: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, alignSelf: 'stretch', transition: 'background 0.15s', position: 'relative' }}
-        title={chatCollapsed ? '展开对话' : '收起对话'}
+        style={{
+          width: 14,
+          cursor: isCollapsed ? 'pointer' : 'col-resize',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          alignSelf: 'stretch',
+          transition: 'background 0.15s',
+          position: 'relative',
+          userSelect: 'none',
+        }}
+        title={isCollapsed ? '展开对话' : '拖动调整宽度'}
       >
-        <div style={{ width: 3, height: 28, borderRadius: 2, background: chatCollapsed ? '#1677ff' : '#d9d9d9', transition: 'background 0.2s' }} />
-        {chatCollapsed && (
+        <div style={{
+          width: 3,
+          height: isCollapsed ? 28 : 40,
+          borderRadius: 2,
+          background: isCollapsed ? '#1677ff' : '#d9d9d9',
+          transition: 'background 0.2s, height 0.2s',
+        }} />
+        {isCollapsed && (
           <span style={{ position: 'absolute', color: '#1677ff', fontSize: 10 }}>▶</span>
         )}
       </div>
 
       {/* 右侧：Chat 面板 */}
       <div style={{
+        width: isCollapsed ? 0 : panelWidth,
+        overflow: 'hidden',
+        transition: isDragging ? 'none' : 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
         flexShrink: 0,
         display: 'flex',
         flexDirection: 'column',
       }}>
-        {/* 可收起区域 */}
         <div style={{
-          width: chatCollapsed ? 0 : 380,
-          overflow: 'hidden',
-          transition: 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          flex: 1,
-        }}>
-          <div style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
           background: '#fff',
           borderRadius: 12,
           boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
@@ -408,6 +461,12 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
                 title="新建对话"
               >
                 <MessageSquarePlus size={16} />
+              </button>
+              <button type="button" onClick={() => setIsCollapsed(true)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4 8', borderRadius: 6, color: '#666' }}
+                title="收起面板"
+              >
+                <PanelRightClose size={16} />
               </button>
             </div>
           </div>
@@ -485,7 +544,6 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
             )}
           </div>
         </div>
-      </div>
       </div>
       </>)}
     </div>
