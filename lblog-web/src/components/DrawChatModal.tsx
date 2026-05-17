@@ -6,6 +6,10 @@ import { useDiagram } from '../contexts/diagram-context'
 import { drawChatStream } from '../services/draw'
 import type { ChatMessageDTO, SseEvent } from '../types/draw'
 
+interface DisplayMessage extends ChatMessageDTO {
+  reasoning?: string
+}
+
 interface DrawChatPanelProps {
   open: boolean
   onClose: () => void
@@ -19,12 +23,13 @@ const HELP_TIPS = [
 
 const DrawChatPanel: React.FC<DrawChatPanelProps> = ({ open, onClose }) => {
   const { chartXML, loadDiagram, drawioRef, onDrawioLoad, handleDiagramAutoSave } = useDiagram()
-  const [messages, setMessages] = useState<ChatMessageDTO[]>([])
+  const [messages, setMessages] = useState<DisplayMessage[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const reasoningAccumRef = useRef('')
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -39,6 +44,7 @@ const DrawChatPanel: React.FC<DrawChatPanelProps> = ({ open, onClose }) => {
     if (!text || isLoading) return
 
     setInput('')
+    reasoningAccumRef.current = ''
     const userMsg: ChatMessageDTO = { role: 'user', content: text }
     const updatedMessages = [...messages, userMsg]
     setMessages(updatedMessages)
@@ -49,7 +55,17 @@ const DrawChatPanel: React.FC<DrawChatPanelProps> = ({ open, onClose }) => {
     const controller = drawChatStream(
       { messages: updatedMessages, xml: chartXML || undefined },
       (event: SseEvent) => {
-        if (event.type === 'text-delta') {
+        if (event.type === 'reasoning') {
+          reasoningAccumRef.current += (event.delta || '')
+          setMessages((prev) => {
+            const copy = [...prev]
+            const last = copy[copy.length - 1]
+            if (last?.role === 'assistant') {
+              copy[copy.length - 1] = { ...last, reasoning: reasoningAccumRef.current }
+            }
+            return copy
+          })
+        } else if (event.type === 'text-delta') {
           setMessages((prev) => {
             const copy = [...prev]
             const last = copy[copy.length - 1]
@@ -108,6 +124,7 @@ const DrawChatPanel: React.FC<DrawChatPanelProps> = ({ open, onClose }) => {
   const handleNewChat = () => {
     setMessages([])
     setInput('')
+    reasoningAccumRef.current = ''
     abortRef.current?.abort()
     abortRef.current = null
     setIsLoading(false)
@@ -381,6 +398,16 @@ const DrawChatPanel: React.FC<DrawChatPanelProps> = ({ open, onClose }) => {
                     boxShadow: msg.role === 'user' ? 'none' : '0 1px 3px rgba(0,0,0,0.06)',
                   }}
                 >
+                  {msg.role === 'assistant' && msg.reasoning && (
+                    <details style={{ marginBottom: 6, background: '#f0f5ff', borderRadius: 6, padding: '4px 8px' }}>
+                      <summary style={{ cursor: 'pointer', fontSize: 11, color: '#1677ff', userSelect: 'none', fontWeight: 500 }}>
+                        思考过程
+                      </summary>
+                      <div style={{ marginTop: 4, fontSize: 12, color: '#666', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                        {msg.reasoning}
+                      </div>
+                    </details>
+                  )}
                   {msg.content || (isLoading && msg.role === 'assistant' ? (
                     <span style={{ display: 'inline-flex', gap: 3 }}>
                       <span style={{ animation: 'pulse 1.4s infinite both' }}>.</span>

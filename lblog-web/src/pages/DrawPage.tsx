@@ -7,6 +7,10 @@ import { useDiagram } from '../contexts/diagram-context'
 import { getSiteConfig } from '../services/api'
 import { drawChatStream } from '../services/draw'
 import type { ChatMessageDTO, SseEvent } from '../types/draw'
+
+interface DisplayMessage extends ChatMessageDTO {
+  reasoning?: string
+}
 import SaveDiagramModal from '../components/SaveDiagramModal'
 import DiagramManagerModal from '../components/DiagramManagerModal'
 
@@ -31,7 +35,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
     setSessionTitle, saveDiagram, saveAsDiagram, openDiagram,
   } = useDiagram()
 
-  const [messages, setMessages] = useState<ChatMessageDTO[]>([])
+  const [messages, setMessages] = useState<DisplayMessage[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isDrawioReady, setIsDrawioReady] = useState(false)
@@ -39,6 +43,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
   const [docTitle, setDocTitle] = useState(sessionTitle)
   const abortRef = useRef<AbortController | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const reasoningAccumRef = useRef('')
 
   // 弹窗状态
   const [saveModalOpen, setSaveModalOpen] = useState(false)
@@ -73,6 +78,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
     if (!text || isLoading) return
 
     setInput('')
+    reasoningAccumRef.current = ''
     const userMsg: ChatMessageDTO = { role: 'user', content: text }
     const updatedMessages = [...messages, userMsg]
     setMessages(updatedMessages)
@@ -83,7 +89,17 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
     const controller = drawChatStream(
       { messages: updatedMessages, xml: chartXML || undefined },
       (event: SseEvent) => {
-        if (event.type === 'text-delta') {
+        if (event.type === 'reasoning') {
+          reasoningAccumRef.current += (event.delta || '')
+          setMessages((prev) => {
+            const copy = [...prev]
+            const last = copy[copy.length - 1]
+            if (last?.role === 'assistant') {
+              copy[copy.length - 1] = { ...last, reasoning: reasoningAccumRef.current }
+            }
+            return copy
+          })
+        } else if (event.type === 'text-delta') {
           setMessages((prev) => {
             const copy = [...prev]
             const last = copy[copy.length - 1]
@@ -139,6 +155,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
   const handleNewChat = () => {
     setMessages([])
     setInput('')
+    reasoningAccumRef.current = ''
     abortRef.current?.abort()
     abortRef.current = null
     setIsLoading(false)
@@ -423,6 +440,16 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
                     <Bot size={12} color="#fff" />
                   </div>
                   <div style={{ maxWidth: '78%', padding: '7px 12px', borderRadius: 12, background: msg.role === 'user' ? '#1677ff' : '#fff', color: msg.role === 'user' ? '#fff' : '#333', fontSize: 13, lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word', boxShadow: msg.role === 'user' ? 'none' : '0 1px 3px rgba(0,0,0,0.06)' }}>
+                    {msg.role === 'assistant' && msg.reasoning && (
+                      <details style={{ marginBottom: 6, background: '#f0f5ff', borderRadius: 6, padding: '4px 8px' }}>
+                        <summary style={{ cursor: 'pointer', fontSize: 11, color: '#1677ff', userSelect: 'none', fontWeight: 500 }}>
+                          思考过程
+                        </summary>
+                        <div style={{ marginTop: 4, fontSize: 12, color: '#666', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                          {msg.reasoning}
+                        </div>
+                      </details>
+                    )}
                     {msg.content || (isLoading && msg.role === 'assistant' ? '...' : '')}
                   </div>
                 </div>

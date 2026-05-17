@@ -21,7 +21,7 @@ export interface DiagramSessionState {
 }
 
 export interface SseEvent {
-    type: 'text-delta' | 'tool-call' | 'done' | 'error' | 'heartbeat'
+    type: 'text-delta' | 'tool-call' | 'done' | 'error' | 'heartbeat' | 'reasoning'
     name?: string
     content?: any
     arguments?: { xml: string }

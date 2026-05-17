@@ -6,6 +6,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.deepseek.DeepSeekAssistantMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
@@ -74,7 +75,23 @@ public class DiagramService {
                     .chatResponse();
 
             if (response != null && response.getResult() != null) {
-                String text = response.getResult().getOutput().getText();
+                AssistantMessage output = response.getResult().getOutput();
+
+                // 发送思考内容
+                if (output instanceof DeepSeekAssistantMessage dsam) {
+                    String rc = dsam.getReasoningContent();
+                    if (rc != null && !rc.isEmpty()) {
+                        try {
+                            emitter.send(SseEmitter.event()
+                                    .data(Map.of("type", "reasoning", "delta", rc)));
+                        } catch (Exception e) {
+                            log.warn("Failed to send reasoning", e);
+                        }
+                    }
+                }
+
+                // 发送回复文本
+                String text = output.getText();
                 if (text != null && !text.isEmpty()) {
                     try {
                         emitter.send(SseEmitter.event()
@@ -133,7 +150,23 @@ public class DiagramService {
                         .toStream()
                         .forEach(response -> {
                             if (response != null && response.getResult() != null) {
-                                String text = response.getResult().getOutput().getText();
+                                AssistantMessage output = response.getResult().getOutput();
+
+                                // 发送思考内容
+                                if (output instanceof DeepSeekAssistantMessage dsam) {
+                                    String rc = dsam.getReasoningContent();
+                                    if (rc != null && !rc.isEmpty()) {
+                                        try {
+                                            emitter.send(SseEmitter.event()
+                                                    .data(Map.of("type", "reasoning", "delta", rc)));
+                                        } catch (Exception e) {
+                                            log.warn("Failed to send reasoning", e);
+                                        }
+                                    }
+                                }
+
+                                // 发送回复文本
+                                String text = output.getText();
                                 if (text != null && !text.isEmpty()) {
                                     try {
                                         emitter.send(SseEmitter.event()

@@ -59,7 +59,7 @@ public class DiagramController {
         SseEmitter emitter = new SseEmitter(TimeUnit.MINUTES.toMillis(3));
         emitter.onTimeout(emitter::complete);
 
-        diagramService.chatNonStream(request, emitter);
+        diagramService.chatStream(request, emitter);
 
         return emitter;
     }
