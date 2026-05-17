@@ -1,5 +1,6 @@
 package com.yang.lblogserver.ai.agent.draw;
 
+import com.yang.lblogserver.ai.skill.LoadSkillTool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
@@ -28,17 +29,20 @@ public class DiagramService {
     private final PromptManager promptManager;
     private final DiagramProperties diagramProperties;
     private final DisplayDiagramTool displayDiagramTool;
+    private final LoadSkillTool loadSkillTool;
     private final ScheduledExecutorService heartbeatScheduler;
 
     public DiagramService(@Qualifier("drawChatClient") ChatClient chatClient,
                           PromptManager promptManager,
                           DiagramProperties diagramProperties,
                           DisplayDiagramTool displayDiagramTool,
+                          LoadSkillTool loadSkillTool,
                           ScheduledExecutorService heartbeatScheduler) {
         this.chatClient = chatClient;
         this.promptManager = promptManager;
         this.diagramProperties = diagramProperties;
         this.displayDiagramTool = displayDiagramTool;
+        this.loadSkillTool = loadSkillTool;
         this.heartbeatScheduler = heartbeatScheduler;
     }
 
@@ -77,8 +81,9 @@ public class DiagramService {
                             spec.param("modelName", "");
                         }
                     })
-                    .tools(displayDiagramTool)
-                    .toolContext(Map.of("emitter", emitter))
+                    .tools(displayDiagramTool, loadSkillTool)
+                    .toolContext(Map.of("emitter", emitter,
+                            "sessionId", request.getSessionId() != null ? request.getSessionId() : ""))
                     .call();
 
             if (callSpec != null && callSpec.chatResponse() != null
@@ -158,8 +163,9 @@ public class DiagramService {
                                 spec.param("modelName", "");
                             }
                         })
-                        .tools(displayDiagramTool)
-                        .toolContext(Map.of("emitter", emitter))
+                        .tools(displayDiagramTool, loadSkillTool)
+                        .toolContext(Map.of("emitter", emitter,
+                                "sessionId", request.getSessionId() != null ? request.getSessionId() : ""))
                         .stream()
                         .chatResponse()
                         .toStream()

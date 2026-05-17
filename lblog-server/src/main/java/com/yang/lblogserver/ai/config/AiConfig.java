@@ -2,6 +2,9 @@ package com.yang.lblogserver.ai.config;
 
 import com.yang.lblogserver.ai.advisor.DeepSeekToolCallAdvisor;
 import com.yang.lblogserver.ai.memory.advisor.ChatHistoryAdvisor;
+import com.yang.lblogserver.ai.skill.SkillAwareToolCallAdvisor;
+import com.yang.lblogserver.ai.skill.SkillSessionManager;
+import com.yang.lblogserver.ai.skill.SkillToolRegistry;
 import io.micrometer.observation.ObservationRegistry;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.api.BaseAdvisor;
@@ -39,13 +42,20 @@ public class AiConfig {
     @Bean
     public ChatClient drawChatClient(DeepSeekChatModel chatModel,
                                      ToolCallingManager toolCallingManager,
-                                     ChatHistoryAdvisor chatHistoryAdvisor) {
+                                     ChatHistoryAdvisor chatHistoryAdvisor,
+                                     SkillToolRegistry skillToolRegistry,
+                                     SkillSessionManager skillSessionManager) {
         return ChatClient.builder(chatModel)
                 .defaultAdvisors(
                         chatHistoryAdvisor,
-                        new DeepSeekToolCallAdvisor(
+                        new SkillAwareToolCallAdvisor(
                                 toolCallingManager,
                                 BaseAdvisor.HIGHEST_PRECEDENCE + 1,
+                                skillToolRegistry,
+                                skillSessionManager),
+                        new DeepSeekToolCallAdvisor(
+                                toolCallingManager,
+                                BaseAdvisor.HIGHEST_PRECEDENCE + 2,
                                 true,
                                 true))
                 .build();

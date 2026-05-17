@@ -1,5 +1,6 @@
 package com.yang.lblogserver.ai.agent.draw;
 
+import com.yang.lblogserver.ai.skill.SkillTool;
 import com.yang.lblogserver.draw.util.MxCellValidator;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
@@ -17,6 +18,7 @@ public class DisplayDiagramTool {
         this.validator = validator;
     }
 
+    @SkillTool("draw-expert")
     @Tool(name = "display_diagram", description = "Generate draw.io XML for a diagram. Call this when user asks to draw a diagram.")
     public String execute(String xml, ToolContext ctx) {
         SseEmitter emitter = (SseEmitter) ctx.getContext().get("emitter");
