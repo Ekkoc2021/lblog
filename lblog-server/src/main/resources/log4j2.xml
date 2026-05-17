@@ -160,6 +160,7 @@
         <Logger name="com.zaxxer.hikari" level="info"/>
         <Logger name="org.quartz" level="info"/>
         <Logger name="com.andya.demo" level="debug"/>
+        <Logger name="reactor.netty.http.client" level="debug"/>
 
     </Loggers>
 

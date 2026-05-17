@@ -8,11 +8,11 @@ import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
-import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -68,21 +68,30 @@ public class DiagramService {
             }
 
             try {
-                ChatResponse response = chatClient.prompt()
+                chatClient.prompt()
                         .messages(messages)
                         .tools(displayDiagramTool)
                         .toolContext(Map.of("emitter", emitter))
-                        .call()
-                        .chatResponse();
-
-                if (response != null && response.getResult() != null) {
-                    String text = response.getResult().getOutput().getText();
-                    if (text != null && !text.isEmpty()) {
-                        emitter.send(SseEmitter.event()
-                                .data(Map.of("type", "text-delta", "delta", text)));
-                    }
-                }
+                        .stream()
+                        .chatResponse()
+                        .toStream()
+                        .forEach(response -> {
+                            if (response != null && response.getResult() != null) {
+                                String text = response.getResult().getOutput().getText();
+                                if (text != null && !text.isEmpty()) {
+                                    try {
+                                        emitter.send(SseEmitter.event()
+                                                .data(Map.of("type", "text-delta", "delta", text)));
+                                    } catch (Exception e) {
+                                        log.warn("Failed to send delta", e);
+                                    }
+                                }
+                            }
+                        });
             } catch (Exception e) {
+                if (e instanceof WebClientResponseException wcre) {
+                    log.error("API error: status={}, body={}", wcre.getStatusCode(), wcre.getResponseBodyAsString());
+                }
                 log.error("Error in chat stream", e);
                 emitter.completeWithError(e);
                 return;
@@ -94,6 +103,9 @@ public class DiagramService {
             emitter.complete();
 
         } catch (Exception e) {
+            if (e instanceof WebClientResponseException wcre) {
+                log.error("API error: status={}, body={}", wcre.getStatusCode(), wcre.getResponseBodyAsString());
+            }
             log.error("Error in chat stream", e);
             emitter.completeWithError(e);
         } finally {
