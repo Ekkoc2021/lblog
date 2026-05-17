@@ -82,6 +82,7 @@ export function drawChatStream(
                         if (data.type === 'error') {
                             onError(new Error(data.content || 'Unknown error'))
                         } else if (data.type === 'done') {
+                            onEvent(data as SseEvent)
                             finish()
                             return
                         } else if (data.type === 'heartbeat') {

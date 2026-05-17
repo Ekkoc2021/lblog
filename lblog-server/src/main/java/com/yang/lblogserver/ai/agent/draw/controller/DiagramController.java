@@ -4,6 +4,8 @@ import com.yang.lblogserver.ai.agent.draw.DiagramService;
 import com.yang.lblogserver.ai.agent.draw.DrawChatRequest;
 import com.yang.lblogserver.ai.agent.draw.DrawConfigVO;
 import com.yang.lblogserver.ai.agent.draw.config.DrawRateLimiter;
+import com.yang.lblogserver.ai.chat.domain.ChatSession;
+import com.yang.lblogserver.ai.memory.ChatMemoryStore;
 import com.yang.lblogserver.common.ApiResponse;
 import com.yang.lblogserver.site.mapper.SiteConfigMapper;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,14 +26,17 @@ public class DiagramController {
     private final DiagramService diagramService;
     private final DrawRateLimiter drawRateLimiter;
     private final SiteConfigMapper siteConfigMapper;
+    private final ChatMemoryStore chatMemoryStore;
     private final String modelName;
 
     public DiagramController(DiagramService diagramService,
                              DrawRateLimiter drawRateLimiter, SiteConfigMapper siteConfigMapper,
+                             ChatMemoryStore chatMemoryStore,
                              @Value("${spring.ai.deepseek.chat.options.model}") String modelName) {
         this.diagramService = diagramService;
         this.drawRateLimiter = drawRateLimiter;
         this.siteConfigMapper = siteConfigMapper;
+        this.chatMemoryStore = chatMemoryStore;
         this.modelName = modelName;
     }
 
@@ -54,6 +59,12 @@ public class DiagramController {
         String ip = httpRequest.getRemoteAddr();
         if (!drawRateLimiter.tryAcquire(ip)) {
             throw new IllegalArgumentException("Too many requests. Please try again later.");
+        }
+
+        // Create session if not provided
+        if (request.getSessionId() == null) {
+            ChatSession session = chatMemoryStore.getOrCreateSession(null, "draw", modelName);
+            request.setSessionId(String.valueOf(session.getId()));
         }
 
         SseEmitter emitter = new SseEmitter(TimeUnit.MINUTES.toMillis(3));

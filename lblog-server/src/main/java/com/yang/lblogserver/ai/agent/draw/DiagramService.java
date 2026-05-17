@@ -7,15 +7,12 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.deepseek.DeepSeekAssistantMessage;
-import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
@@ -61,23 +58,33 @@ public class DiagramService {
         emitter.onCompletion(() -> heartbeat.cancel(false));
 
         try {
-            List<Message> messages = buildMessages(request);
-            if (messages.isEmpty()) {
+            String userContent = getLatestUserMessage(request);
+            if (userContent == null) {
                 emitter.complete();
                 return;
             }
 
-            ChatResponse response = chatClient.prompt()
-                    .messages(messages)
+            String systemPrompt = promptManager.buildSystemPrompt(
+                    null, request.getMinimalStyle() != null && request.getMinimalStyle());
+            String xmlContext = promptManager.buildXmlContext(request.getXml(), request.getPreviousXml());
+
+            ChatClient.CallResponseSpec callSpec = chatClient.prompt()
+                    .system(systemPrompt + "\n\n" + xmlContext)
+                    .messages(new UserMessage(userContent))
+                    .advisors(spec -> {
+                        if (request.getSessionId() != null) {
+                            spec.param("sessionId", request.getSessionId());
+                            spec.param("modelName", "");
+                        }
+                    })
                     .tools(displayDiagramTool)
                     .toolContext(Map.of("emitter", emitter))
-                    .call()
-                    .chatResponse();
+                    .call();
 
-            if (response != null && response.getResult() != null) {
-                AssistantMessage output = response.getResult().getOutput();
+            if (callSpec != null && callSpec.chatResponse() != null
+                    && callSpec.chatResponse().getResult() != null) {
+                AssistantMessage output = callSpec.chatResponse().getResult().getOutput();
 
-                // 发送思考内容
                 if (output instanceof DeepSeekAssistantMessage dsam) {
                     String rc = dsam.getReasoningContent();
                     if (rc != null && !rc.isEmpty()) {
@@ -90,7 +97,6 @@ public class DiagramService {
                     }
                 }
 
-                // 发送回复文本
                 String text = output.getText();
                 if (text != null && !text.isEmpty()) {
                     try {
@@ -124,8 +130,6 @@ public class DiagramService {
             try {
                 emitter.send(SseEmitter.event().data("{}"));
             } catch (Exception e) {
-                // 心跳检测失败,直接中断ai主线程,后续响应没有任何意义
-                // emitter发送失败自动关闭
                 asyncThread.interrupt();
                 throw new RuntimeException(e);
             }
@@ -134,15 +138,26 @@ public class DiagramService {
         emitter.onCompletion(() -> heartbeat.cancel(false));
 
         try {
-            List<Message> messages = buildMessages(request);
-            if (messages.isEmpty()) {
+            String userContent = getLatestUserMessage(request);
+            if (userContent == null) {
                 emitter.complete();
                 return;
             }
 
+            String systemPrompt = promptManager.buildSystemPrompt(
+                    null, request.getMinimalStyle() != null && request.getMinimalStyle());
+            String xmlContext = promptManager.buildXmlContext(request.getXml(), request.getPreviousXml());
+
             try {
                 chatClient.prompt()
-                        .messages(messages)
+                        .system(systemPrompt + "\n\n" + xmlContext)
+                        .messages(new UserMessage(userContent))
+                        .advisors(spec -> {
+                            if (request.getSessionId() != null) {
+                                spec.param("sessionId", request.getSessionId());
+                                spec.param("modelName", "");
+                            }
+                        })
                         .tools(displayDiagramTool)
                         .toolContext(Map.of("emitter", emitter))
                         .stream()
@@ -152,7 +167,6 @@ public class DiagramService {
                             if (response != null && response.getResult() != null) {
                                 AssistantMessage output = response.getResult().getOutput();
 
-                                // 发送思考内容
                                 if (output instanceof DeepSeekAssistantMessage dsam) {
                                     String rc = dsam.getReasoningContent();
                                     if (rc != null && !rc.isEmpty()) {
@@ -165,7 +179,6 @@ public class DiagramService {
                                     }
                                 }
 
-                                // 发送回复文本
                                 String text = output.getText();
                                 if (text != null && !text.isEmpty()) {
                                     try {
@@ -202,30 +215,16 @@ public class DiagramService {
         }
     }
 
-    private List<Message> buildMessages(DrawChatRequest request) {
-        List<Message> messages = new ArrayList<>();
-
-        String systemPrompt = promptManager.buildSystemPrompt(
-                null, request.getMinimalStyle() != null && request.getMinimalStyle());
-        String xmlContext = promptManager.buildXmlContext(request.getXml(), request.getPreviousXml());
-        messages.add(new SystemMessage(systemPrompt + "\n\n" + xmlContext));
-
-        if (request.getCustomSystemMessage() != null && !request.getCustomSystemMessage().isBlank()) {
-            messages.add(new SystemMessage("## Custom Instructions\n" + request.getCustomSystemMessage()));
-        }
-
+    private String getLatestUserMessage(DrawChatRequest request) {
         if (request.getMessages() != null) {
-            for (DrawChatRequest.ChatMessage msg : request.getMessages()) {
-                if (msg.getContent() == null || msg.getContent().isBlank()) continue;
-                switch (msg.getRole()) {
-                    case "system" -> messages.add(new SystemMessage(msg.getContent()));
-                    case "assistant" -> messages.add(new AssistantMessage(msg.getContent()));
-                    default -> messages.add(new UserMessage(msg.getContent()));
+            for (int i = request.getMessages().size() - 1; i >= 0; i--) {
+                DrawChatRequest.ChatMessage msg = request.getMessages().get(i);
+                if ("user".equals(msg.getRole()) && msg.getContent() != null && !msg.getContent().isBlank()) {
+                    return msg.getContent();
                 }
             }
         }
-
-        return messages;
+        return null;
     }
 
     private void sendDone(SseEmitter emitter, String sessionId) {

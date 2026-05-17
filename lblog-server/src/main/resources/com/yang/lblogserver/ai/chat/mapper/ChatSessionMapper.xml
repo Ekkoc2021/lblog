@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.ai.chat.mapper.ChatSessionMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_chat_sessions (user_id, agent_type, title, model_name, message_count, total_tokens, status)
+        VALUES (#{userId}, #{agentType}, #{title}, #{modelName}, #{messageCount}, #{totalTokens}, #{status})
+    </insert>
+
+    <select id="selectById" resultType="com.yang.lblogserver.ai.chat.domain.ChatSession">
+        SELECT * FROM ai_chat_sessions WHERE id = #{id}
+    </select>
+
+    <select id="selectByUserAndAgent" resultType="com.yang.lblogserver.ai.chat.domain.ChatSession">
+        SELECT * FROM ai_chat_sessions
+        WHERE user_id = #{userId}
+          AND agent_type = #{agentType}
+          AND status >= 0
+        ORDER BY updated_at DESC
+        LIMIT #{offset}, #{size}
+    </select>
+
+    <select id="countByUserAndAgent" resultType="int">
+        SELECT COUNT(*) FROM ai_chat_sessions
+        WHERE user_id = #{userId}
+          AND agent_type = #{agentType}
+          AND status >= 0
+    </select>
+
+    <update id="updateTitle">
+        UPDATE ai_chat_sessions SET title = #{title} WHERE id = #{id}
+    </update>
+
+    <update id="updateStats">
+        UPDATE ai_chat_sessions
+        SET message_count = message_count + #{delta},
+            total_tokens  = total_tokens + #{tokens}
+        WHERE id = #{sessionId}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE ai_chat_sessions SET status = #{status} WHERE id = #{id}
+    </update>
+</mapper>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.ai.chat.mapper.ChatMessageMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO ai_chat_messages
+            (session_id, role, content, reasoning_content, tool_calls,
+             tool_call_id, `name`, msg_index, tokens, metadata)
+        VALUES
+            (#{sessionId}, #{role}, #{content}, #{reasoningContent}, #{toolCalls},
+             #{toolCallId}, #{name}, #{msgIndex}, #{tokens}, #{metadata})
+    </insert>
+
+    <insert id="batchInsert">
+        INSERT INTO ai_chat_messages
+            (session_id, role, content, reasoning_content, tool_calls,
+             tool_call_id, `name`, msg_index, tokens, metadata)
+        VALUES
+        <foreach collection="list" item="msg" separator=",">
+            (#{msg.sessionId}, #{msg.role}, #{msg.content}, #{msg.reasoningContent}, #{msg.toolCalls},
+             #{msg.toolCallId}, #{msg.name}, #{msg.msgIndex}, #{msg.tokens}, #{msg.metadata})
+        </foreach>
+    </insert>
+
+    <select id="selectBySessionId" resultType="com.yang.lblogserver.ai.chat.domain.ChatMessage">
+        SELECT * FROM ai_chat_messages
+        WHERE session_id = #{sessionId}
+        ORDER BY msg_index ASC
+    </select>
+
+    <select id="selectRecentBySessionId" resultType="com.yang.lblogserver.ai.chat.domain.ChatMessage">
+        SELECT * FROM ai_chat_messages
+        WHERE session_id = #{sessionId}
+        ORDER BY msg_index DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectMaxMsgIndex" resultType="int">
+        SELECT COALESCE(MAX(msg_index), -1) FROM ai_chat_messages
+        WHERE session_id = #{sessionId}
+    </select>
+
+    <delete id="deleteBySessionId">
+        DELETE FROM ai_chat_messages WHERE session_id = #{sessionId}
+    </delete>
+</mapper>

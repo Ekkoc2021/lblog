@@ -26,4 +26,5 @@ export interface SseEvent {
     content?: any
     arguments?: { xml: string }
     delta?: string
+    sessionId?: string   // done 事件携带
 }

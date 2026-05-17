@@ -1,18 +1,22 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Input, Dropdown, message } from 'antd'
 import type { MenuProps } from 'antd'
-import { SendHorizonal, MessageSquarePlus, Bot, PenTool, Save, FolderOpen, PanelRightClose } from 'lucide-react'
+import { SendHorizonal, MessageSquarePlus, Bot, PenTool, Save, FolderOpen, PanelRightClose, List } from 'lucide-react'
 import { DrawIoEmbed } from 'react-drawio'
 import { useDiagram } from '../contexts/diagram-context'
+import { useAuth } from '../contexts/AuthContext'
 import { getSiteConfig } from '../services/api'
 import { drawChatStream } from '../services/draw'
+import { fetchSessions, createSession, updateSessionTitle, deleteSession, fetchMessages } from '../services/chatHistory'
 import type { ChatMessageDTO, SseEvent } from '../types/draw'
+import type { ChatSessionVO, ChatMessageVO } from '../types/chat'
+import ChatSessionList from '../components/ChatSessionList'
+import SaveDiagramModal from '../components/SaveDiagramModal'
+import DiagramManagerModal from '../components/DiagramManagerModal'
 
 interface DisplayMessage extends ChatMessageDTO {
   reasoning?: string
 }
-import SaveDiagramModal from '../components/SaveDiagramModal'
-import DiagramManagerModal from '../components/DiagramManagerModal'
 
 interface DrawPageProps {
   onClose: () => void
@@ -24,14 +28,24 @@ const HELP_TIPS = [
   '画一个网络拓扑图',
 ]
 
+/** 从 ChatMessageVO[] 转换为 DisplayMessage[] */
+function convertToDisplayMessages(msgs: ChatMessageVO[]): DisplayMessage[] {
+  return msgs.map(msg => ({
+    role: (msg.role === 'tool' ? 'assistant' : msg.role) as 'user' | 'assistant',
+    content: msg.content,
+    reasoning: msg.reasoningContent,
+  }))
+}
+
 const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
+  const { isAuthenticated, user } = useAuth()
   const [aiChatEnabled, setAiChatEnabled] = useState(false)
   useEffect(() => {
     getSiteConfig().then(r => setAiChatEnabled(r.data?.aiDrawChatEnabled ?? false)).catch(() => {})
   }, [])
   const {
     chartXML, loadDiagram, drawioRef, onDrawioLoad, handleDiagramAutoSave,
-    sessionId, sessionTitle, isDirty, saving, handleExportResult,
+    sessionId: diagramSessionId, sessionTitle, isDirty, saving, handleExportResult,
     setSessionTitle, saveDiagram, saveAsDiagram, openDiagram,
   } = useDiagram()
 
@@ -48,6 +62,12 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
   const reasoningAccumRef = useRef('')
   const panelWidthRef = useRef(380)
   const contentAreaRef = useRef<HTMLDivElement>(null)
+
+  // 会话列表状态
+  const [sessions, setSessions] = useState<ChatSessionVO[]>([])
+  const [currentSessionId, setCurrentSessionId] = useState<number | null>(null)
+  const [loadingSessions, setLoadingSessions] = useState(false)
+  const [showSessions, setShowSessions] = useState(false)
 
   // 弹窗状态
   const [saveModalOpen, setSaveModalOpen] = useState(false)
@@ -77,21 +97,130 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
     return () => window.removeEventListener('beforeunload', handler)
   }, [isDirty])
 
-  const handleSend = useCallback(() => {
+  /** 加载会话列表 & 恢复最近会话 */
+  const loadSessions = useCallback(async () => {
+    setLoadingSessions(true)
+    try {
+      const res = await fetchSessions('draw')
+      if (res.code === 0 && res.data.length > 0) {
+        setSessions(res.data)
+        const latest = res.data[0]
+        setCurrentSessionId(latest.id)
+        const msgRes = await fetchMessages(latest.id)
+        if (msgRes.code === 0) {
+          setMessages(convertToDisplayMessages(msgRes.data))
+        }
+      }
+    } catch {
+      // 未登录或网络错误，静默忽略
+    } finally {
+      setLoadingSessions(false)
+    }
+  }, [])
+
+  // 监听用户切换：登出清除会话，切换用户重新加载
+  const prevUserIdRef = useRef<number | undefined>(undefined)
+  useEffect(() => {
+    const uid = user?.id ?? undefined
+
+    // 登出
+    if (!isAuthenticated) {
+      if (prevUserIdRef.current !== undefined) {
+        setSessions([])
+        setCurrentSessionId(null)
+        setMessages([])
+        setIsLoading(false)
+        reasoningAccumRef.current = ''
+        abortRef.current?.abort()
+        abortRef.current = null
+      }
+      prevUserIdRef.current = undefined
+      return
+    }
+
+    // 首次登录或用户切换
+    if (prevUserIdRef.current !== uid) {
+      setSessions([])
+      setCurrentSessionId(null)
+      setMessages([])
+      setIsLoading(false)
+      reasoningAccumRef.current = ''
+      abortRef.current?.abort()
+      abortRef.current = null
+
+      if (aiChatEnabled) {
+        loadSessions()
+      }
+      prevUserIdRef.current = uid
+    }
+  }, [isAuthenticated, user?.id, aiChatEnabled, loadSessions])
+
+  /** 加载指定会话的历史消息 */
+  const loadHistoryMessages = useCallback(async (sessionId: number) => {
+    try {
+      const res = await fetchMessages(sessionId)
+      if (res.code === 0) {
+        setMessages(convertToDisplayMessages(res.data))
+      }
+    } catch {
+      message.error('加载历史消息失败')
+    }
+  }, [])
+
+  /** 切换会话 */
+  const switchSession = useCallback(async (sessionId: number) => {
+    if (sessionId === currentSessionId || isLoading) return
+    abortRef.current?.abort()
+    abortRef.current = null
+    setIsLoading(false)
+    reasoningAccumRef.current = ''
+    setMessages([])
+    setCurrentSessionId(sessionId)
+    await loadHistoryMessages(sessionId)
+  }, [currentSessionId, isLoading, loadHistoryMessages])
+
+  const handleSend = useCallback(async () => {
     const text = input.trim()
     if (!text || isLoading) return
 
     setInput('')
     reasoningAccumRef.current = ''
+
+    // 1. 确保有当前会话（未登录时跳过）
+    let sessionId = currentSessionId
+    if (!sessionId && isAuthenticated) {
+      try {
+        const res = await createSession('draw')
+        if (res.code === 0) {
+          sessionId = res.data.id
+          setCurrentSessionId(sessionId)
+          setSessions(prev => [res.data, ...prev])
+        }
+      } catch {
+        message.error('创建会话失败，请稍后重试')
+        setIsLoading(false)
+        return
+      }
+    }
+
+    // 2. 添加用户消息到界面
     const userMsg: ChatMessageDTO = { role: 'user', content: text }
-    const updatedMessages = [...messages, userMsg]
-    setMessages(updatedMessages)
-    setMessages((prev) => [...prev, { role: 'assistant', content: '' }])
+    setMessages(prev => [...prev, userMsg])
+    setMessages(prev => [...prev, { role: 'assistant', content: '' }])
+
+    // 3. 构造请求体——只传最新消息 + sessionId
+    const requestBody: Parameters<typeof drawChatStream>[0] = {
+      messages: [userMsg],
+      xml: chartXML || undefined,
+    }
+    if (sessionId) {
+      requestBody.sessionId = String(sessionId)
+    }
 
     setIsLoading(true)
 
     const controller = drawChatStream(
-      { messages: updatedMessages, xml: chartXML || undefined },
+      requestBody,
       (event: SseEvent) => {
         if (event.type === 'reasoning') {
           reasoningAccumRef.current += (event.delta || '')
@@ -117,6 +246,16 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
           if (xml && typeof xml === 'string') {
             loadDiagram(xml)
           }
+        } else if (event.type === 'done') {
+          if (event.sessionId) {
+            const sid = Number(event.sessionId)
+            setCurrentSessionId(sid)
+            // 刷新会话列表（更新 messageCount / previewText）
+            fetchSessions('draw').then(res => {
+              if (res.code === 0) setSessions(res.data)
+            }).catch(() => {})
+          }
+          setIsLoading(false)
         } else if (event.type === 'error') {
           setMessages((prev) => {
             const copy = [...prev]
@@ -141,7 +280,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
       () => { setIsLoading(false) },
     )
     abortRef.current = controller
-  }, [input, isLoading, messages, chartXML, loadDiagram])
+  }, [input, isLoading, messages, chartXML, loadDiagram, currentSessionId, isAuthenticated])
 
   const handleStop = useCallback(() => {
     abortRef.current?.abort()
@@ -156,14 +295,52 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
     }
   }
 
-  const handleNewChat = () => {
-    setMessages([])
-    setInput('')
-    reasoningAccumRef.current = ''
+  /** 新建对话：通过 API 创建新会话 */
+  const handleNewChat = useCallback(async () => {
     abortRef.current?.abort()
     abortRef.current = null
     setIsLoading(false)
-  }
+    reasoningAccumRef.current = ''
+
+    if (isAuthenticated) {
+      try {
+        const res = await createSession('draw')
+        if (res.code === 0) {
+          setSessions(prev => [res.data, ...prev])
+          setCurrentSessionId(res.data.id)
+        }
+      } catch {
+        // fallback: 本地清空
+      }
+    }
+
+    setMessages([])
+    setInput('')
+  }, [isAuthenticated])
+
+  /** 重命名会话 */
+  const handleRename = useCallback(async (id: number, title: string) => {
+    await updateSessionTitle(id, title)
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, title } : s))
+  }, [])
+
+  /** 删除会话 */
+  const handleDelete = useCallback(async (id: number) => {
+    await deleteSession(id)
+    setSessions(prev => prev.filter(s => s.id !== id))
+    if (currentSessionId === id) {
+      // 删除了当前会话，切换到最近一个或清空
+      const remaining = sessions.filter(s => s.id !== id)
+      if (remaining.length > 0) {
+        const next = remaining[0]
+        setCurrentSessionId(next.id)
+        await loadHistoryMessages(next.id)
+      } else {
+        setCurrentSessionId(null)
+        setMessages([])
+      }
+    }
+  }, [currentSessionId, sessions, loadHistoryMessages])
 
   const handleDrawioLoad = useCallback(() => {
     setIsDrawioReady(true)
@@ -210,7 +387,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
   // ---- 存储操作 ----
 
   const handleSave = useCallback(async () => {
-    if (sessionId !== null) {
+    if (diagramSessionId !== null) {
       try {
         await saveDiagram()
         message.success('已保存')
@@ -221,7 +398,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
       setSaveModalMode('save')
       setSaveModalOpen(true)
     }
-  }, [sessionId, saveDiagram])
+  }, [diagramSessionId, saveDiagram])
 
   const handleSaveAs = useCallback(() => {
     setSaveModalMode('saveAs')
@@ -274,7 +451,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
   // 保存按钮下拉菜单（仅已有图表时显示"另存为"）
   const saveMenuItems: MenuProps['items'] = [
     { key: 'save', label: '保存', onClick: handleSave },
-    ...(sessionId !== null ? [{ key: 'saveAs', label: '另存为...', onClick: handleSaveAs }] : []),
+    ...(diagramSessionId !== null ? [{ key: 'saveAs', label: '另存为...', onClick: handleSaveAs }] : []),
   ]
 
   return (
@@ -325,7 +502,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
               未保存
             </span>
           )}
-          {!isDirty && sessionId !== null && (
+          {!isDirty && diagramSessionId !== null && (
             <span style={{ fontSize: 12, color: '#52c41a', display: 'flex', alignItems: 'center', gap: 3 }}>
               <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#52c41a', display: 'inline-block' }} />
               已保存
@@ -453,9 +630,17 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Bot size={20} color="#1677ff" />
-              <span style={{ fontWeight: 600, fontSize: 14, color: '#1d1d1f' }}>对话</span>
+              <span style={{ fontWeight: 600, fontSize: 14, color: '#1d1d1f' }}>{showSessions ? '会话列表' : '对话'}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {isAuthenticated && (
+                <button type="button" onClick={() => setShowSessions(v => !v)}
+                  style={{ background: showSessions ? '#e6f4ff' : 'none', border: 'none', cursor: 'pointer', padding: '4 8', borderRadius: 6, color: showSessions ? '#1677ff' : '#666' }}
+                  title="会话列表"
+                >
+                  <List size={16} />
+                </button>
+              )}
               <button type="button" onClick={handleNewChat} disabled={isLoading}
                 style={{ background: 'none', border: 'none', cursor: isLoading ? 'not-allowed' : 'pointer', padding: '4 8', borderRadius: 6, color: '#666', opacity: isLoading ? 0.5 : 1 }}
                 title="新建对话"
@@ -471,7 +656,25 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
             </div>
           </div>
 
-          {/* Messages */}
+          {/* Body: 会话列表 或 消息 */}
+          {showSessions && isAuthenticated ? (
+            <ChatSessionList
+              sessions={sessions}
+              currentSessionId={currentSessionId}
+              loading={loadingSessions}
+              onSelect={(id) => {
+                setShowSessions(false)
+                switchSession(id)
+              }}
+              onNew={() => {
+                setShowSessions(false)
+                handleNewChat()
+              }}
+              onRename={handleRename}
+              onDelete={handleDelete}
+              fillContainer
+            />
+          ) : (
           <div style={{
             flex: 1,
             overflow: 'auto',
@@ -516,8 +719,10 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
             )}
             <div ref={messagesEndRef} />
           </div>
+          )}
 
-          {/* Input */}
+          {/* Input（会话列表模式隐藏） */}
+          {!showSessions && (
           <div style={{ padding: '10px 14px', borderTop: '1px solid #e5e5ea', display: 'flex', gap: 8, alignItems: 'flex-end', background: '#fff' }}>
             <Input.TextArea
               value={input}
@@ -543,6 +748,7 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
               </button>
             )}
           </div>
+          )}
         </div>
       </div>
       </>)}
