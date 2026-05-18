@@ -6,12 +6,11 @@ public class SkillPackage {
 
     private Long id;
     private String name;
+    private String agentType;
     private String displayName;
     private String description;
     private String keywords;
-    private String modules;
-    private String tools;
-    private String policy;
+    private String prompt;
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -30,6 +29,14 @@ public class SkillPackage {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getAgentType() {
+        return agentType;
+    }
+
+    public void setAgentType(String agentType) {
+        this.agentType = agentType;
     }
 
     public String getDisplayName() {
@@ -56,28 +63,12 @@ public class SkillPackage {
         this.keywords = keywords;
     }
 
-    public String getModules() {
-        return modules;
+    public String getPrompt() {
+        return prompt;
     }
 
-    public void setModules(String modules) {
-        this.modules = modules;
-    }
-
-    public String getTools() {
-        return tools;
-    }
-
-    public void setTools(String tools) {
-        this.tools = tools;
-    }
-
-    public String getPolicy() {
-        return policy;
-    }
-
-    public void setPolicy(String policy) {
-        this.policy = policy;
+    public void setPrompt(String prompt) {
+        this.prompt = prompt;
     }
 
     public Boolean getIsActive() {

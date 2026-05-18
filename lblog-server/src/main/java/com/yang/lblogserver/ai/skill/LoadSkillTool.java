@@ -9,6 +9,7 @@ import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class LoadSkillTool {
@@ -16,41 +17,54 @@ public class LoadSkillTool {
     private static final Logger log = LoggerFactory.getLogger(LoadSkillTool.class);
 
     private final SkillService skillService;
-    private final SkillToolRegistry skillToolRegistry;
-    private final SkillSessionManager skillSessionManager;
 
-    public LoadSkillTool(SkillService skillService,
-                         SkillToolRegistry skillToolRegistry,
-                         SkillSessionManager skillSessionManager) {
+    public LoadSkillTool(SkillService skillService) {
         this.skillService = skillService;
-        this.skillToolRegistry = skillToolRegistry;
-        this.skillSessionManager = skillSessionManager;
     }
 
-    @Tool(name = "loadSkill", description = "加载指定技能包及其工具。可用技能: draw-expert, chat-general。技能加载后其工具会变得可用。")
+    @Tool(name = "loadSkill", description = """
+            Load a skill package to acquire domain-specific expertise.
+            Each skill package contains specialized instructions that modify how you respond.
+            Call without arguments to list available skill packages for your agent.
+            """)
     public String loadSkill(String skillName, ToolContext ctx) {
-        var opt = skillService.getSkill(skillName);
+        if (skillName == null || skillName.isBlank()) {
+            return listAvailableSkills(ctx);
+        }
+
+        var opt = skillService.getSkill(skillName.trim());
         if (opt.isEmpty()) {
-            return "技能 '" + skillName + "' 不存在。可用技能: draw-expert, chat-general";
+            return "Unknown skill: [" + skillName + "].\n\n" + listAvailableSkills(ctx);
         }
 
         SkillPackage skill = opt.get();
         if (Boolean.FALSE.equals(skill.getIsActive())) {
-            return "技能 '" + skillName + "' 已停用";
+            return "Skill [" + skillName + "] is currently disabled.";
         }
 
-        String sessionId = (String) ctx.getContext().get("sessionId");
-        if (sessionId != null) {
-            skillSessionManager.loadSkill(sessionId, skillName);
+        String prompt = skill.getPrompt();
+        if (prompt == null || prompt.isBlank()) {
+            return "Skill [" + skillName + "] loaded. No additional instructions.";
         }
 
-        List<String> tools = skillToolRegistry.getToolsBySkill(skillName);
-        log.info("Loaded skill: {}, tools: {}", skillName, tools);
+        log.info("Skill loaded: {} ({})", skillName, skill.getDisplayName());
+        return "## Skill: " + skill.getDisplayName() + "\n\n" + prompt;
+    }
 
-        if (tools.isEmpty()) {
-            return "技能 '" + skillName + "' 已加载，该技能没有额外工具。";
+    private String listAvailableSkills(ToolContext ctx) {
+        String agentType = ctx != null ? (String) ctx.getContext().get("agentType") : null;
+        List<SkillPackage> skills = (agentType != null && !agentType.isBlank())
+                ? skillService.getActiveSkillsByAgent(agentType)
+                : skillService.getActiveSkills();
+        if (skills.isEmpty()) {
+            return "No skill packages available.";
         }
-
-        return "技能 '" + skillName + "' 已加载。可用工具: " + String.join(", ", tools);
+        return skills.stream()
+                .map(s -> String.format("| %-20s | %s", s.getName(),
+                        s.getDescription() != null ? s.getDescription() : ""))
+                .collect(Collectors.joining("\n",
+                        "Available skill packages:\n\n"
+                        + "| Name                 | Description\n"
+                        + "|----------------------|------------\n", ""));
     }
 }

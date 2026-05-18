@@ -13,5 +13,7 @@ public interface SkillPackageMapper {
 
     List<SkillPackage> selectActive();
 
+    List<SkillPackage> selectActiveByAgent(@Param("agentType") String agentType);
+
     List<SkillPackage> selectAll();
 }

@@ -10,5 +10,7 @@ public interface SkillService {
 
     List<SkillPackage> getActiveSkills();
 
+    List<SkillPackage> getActiveSkillsByAgent(String agentType);
+
     List<SkillPackage> getAllSkills();
 }

@@ -3,15 +3,14 @@
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.yang.lblogserver.ai.skill.mapper.SkillPackageMapper">
 
-    <resultMap id="BaseResultMap" type="com.yang.lblogserver.ai.skill.SkillPackage">
+    <resultMap id="BaseResultMap" type="com.yang.lblogserver.ai.skill.domain.SkillPackage">
         <id column="id" property="id"/>
         <result column="name" property="name"/>
+        <result column="agent_type" property="agentType"/>
         <result column="display_name" property="displayName"/>
         <result column="description" property="description"/>
         <result column="keywords" property="keywords"/>
-        <result column="modules" property="modules"/>
-        <result column="tools" property="tools"/>
-        <result column="policy" property="policy"/>
+        <result column="prompt" property="prompt"/>
         <result column="is_active" property="isActive"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
@@ -23,6 +22,11 @@
 
     <select id="selectActive" resultMap="BaseResultMap">
         SELECT * FROM ai_skill_packages WHERE is_active = 1
+    </select>
+
+    <select id="selectActiveByAgent" resultMap="BaseResultMap">
+        SELECT * FROM ai_skill_packages
+        WHERE is_active = 1 AND (agent_type IS NULL OR agent_type = #{agentType})
     </select>
 
     <select id="selectAll" resultMap="BaseResultMap">

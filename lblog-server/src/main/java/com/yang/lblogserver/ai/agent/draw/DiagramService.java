@@ -78,12 +78,14 @@ public class DiagramService {
                     .advisors(spec -> {
                         if (request.getSessionId() != null) {
                             spec.param("sessionId", request.getSessionId());
+                            spec.param("agentType", "draw");
                             spec.param("modelName", "");
                         }
                     })
                     .tools(displayDiagramTool, loadSkillTool)
                     .toolContext(Map.of("emitter", emitter,
-                            "sessionId", request.getSessionId() != null ? request.getSessionId() : ""))
+                            "sessionId", request.getSessionId() != null ? request.getSessionId() : "",
+                            "agentType", "draw"))
                     .call();
 
             if (callSpec != null && callSpec.chatResponse() != null
@@ -160,6 +162,7 @@ public class DiagramService {
                         .advisors(spec -> {
                             if (request.getSessionId() != null) {
                                 spec.param("sessionId", request.getSessionId());
+                                spec.param("agentType", "draw");
                                 spec.param("modelName", "");
                             }
                         })
