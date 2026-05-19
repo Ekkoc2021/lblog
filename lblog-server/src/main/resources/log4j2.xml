@@ -161,6 +161,14 @@
         <Logger name="org.quartz" level="info"/>
         <Logger name="com.andya.demo" level="debug"/>
         <Logger name="reactor.netty.http.client" level="debug"/>
+        <!-- Spring AI 日志 -->
+        <Logger name="org.springframework.ai" level="debug"/>
+        <!-- HTTP 请求体日志 -->
+        <Logger name="org.springframework.http.client" level="trace"/>
+        <Logger name="org.springframework.web.client" level="trace"/>
+        <Logger name="org.springframework.web.reactive.function.client" level="trace"/>
+        <Logger name="HTTP_TRACE" level="debug"/>
+        <Logger name="com.yang.lblogserver" level="debug"/>
 
     </Loggers>
 

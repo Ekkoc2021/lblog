@@ -1,6 +1,6 @@
 package com.yang.lblogserver.ai.memory.converter;
 
-import com.yang.lblogserver.ai.chat.domain.ChatMessage;
+import com.yang.lblogserver.ai.conversation.domain.ChatMessage;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.messages.Message;
 

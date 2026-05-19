@@ -4,7 +4,7 @@ import com.yang.lblogserver.ai.agent.draw.DiagramService;
 import com.yang.lblogserver.ai.agent.draw.DrawChatRequest;
 import com.yang.lblogserver.ai.agent.draw.DrawConfigVO;
 import com.yang.lblogserver.ai.agent.draw.config.DrawRateLimiter;
-import com.yang.lblogserver.ai.chat.domain.ChatSession;
+import com.yang.lblogserver.ai.conversation.domain.ChatSession;
 import com.yang.lblogserver.ai.memory.ChatMemoryStore;
 import com.yang.lblogserver.common.ApiResponse;
 import com.yang.lblogserver.site.mapper.SiteConfigMapper;

@@ -2,7 +2,7 @@ package com.yang.lblogserver.ai.memory.converter.deepseek;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.yang.lblogserver.ai.chat.domain.ChatMessage;
+import com.yang.lblogserver.ai.conversation.domain.ChatMessage;
 import com.yang.lblogserver.ai.memory.converter.ContextPolicy;
 import com.yang.lblogserver.ai.memory.converter.ModelMessageConverter;
 import org.springframework.ai.chat.client.ChatClientResponse;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.yang.lblogserver.ai.chat.mapper.ChatMessageMapper">
+<mapper namespace="com.yang.lblogserver.ai.conversation.mapper.ChatMessageMapper">
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO ai_chat_messages
@@ -23,13 +23,13 @@
         </foreach>
     </insert>
 
-    <select id="selectBySessionId" resultType="com.yang.lblogserver.ai.chat.domain.ChatMessage">
+    <select id="selectBySessionId" resultType="com.yang.lblogserver.ai.conversation.domain.ChatMessage">
         SELECT * FROM ai_chat_messages
         WHERE session_id = #{sessionId}
         ORDER BY msg_index ASC
     </select>
 
-    <select id="selectRecentBySessionId" resultType="com.yang.lblogserver.ai.chat.domain.ChatMessage">
+    <select id="selectRecentBySessionId" resultType="com.yang.lblogserver.ai.conversation.domain.ChatMessage">
         SELECT * FROM ai_chat_messages
         WHERE session_id = #{sessionId}
         ORDER BY msg_index DESC

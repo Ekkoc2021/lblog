@@ -1,8 +1,8 @@
-package com.yang.lblogserver.ai.chat.service.impl;
+package com.yang.lblogserver.ai.conversation.service.impl;
 
-import com.yang.lblogserver.ai.chat.domain.ChatMessage;
-import com.yang.lblogserver.ai.chat.mapper.ChatMessageMapper;
-import com.yang.lblogserver.ai.chat.service.ChatMessageService;
+import com.yang.lblogserver.ai.conversation.domain.ChatMessage;
+import com.yang.lblogserver.ai.conversation.mapper.ChatMessageMapper;
+import com.yang.lblogserver.ai.conversation.service.ChatMessageService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

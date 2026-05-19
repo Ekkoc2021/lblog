@@ -1,11 +1,11 @@
-package com.yang.lblogserver.ai.chat.controller;
+package com.yang.lblogserver.ai.conversation.controller;
 
-import com.yang.lblogserver.ai.chat.domain.ChatMessage;
-import com.yang.lblogserver.ai.chat.domain.ChatMessageVO;
-import com.yang.lblogserver.ai.chat.domain.ChatSession;
-import com.yang.lblogserver.ai.chat.domain.ChatSessionVO;
-import com.yang.lblogserver.ai.chat.service.ChatMessageService;
-import com.yang.lblogserver.ai.chat.service.ChatSessionService;
+import com.yang.lblogserver.ai.conversation.domain.ChatMessage;
+import com.yang.lblogserver.ai.conversation.domain.ChatMessageVO;
+import com.yang.lblogserver.ai.conversation.domain.ChatSession;
+import com.yang.lblogserver.ai.conversation.domain.ChatSessionVO;
+import com.yang.lblogserver.ai.conversation.service.ChatMessageService;
+import com.yang.lblogserver.ai.conversation.service.ChatSessionService;
 import com.yang.lblogserver.auth.security.model.LoginUser;
 import com.yang.lblogserver.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;

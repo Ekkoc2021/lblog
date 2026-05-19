@@ -1,9 +1,9 @@
 package com.yang.lblogserver.ai.memory;
 
-import com.yang.lblogserver.ai.chat.domain.ChatMessage;
-import com.yang.lblogserver.ai.chat.domain.ChatSession;
-import com.yang.lblogserver.ai.chat.service.ChatMessageService;
-import com.yang.lblogserver.ai.chat.service.ChatSessionService;
+import com.yang.lblogserver.ai.conversation.domain.ChatMessage;
+import com.yang.lblogserver.ai.conversation.domain.ChatSession;
+import com.yang.lblogserver.ai.conversation.service.ChatMessageService;
+import com.yang.lblogserver.ai.conversation.service.ChatSessionService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

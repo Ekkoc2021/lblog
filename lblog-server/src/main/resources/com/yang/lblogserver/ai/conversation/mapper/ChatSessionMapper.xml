@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.yang.lblogserver.ai.chat.mapper.ChatSessionMapper">
+<mapper namespace="com.yang.lblogserver.ai.conversation.mapper.ChatSessionMapper">
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO ai_chat_sessions (user_id, agent_type, title, model_name, message_count, total_tokens, status)
         VALUES (#{userId}, #{agentType}, #{title}, #{modelName}, #{messageCount}, #{totalTokens}, #{status})
     </insert>
 
-    <select id="selectById" resultType="com.yang.lblogserver.ai.chat.domain.ChatSession">
+    <select id="selectById" resultType="com.yang.lblogserver.ai.conversation.domain.ChatSession">
         SELECT * FROM ai_chat_sessions WHERE id = #{id}
     </select>
 
-    <select id="selectByUserAndAgent" resultType="com.yang.lblogserver.ai.chat.domain.ChatSession">
+    <select id="selectByUserAndAgent" resultType="com.yang.lblogserver.ai.conversation.domain.ChatSession">
         SELECT * FROM ai_chat_sessions
         WHERE user_id = #{userId}
           AND agent_type = #{agentType}

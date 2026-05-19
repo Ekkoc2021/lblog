@@ -1,6 +1,6 @@
-package com.yang.lblogserver.ai.chat.mapper;
+package com.yang.lblogserver.ai.conversation.mapper;
 
-import com.yang.lblogserver.ai.chat.domain.ChatMessage;
+import com.yang.lblogserver.ai.conversation.domain.ChatMessage;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

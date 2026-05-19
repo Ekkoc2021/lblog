@@ -75,6 +75,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/config").permitAll()
                 // 公开接口：AI 绘图（调试期间临时放开鉴权）
                 .requestMatchers("/api/v1/draw/**").permitAll()
+                // 公开接口：Skill 调试
+                .requestMatchers("/api/v1/debug/**", "/api/v1/test/**").permitAll()
                 // 公开接口：静态资源
                 .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                 // 创作中心 & 上传：由 Controller 上的 @PreAuthorize 控制角色

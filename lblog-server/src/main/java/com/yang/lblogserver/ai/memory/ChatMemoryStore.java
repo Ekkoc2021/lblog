@@ -1,7 +1,7 @@
 package com.yang.lblogserver.ai.memory;
 
-import com.yang.lblogserver.ai.chat.domain.ChatMessage;
-import com.yang.lblogserver.ai.chat.domain.ChatSession;
+import com.yang.lblogserver.ai.conversation.domain.ChatMessage;
+import com.yang.lblogserver.ai.conversation.domain.ChatSession;
 
 import java.util.List;
 

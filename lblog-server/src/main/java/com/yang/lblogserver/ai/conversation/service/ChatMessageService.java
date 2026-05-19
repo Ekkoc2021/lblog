@@ -1,6 +1,6 @@
-package com.yang.lblogserver.ai.chat.service;
+package com.yang.lblogserver.ai.conversation.service;
 
-import com.yang.lblogserver.ai.chat.domain.ChatMessage;
+import com.yang.lblogserver.ai.conversation.domain.ChatMessage;
 
 import java.util.List;
 

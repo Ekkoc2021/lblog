@@ -1,4 +1,4 @@
-package com.yang.lblogserver.ai.chat.domain;
+package com.yang.lblogserver.ai.conversation.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
