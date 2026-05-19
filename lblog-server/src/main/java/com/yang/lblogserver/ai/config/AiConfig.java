@@ -46,7 +46,7 @@ public class AiConfig {
 
     @Bean
     public CompressionStrategy compressionStrategy() {
-        return new SlidingWindowStrategy(50, 70);
+        return new SlidingWindowStrategy(20, 30);
     }
 
     @Bean

@@ -16,10 +16,10 @@ import reactor.core.publisher.Flux;
 import java.util.List;
 
 /**
- * 上下文压缩 advisor。每次 LLM 调用前（首次 + 工具循环递归）都会经过这里。
+ * 上下文压缩 advisor。每次 LLM 调用前委托 {@link CompressionStrategy} 压缩。
  * <p>
- * 委托 {@link CompressionStrategy} 做具体压缩决策和执行。
- * token 超预算则直接压缩，不超则问策略的 {@link CompressionStrategy#shouldCompress}。
+ * 先让策略按自己的规则压缩（如按条数裁），
+ * token 仍超预算时循环调 {@link CompressionStrategy#tryCompress}，直到预算内或无法再压缩。
  */
 public class CompressionAdvisor implements BaseAdvisor {
 
@@ -63,7 +63,16 @@ public class CompressionAdvisor implements BaseAdvisor {
         boolean overBudget = total > maxHistoryTokens;
 
         if (overBudget || compressionStrategy.shouldCompress(messages)) {
+            // 1. 策略按自己规则压缩（如按条数裁）
             List<Message> result = compressionStrategy.compress(messages);
+
+            // 2. token 还超则循环调 tryCompress，直到预算内或无法再压缩
+            // 条件：至少保留 system（size>1），仍然超预算，最多 50 次防死循环
+            int guard = 50;
+            while (result.size() > 1 && estimateTokens(result) > maxHistoryTokens && guard-- > 0) {
+                result = compressionStrategy.tryCompress(result);
+            }
+
             log.info("CompressionAdvisor: {} → {} messages", messages.size(), result.size());
             return request.mutate().prompt(new Prompt(result, request.prompt().getOptions())).build();
         }
