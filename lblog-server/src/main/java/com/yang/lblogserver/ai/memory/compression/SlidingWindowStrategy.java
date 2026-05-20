@@ -9,7 +9,8 @@ import java.util.List;
 
 /**
  * 滑动窗口：消息数超过 minTrigger 时，保留最近 N 条。
- * 压缩不感知 token，由上层 CompressionAdvisor 检查 token 预算并循环调 tryDropOne。
+ * <p>
+ * 不感知 system 消息位置，不做首尾保护（由 CompressionAdvisor 负责）。
  */
 public class SlidingWindowStrategy implements CompressionStrategy {
 
@@ -31,21 +32,16 @@ public class SlidingWindowStrategy implements CompressionStrategy {
     @Override
     public List<Message> compress(List<Message> messages) {
         if (messages == null || messages.size() <= maxMessages) return messages;
-
-        List<Message> result = new ArrayList<>();
-        result.add(messages.getFirst());
-        result.addAll(messages.subList(messages.size() - maxMessages + 1, messages.size()));
-        log.info("SlidingWindow: {} → {} messages (max={})", messages.size(), result.size(), maxMessages);
+        List<Message> result = new ArrayList<>(messages.subList(messages.size() - maxMessages, messages.size()));
+        log.info("SlidingWindow: {} → {} messages", messages.size(), result.size());
         return result;
     }
 
-    /** 再压缩一步：丢弃最旧的一条非 system 消息。 */
     @Override
     public List<Message> tryCompress(List<Message> messages) {
-        if (messages == null || messages.size() <= 1) return messages;
-
+        if (messages == null || messages.isEmpty()) return messages;
         List<Message> result = new ArrayList<>(messages);
-        result.remove(1);
+        result.removeFirst();
         return result;
     }
 }

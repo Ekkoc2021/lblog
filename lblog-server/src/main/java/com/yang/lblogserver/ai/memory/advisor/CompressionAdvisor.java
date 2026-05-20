@@ -13,13 +13,13 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.prompt.Prompt;
 import reactor.core.publisher.Flux;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * 上下文压缩 advisor。每次 LLM 调用前委托 {@link CompressionStrategy} 压缩。
  * <p>
- * 先让策略按自己的规则压缩（如按条数裁），
- * token 仍超预算时循环调 {@link CompressionStrategy#tryCompress}，直到预算内或无法再压缩。
+ * 职责：拆分 system 消息 → 策略只操作非 system 部分 → 补回 system → 循环调 tryCompress
  */
 public class CompressionAdvisor implements BaseAdvisor {
 
@@ -60,17 +60,28 @@ public class CompressionAdvisor implements BaseAdvisor {
         if (messages == null || messages.isEmpty()) return request;
 
         int total = estimateTokens(messages);
-        boolean overBudget = total > maxHistoryTokens;
 
-        if (overBudget || compressionStrategy.shouldCompress(messages)) {
-            // 1. 策略按自己规则压缩（如按条数裁）
-            List<Message> result = compressionStrategy.compress(messages);
+        if (total > maxHistoryTokens || compressionStrategy.shouldCompress(messages)) {
+            // 1. 拆分 system，策略只操作非 system 部分
+            Message system = messages.getFirst();
+            List<Message> target = messages.subList(1, messages.size());
 
-            // 2. token 还超则循环调 tryCompress，直到预算内或无法再压缩
-            // 条件：至少保留 system（size>1），仍然超预算，最多 50 次防死循环
+            // 2. 策略压缩
+            List<Message> compressed = compressionStrategy.compress(target);
+
+            // 3. 补回 system
+            List<Message> result = new ArrayList<>();
+            result.add(system);
+            result.addAll(compressed);
+
+            // 4. token 还超则循环调 tryCompress，至少保留 system
             int guard = 50;
             while (result.size() > 1 && estimateTokens(result) > maxHistoryTokens && guard-- > 0) {
-                result = compressionStrategy.tryCompress(result);
+                List<Message> after = compressionStrategy.tryCompress(result.subList(1, result.size()));
+                if (after.isEmpty() || after.size() >= result.size() - 1) break;
+                result = new ArrayList<>();
+                result.add(system);
+                result.addAll(after);
             }
 
             log.info("CompressionAdvisor: {} → {} messages", messages.size(), result.size());
