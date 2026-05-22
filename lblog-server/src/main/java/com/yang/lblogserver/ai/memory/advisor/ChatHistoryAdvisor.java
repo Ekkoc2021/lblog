@@ -17,7 +17,6 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
@@ -34,7 +33,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * </ul>
  * Advisor 链位置：{@link BaseAdvisor#HIGHEST_PRECEDENCE}，最先执行。
  */
-@Component
 public class ChatHistoryAdvisor implements BaseAdvisor {
 
     private static final Logger log = LoggerFactory.getLogger(ChatHistoryAdvisor.class);
@@ -47,7 +45,7 @@ public class ChatHistoryAdvisor implements BaseAdvisor {
 
     public ChatHistoryAdvisor(ChatMemoryStore chatMemoryStore,
                               List<ModelMessageConverter> converters,
-                              @org.springframework.beans.factory.annotation.Autowired(required = false) LoadingStrategy loadingStrategy,
+                              LoadingStrategy loadingStrategy,
                               SiteConfigMapper siteConfigMapper) {
         this.chatMemoryStore = chatMemoryStore;
         this.converters = converters;

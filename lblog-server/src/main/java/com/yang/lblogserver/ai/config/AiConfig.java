@@ -1,11 +1,15 @@
 package com.yang.lblogserver.ai.config;
 
+import java.util.List;
+
 import com.yang.lblogserver.ai.advisor.DeepSeekToolCallAdvisor;
+import com.yang.lblogserver.ai.memory.ChatMemoryStore;
 import com.yang.lblogserver.ai.memory.advisor.ChatHistoryAdvisor;
 import com.yang.lblogserver.ai.memory.advisor.CompressionAdvisor;
-import com.yang.lblogserver.ai.memory.compression.CompressionStrategy;
 import com.yang.lblogserver.ai.memory.compression.SlidingWindowStrategy;
+import com.yang.lblogserver.ai.memory.converter.ModelMessageConverter;
 import com.yang.lblogserver.ai.memory.estimator.TokenEstimator;
+import com.yang.lblogserver.site.mapper.SiteConfigMapper;
 import io.micrometer.observation.ObservationRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,20 +49,17 @@ public class AiConfig {
     }
 
     @Bean
-    public CompressionStrategy compressionStrategy() {
-        return new SlidingWindowStrategy(20, 30);
-    }
-
-    @Bean
     public ChatClient drawChatClient(DeepSeekChatModel chatModel,
                                      ToolCallingManager toolCallingManager,
-                                     ChatHistoryAdvisor chatHistoryAdvisor,
+                                     ChatMemoryStore chatMemoryStore,
+                                     List<ModelMessageConverter> converters,
+                                     SiteConfigMapper siteConfigMapper,
                                      TokenEstimator tokenEstimator,
-                                     CompressionStrategy compressionStrategy,
                                      @Value("${ai.context.max-history-tokens:4000}") int maxHistoryTokens) {
+        SlidingWindowStrategy slidingWindow = new SlidingWindowStrategy(20, 30);
         return ChatClient.builder(chatModel)
                 .defaultAdvisors(
-                        chatHistoryAdvisor,
+                        new ChatHistoryAdvisor(chatMemoryStore, converters, slidingWindow, siteConfigMapper),
                         new DeepSeekToolCallAdvisor(
                                 toolCallingManager,
                                 BaseAdvisor.HIGHEST_PRECEDENCE + 2,
@@ -66,7 +67,7 @@ public class AiConfig {
                                 true),
                         new CompressionAdvisor(
                                 tokenEstimator,
-                                compressionStrategy,
+                                slidingWindow,
                                 maxHistoryTokens,
                                 BaseAdvisor.HIGHEST_PRECEDENCE + 3))
                 .build();
