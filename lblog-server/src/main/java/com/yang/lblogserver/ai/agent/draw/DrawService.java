@@ -1,12 +1,12 @@
 package com.yang.lblogserver.ai.agent.draw;
 
 import com.yang.lblogserver.ai.skill.LoadSkillTool;
+import com.yang.lblogserver.ai.skill.SkillSystemPromptBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.ai.chat.messages.AssistantMessage;
-import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.deepseek.DeepSeekAssistantMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.scheduling.annotation.Async;
@@ -14,35 +14,38 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import org.springframework.web.reactive.function.client.WebClientResponseException;
-import java.util.List;
+
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class DiagramService {
+public class DrawService {
 
-    private static final Logger log = LoggerFactory.getLogger(DiagramService.class);
+    private static final Logger log = LoggerFactory.getLogger(DrawService.class);
 
     private final ChatClient chatClient;
-    private final PromptManager promptManager;
-    private final DiagramProperties diagramProperties;
-    private final DisplayDiagramTool displayDiagramTool;
+    private final DrawPromptManager promptManager;
+    private final DrawProperties diagramProperties;
+    private final DisplayDrawTool displayDiagramTool;
     private final LoadSkillTool loadSkillTool;
+    private final SkillSystemPromptBuilder skillPromptBuilder;
     private final ScheduledExecutorService heartbeatScheduler;
 
-    public DiagramService(@Qualifier("drawChatClient") ChatClient chatClient,
-                          PromptManager promptManager,
-                          DiagramProperties diagramProperties,
-                          DisplayDiagramTool displayDiagramTool,
-                          LoadSkillTool loadSkillTool,
-                          ScheduledExecutorService heartbeatScheduler) {
+    public DrawService(@Qualifier("drawChatClient") ChatClient chatClient,
+                       DrawPromptManager promptManager,
+                       DrawProperties diagramProperties,
+                       DisplayDrawTool displayDiagramTool,
+                       LoadSkillTool loadSkillTool,
+                       SkillSystemPromptBuilder skillPromptBuilder,
+                       ScheduledExecutorService heartbeatScheduler) {
         this.chatClient = chatClient;
         this.promptManager = promptManager;
         this.diagramProperties = diagramProperties;
         this.displayDiagramTool = displayDiagramTool;
         this.loadSkillTool = loadSkillTool;
+        this.skillPromptBuilder = skillPromptBuilder;
         this.heartbeatScheduler = heartbeatScheduler;
     }
 
@@ -68,8 +71,7 @@ public class DiagramService {
                 return;
             }
 
-            String systemPrompt = promptManager.buildSystemPrompt(
-                    null, request.getMinimalStyle() != null && request.getMinimalStyle());
+            String systemPrompt = buildFullSystemPrompt(request);
             String xmlContext = promptManager.buildXmlContext(request.getXml(), request.getPreviousXml());
 
             ChatClient.CallResponseSpec callSpec = chatClient.prompt()
@@ -151,8 +153,7 @@ public class DiagramService {
                 return;
             }
 
-            String systemPrompt = promptManager.buildSystemPrompt(
-                    null, request.getMinimalStyle() != null && request.getMinimalStyle());
+            String systemPrompt = buildFullSystemPrompt(request);
             String xmlContext = promptManager.buildXmlContext(request.getXml(), request.getPreviousXml());
 
             try {
@@ -222,6 +223,16 @@ public class DiagramService {
         } finally {
             heartbeat.cancel(false);
         }
+    }
+
+    private String buildFullSystemPrompt(DrawChatRequest request) {
+        String prompt = promptManager.buildSystemPrompt(
+                null, request.getMinimalStyle() != null && request.getMinimalStyle());
+        String skillHint = skillPromptBuilder.buildLazyHint("draw");
+        if (!skillHint.isEmpty()) {
+            prompt += "\n" + skillHint;
+        }
+        return prompt;
     }
 
     private String getLatestUserMessage(DrawChatRequest request) {

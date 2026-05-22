@@ -11,7 +11,7 @@ import java.util.concurrent.*;
  */
 @Configuration
 @EnableAsync
-public class DiagramConfig {
+public class DrawConfig {
 
     @Bean("diagramTaskExecutor")
     public Executor diagramTaskExecutor() {

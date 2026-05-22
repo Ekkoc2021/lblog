@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @ConfigurationProperties(prefix = "lblog.diagram")
-public class DiagramProperties {
+public class DrawProperties {
 
     private boolean enabled = true;
     private int disconnectCheckIntervalSeconds = 5;

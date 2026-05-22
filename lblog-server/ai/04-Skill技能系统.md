@@ -25,7 +25,7 @@ P1 最早的设计是"后端按 skill 控制工具可见性"——未加载的 s
 ```
 ai/skill/
 ├── LoadSkillTool.java              # @Tool — LLM 按需加载技能（支持无参浏览）
-├── SkillSystemPromptBuilder.java   # 懒加载提示 + 技能列表格式化（⚠️ 未接入 system prompt）
+├── SkillSystemPromptBuilder.java   # 懒加载提示 + 技能列表格式化
 ├── SkillPackage.java               # 领域模型
 ├── SkillPackageMapper.java + xml   # MyBatis CRUD
 ├── SkillService.java               # 接口
@@ -162,20 +162,11 @@ Caffeine，30s TTL，按 `"all"` 和 `"agent:{agentType}"` 双键缓存。技能
 
 ## 实现层面发现的问题
 
-### 🟡 SkillSystemPromptBuilder 未接入 system prompt
+### ✅ SkillSystemPromptBuilder 已接入 system prompt（已修复）
 
-`buildLazyHint("draw")` 一行提示已就绪，但没有任何地方调用它拼入 system prompt。
+`PromptManager` 注入了 `SkillSystemPromptBuilder`，在 `buildSystemPrompt()` 末尾追加 `buildLazyHint("draw")`。
 
-**影响：** LLM 不知道有技能可加载，只能靠 tool description 偶然发现 loadSkill 的存在。修了它之后 LLM 看到那行提示就知道可以浏览和加载。
-
-**修复：** 在 `DiagramService` 或 `PromptManager` 中：
-
-```java
-String lazyHint = skillSystemPromptBuilder.buildLazyHint("draw");
-if (!lazyHint.isEmpty()) {
-    systemPrompt += "\n" + lazyHint;
-}
-```
+效果：每次 LLM 调用的 system prompt 末尾都有一行 "You can call loadSkill() without arguments to browse and load specialized skills on demand."，LLM 需要额外能力时知道先浏览再加载。
 
 ---
 
@@ -221,8 +212,8 @@ Skill 表没有建表 SQL、没有 seed 数据。项目启动后表是空的，L
 | 维度 | 评分 | 说明 |
 |------|------|------|
 | 设计简洁 | ⭐⭐⭐⭐⭐ | 4 个文件完成一个子系统，Skill = Prompt 决策优秀 |
-| 实现完整度 | ⭐⭐⭐ | SkillSystemPromptBuilder 未接入 system prompt、Admin API 缺失 |
+| 实现完整度 | ⭐⭐⭐⭐ | 懒加载提示已接入，Admin API 缺失 |
 | 可扩展性 | ⭐⭐⭐⭐ | agentType 隔离天然支持多 Agent，加技能只需 insert |
 | 生产就绪 | ⭐⭐⭐ | 核心能跑，但技能列表不在 system prompt 里，每轮多一次 API 调用 |
 
-> 一句话：设计方向极简且正确。懒加载提示 + 紧凑列表格式 + tool 描述优化三项改动让 token 开销降到最低。接入 system prompt 后即可上线——这是最后一步。
+> 一句话：设计方向极简且正确。懒加载提示已接入 system prompt，LLM 知道可以浏览和加载技能。补上 Admin API 和初始种子数据即可上线。

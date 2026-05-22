@@ -20,7 +20,7 @@ import java.util.Map;
  *   第⑥层 运行时注入 — buildXmlContext() 拼接当前图表 XML
  */
 @Component
-public class PromptManager {
+public class DrawPromptManager {
 
     private static final List<String> EXTENDED_PROMPT_MODEL_PATTERNS = List.of(
             "claude-opus-4-5",
@@ -274,7 +274,7 @@ public class PromptManager {
 
     private final AiPromptService promptService;
 
-    public PromptManager(AiPromptService promptService) {
+    public DrawPromptManager(AiPromptService promptService) {
         this.promptService = promptService;
     }
 

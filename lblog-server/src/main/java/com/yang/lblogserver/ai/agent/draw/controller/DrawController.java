@@ -1,6 +1,6 @@
 package com.yang.lblogserver.ai.agent.draw.controller;
 
-import com.yang.lblogserver.ai.agent.draw.DiagramService;
+import com.yang.lblogserver.ai.agent.draw.DrawService;
 import com.yang.lblogserver.ai.agent.draw.DrawChatRequest;
 import com.yang.lblogserver.ai.agent.draw.DrawConfigVO;
 import com.yang.lblogserver.ai.agent.draw.config.DrawRateLimiter;
@@ -21,18 +21,18 @@ import java.util.concurrent.TimeUnit;
 @Tag(name = "AI 绘图", description = "AI 辅助 draw.io 图表生成")
 @RestController
 @RequestMapping("/api/v1/draw")
-public class DiagramController {
+public class DrawController {
 
-    private final DiagramService diagramService;
+    private final DrawService diagramService;
     private final DrawRateLimiter drawRateLimiter;
     private final SiteConfigMapper siteConfigMapper;
     private final ChatMemoryStore chatMemoryStore;
     private final String modelName;
 
-    public DiagramController(DiagramService diagramService,
-                             DrawRateLimiter drawRateLimiter, SiteConfigMapper siteConfigMapper,
-                             ChatMemoryStore chatMemoryStore,
-                             @Value("${spring.ai.deepseek.chat.options.model}") String modelName) {
+    public DrawController(DrawService diagramService,
+                          DrawRateLimiter drawRateLimiter, SiteConfigMapper siteConfigMapper,
+                          ChatMemoryStore chatMemoryStore,
+                          @Value("${spring.ai.deepseek.chat.options.model}") String modelName) {
         this.diagramService = diagramService;
         this.drawRateLimiter = drawRateLimiter;
         this.siteConfigMapper = siteConfigMapper;

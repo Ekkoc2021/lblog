@@ -9,11 +9,11 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.Map;
 
 @Component
-public class DisplayDiagramTool {
+public class DisplayDrawTool {
 
     private final MxCellValidator validator;
 
-    public DisplayDiagramTool(MxCellValidator validator) {
+    public DisplayDrawTool(MxCellValidator validator) {
         this.validator = validator;
     }
 
