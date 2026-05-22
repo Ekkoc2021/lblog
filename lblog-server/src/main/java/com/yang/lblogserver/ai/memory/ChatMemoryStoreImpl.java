@@ -38,8 +38,4 @@ public class ChatMemoryStoreImpl implements ChatMemoryStore {
     public int getMaxMsgIndex(Long sessionId) {
         return messageService.getMaxMsgIndex(sessionId);
     }
-
-    @Override
-    public void touchSession(Long sessionId) {
-    }
 }

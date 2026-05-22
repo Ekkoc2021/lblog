@@ -7,7 +7,6 @@ import com.yang.lblogserver.ai.conversation.service.ChatSessionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -27,8 +26,6 @@ public class ChatSessionServiceImpl implements ChatSessionService {
         session.setAgentType(agentType);
         session.setModelName(modelName);
         session.setTitle("New " + agentType + " session");
-        session.setMessageCount(0);
-        session.setTotalTokens(0);
         session.setStatus(1);
         sessionMapper.insert(session);
         return session;
@@ -37,20 +34,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     @Override
     public List<ChatSessionVO> listSessions(Long userId, String agentType, int page, int size) {
         int offset = (page - 1) * size;
-        List<ChatSession> sessions = sessionMapper.selectByUserAndAgent(userId, agentType, offset, size);
-        List<ChatSessionVO> result = new ArrayList<>();
-        for (ChatSession s : sessions) {
-            ChatSessionVO vo = new ChatSessionVO();
-            vo.setId(s.getId());
-            vo.setTitle(s.getTitle());
-            vo.setAgentType(s.getAgentType());
-            vo.setModelName(s.getModelName());
-            vo.setMessageCount(s.getMessageCount());
-            vo.setCreatedAt(s.getCreatedAt());
-            vo.setUpdatedAt(s.getUpdatedAt());
-            result.add(vo);
-        }
-        return result;
+        return sessionMapper.selectByUserAndAgent(userId, agentType, offset, size);
     }
 
     @Override
@@ -62,12 +46,6 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     @Transactional
     public void updateTitle(Long sessionId, String title) {
         sessionMapper.updateTitle(sessionId, title);
-    }
-
-    @Override
-    @Transactional
-    public void updateStats(Long sessionId, int messageCountDelta, int tokensDelta) {
-        sessionMapper.updateStats(sessionId, messageCountDelta, tokensDelta);
     }
 
     @Override

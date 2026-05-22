@@ -15,8 +15,6 @@ public class ChatSession {
     private String agentType;
     private String title;
     private String modelName;
-    private Integer messageCount;
-    private Integer totalTokens;
     private Integer status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

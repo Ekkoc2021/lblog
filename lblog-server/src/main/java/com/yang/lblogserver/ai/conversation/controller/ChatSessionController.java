@@ -93,7 +93,6 @@ public class ChatSessionController {
         vo.setTitle(session.getTitle());
         vo.setAgentType(session.getAgentType());
         vo.setModelName(session.getModelName());
-        vo.setMessageCount(session.getMessageCount());
         vo.setCreatedAt(session.getCreatedAt());
         vo.setUpdatedAt(session.getUpdatedAt());
         return vo;

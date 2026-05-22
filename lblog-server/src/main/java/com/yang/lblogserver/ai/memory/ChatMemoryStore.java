@@ -14,6 +14,4 @@ public interface ChatMemoryStore {
     ChatSession getOrCreateSession(Long userId, String agentType, String modelName);
 
     int getMaxMsgIndex(Long sessionId);
-
-    void touchSession(Long sessionId);
 }

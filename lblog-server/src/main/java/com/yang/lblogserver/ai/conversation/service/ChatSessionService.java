@@ -15,8 +15,6 @@ public interface ChatSessionService {
 
     void updateTitle(Long sessionId, String title);
 
-    void updateStats(Long sessionId, int messageCountDelta, int tokensDelta);
-
     void archiveSession(Long sessionId);
 
     void deleteSession(Long sessionId);

@@ -1,5 +1,7 @@
 package com.yang.lblogserver.ai.memory.compression;
 
+import com.yang.lblogserver.ai.conversation.domain.ChatMessage;
+import com.yang.lblogserver.ai.memory.ChatMemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.messages.Message;
@@ -22,6 +24,13 @@ public class SlidingWindowStrategy implements CompressionStrategy {
     public SlidingWindowStrategy(int maxMessages, int minTrigger) {
         this.maxMessages = maxMessages;
         this.minTrigger = minTrigger;
+    }
+
+    @Override
+    public List<ChatMessage> load(Long sessionId, ChatMemoryStore store) {
+        List<ChatMessage> history = store.loadHistory(sessionId);
+        if (history.size() <= maxMessages) return new ArrayList<>(history);
+        return new ArrayList<>(history.subList(history.size() - maxMessages, history.size()));
     }
 
     @Override

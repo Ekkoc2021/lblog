@@ -4,20 +4,25 @@
 <mapper namespace="com.yang.lblogserver.ai.conversation.mapper.ChatSessionMapper">
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO ai_chat_sessions (user_id, agent_type, title, model_name, message_count, total_tokens, status)
-        VALUES (#{userId}, #{agentType}, #{title}, #{modelName}, #{messageCount}, #{totalTokens}, #{status})
+        INSERT INTO ai_chat_sessions (user_id, agent_type, title, model_name, status)
+        VALUES (#{userId}, #{agentType}, #{title}, #{modelName}, #{status})
     </insert>
 
     <select id="selectById" resultType="com.yang.lblogserver.ai.conversation.domain.ChatSession">
         SELECT * FROM ai_chat_sessions WHERE id = #{id}
     </select>
 
-    <select id="selectByUserAndAgent" resultType="com.yang.lblogserver.ai.conversation.domain.ChatSession">
-        SELECT * FROM ai_chat_sessions
-        WHERE user_id = #{userId}
-          AND agent_type = #{agentType}
-          AND status >= 0
-        ORDER BY updated_at DESC
+    <select id="selectByUserAndAgent" resultType="com.yang.lblogserver.ai.conversation.domain.ChatSessionVO">
+        SELECT s.id, s.title, s.agent_type, s.model_name,
+               COUNT(m.id) AS message_count,
+               s.created_at, s.updated_at
+        FROM ai_chat_sessions s
+        LEFT JOIN ai_chat_messages m ON m.session_id = s.id
+        WHERE s.user_id = #{userId}
+          AND s.agent_type = #{agentType}
+          AND s.status >= 0
+        GROUP BY s.id, s.title, s.agent_type, s.model_name, s.created_at, s.updated_at
+        ORDER BY s.updated_at DESC
         LIMIT #{offset}, #{size}
     </select>
 
@@ -30,13 +35,6 @@
 
     <update id="updateTitle">
         UPDATE ai_chat_sessions SET title = #{title} WHERE id = #{id}
-    </update>
-
-    <update id="updateStats">
-        UPDATE ai_chat_sessions
-        SET message_count = message_count + #{delta},
-            total_tokens  = total_tokens + #{tokens}
-        WHERE id = #{sessionId}
     </update>
 
     <update id="updateStatus">

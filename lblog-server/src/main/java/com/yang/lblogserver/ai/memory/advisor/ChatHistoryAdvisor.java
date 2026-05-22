@@ -2,6 +2,7 @@ package com.yang.lblogserver.ai.memory.advisor;
 
 import com.yang.lblogserver.ai.conversation.domain.ChatMessage;
 import com.yang.lblogserver.ai.memory.ChatMemoryStore;
+import com.yang.lblogserver.ai.memory.compression.LoadingStrategy;
 import com.yang.lblogserver.ai.memory.converter.ContextPolicy;
 import com.yang.lblogserver.ai.memory.converter.ModelMessageConverter;
 import com.yang.lblogserver.site.mapper.SiteConfigMapper;
@@ -40,14 +41,17 @@ public class ChatHistoryAdvisor implements BaseAdvisor {
 
     private final ChatMemoryStore chatMemoryStore;
     private final List<ModelMessageConverter> converters;
+    private final LoadingStrategy loadingStrategy;
     private final SiteConfigMapper siteConfigMapper;
     private final int order;
 
     public ChatHistoryAdvisor(ChatMemoryStore chatMemoryStore,
                               List<ModelMessageConverter> converters,
+                              @org.springframework.beans.factory.annotation.Autowired(required = false) LoadingStrategy loadingStrategy,
                               SiteConfigMapper siteConfigMapper) {
         this.chatMemoryStore = chatMemoryStore;
         this.converters = converters;
+        this.loadingStrategy = loadingStrategy;
         this.siteConfigMapper = siteConfigMapper;
         this.order = BaseAdvisor.HIGHEST_PRECEDENCE;
     }
@@ -67,8 +71,10 @@ public class ChatHistoryAdvisor implements BaseAdvisor {
         try {
             Long sid = Long.parseLong(sessionId);
 
-            // 1. 从 DB 加载历史消息（全量，压缩由 CompressionAdvisor 处理）
-            List<ChatMessage> history = chatMemoryStore.loadHistory(sid);
+            // 1. 历史加载（有策略则按策略，否则全量降级）
+            List<ChatMessage> history = loadingStrategy != null
+                    ? loadingStrategy.load(sid, chatMemoryStore)
+                    : chatMemoryStore.loadHistory(sid);
 
             // 2. 提前持久化当前 user 消息，这样后续的多轮工具调用也能读到它
             saveCurrentUserMessage(request, sid);
@@ -129,8 +135,7 @@ public class ChatHistoryAdvisor implements BaseAdvisor {
                 int msgIndex = chatMemoryStore.getMaxMsgIndex(sid) + 1;
                 ChatMessage stored = converter.toStorageMessage(output, sid, msgIndex);
                 chatMemoryStore.saveMessages(sid, List.of(stored));
-                // 更新会话的 updated_at，用于前端会话列表排序
-                chatMemoryStore.touchSession(sid);
+                // updated_at 通过 DB ON UPDATE CURRENT_TIMESTAMP 自动刷新
             }
 
             return response;
@@ -157,8 +162,10 @@ public class ChatHistoryAdvisor implements BaseAdvisor {
         try {
             Long sid = Long.parseLong(sessionId);
 
-            // --- before 阶段：加载历史（压缩由 CompressionAdvisor 处理） ---
-            List<ChatMessage> history = chatMemoryStore.loadHistory(sid);
+            // --- before 阶段：加载历史 ---
+            List<ChatMessage> history = loadingStrategy != null
+                    ? loadingStrategy.load(sid, chatMemoryStore)
+                    : chatMemoryStore.loadHistory(sid);
             saveCurrentUserMessage(request, sid);
 
             ContextPolicy policy = buildPolicy();
@@ -204,7 +211,7 @@ public class ChatHistoryAdvisor implements BaseAdvisor {
                                 ChatMessage stored = conv.toStorageMessageFromChunks(
                                         chunks, capturedSid, msgIndex);
                                 chatMemoryStore.saveMessages(capturedSid, List.of(stored));
-                                chatMemoryStore.touchSession(capturedSid);
+                                // updated_at 通过 DB ON UPDATE CURRENT_TIMESTAMP 自动刷新
                             }
                         } catch (Exception e) {
                             log.error("ChatHistoryAdvisor.adviseStream doOnComplete error", e);

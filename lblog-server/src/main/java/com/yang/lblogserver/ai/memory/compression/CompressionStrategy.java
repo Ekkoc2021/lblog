@@ -3,7 +3,7 @@ package com.yang.lblogserver.ai.memory.compression;
 import org.springframework.ai.chat.messages.Message;
 import java.util.List;
 
-public interface CompressionStrategy {
+public interface CompressionStrategy extends LoadingStrategy {
 
     /** 按自己的标准判断是否需要压缩（如消息数超过阈值）。 */
     boolean shouldCompress(List<Message> messages);
