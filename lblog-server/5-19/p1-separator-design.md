@@ -267,7 +267,7 @@ ChatHistoryAdvisor  →  ContextStructureAdvisor  →  DeepSeekToolCallAdvisor
 **折中方案：在 PromptManager 中做格式化**
 
 ```java
-// PromptManager 负责构建完整的上下文结构
+// DrawPromptManager 负责构建完整的上下文结构
 public String buildStructuredContext(String systemPrompt, 
                                       String history, 
                                       String toolResults, 
@@ -290,7 +290,7 @@ public String buildStructuredContext(String systemPrompt,
 只在 `DiagramService` / `PromptManager` 层面改造，不涉及 advisor：
 
 ```java
-// PromptManager.buildSystemPrompt() 输出中加入标题
+// DrawPromptManager.buildSystemPrompt() 输出中加入标题
 "## System\n\n" + systemInstructions + "\n\n"
 + (skillHint != null ? skillHint + "\n\n" : "")
 + "## Current Task\n\n"

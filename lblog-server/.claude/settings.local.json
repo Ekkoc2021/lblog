@@ -151,7 +151,26 @@
       "Bash(sed -i 's|import com.yang.lblogserver.auth.domain.Images;|import com.yang.lblogserver.image.domain.Images;|' src/main/java/com/yang/lblogserver/auth/controller/UserController.java)",
       "Bash(sed -i 's|import com.yang.lblogserver.auth.mapper.ImageUsageMapper;|import com.yang.lblogserver.image.mapper.ImageUsageMapper;|' src/main/java/com/yang/lblogserver/auth/controller/UserController.java)",
       "Bash(sed -i 's|import com.yang.lblogserver.auth.service.ImagesService;|import com.yang.lblogserver.image.service.ImagesService;|' src/main/java/com/yang/lblogserver/auth/controller/UserController.java)",
-      "Bash([ -d \"src/main/java/com/yang/lblogserver/$d\" ])"
+      "Bash([ -d \"src/main/java/com/yang/lblogserver/$d\" ])",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git mv *)",
+      "Bash(sed -i 's/package com\\\\.yang\\\\.lblogserver\\\\.ai\\\\.config;/package com.yang.lblogserver.ai.agent.draw.config;/' src/main/java/com/yang/lblogserver/ai/agent/draw/config/DiagramConfig.java src/main/java/com/yang/lblogserver/ai/agent/draw/config/DrawRateLimiter.java)",
+      "Bash(sed -i 's/package com\\\\.yang\\\\.lblogserver\\\\.ai\\\\.draw;/package com.yang.lblogserver.ai.agent.draw;/' src/main/java/com/yang/lblogserver/ai/agent/draw/DiagramProperties.java src/main/java/com/yang/lblogserver/ai/agent/draw/DiagramService.java src/main/java/com/yang/lblogserver/ai/agent/draw/DisplayDiagramTool.java src/main/java/com/yang/lblogserver/ai/agent/draw/DrawChatRequest.java src/main/java/com/yang/lblogserver/ai/agent/draw/DrawConfigVO.java src/main/java/com/yang/lblogserver/ai/agent/draw/PromptManager.java src/main/java/com/yang/lblogserver/ai/agent/draw/SseEvent.java)",
+      "Bash(sed -i 's/package com\\\\.yang\\\\.lblogserver\\\\.ai\\\\.draw\\\\.controller;/package com.yang.lblogserver.ai.agent.draw.controller;/' src/main/java/com/yang/lblogserver/ai/agent/draw/controller/DiagramController.java)",
+      "Bash(sed -i 's/import com\\\\.yang\\\\.lblogserver\\\\.ai\\\\.config\\\\.DrawRateLimiter;/import com.yang.lblogserver.ai.agent.draw.config.DrawRateLimiter;/' src/main/java/com/yang/lblogserver/ai/agent/draw/controller/DiagramController.java)",
+      "Bash(sed -i 's/import com\\\\.yang\\\\.lblogserver\\\\.ai\\\\.draw\\\\./import com.yang.lblogserver.ai.agent.draw./g' src/main/java/com/yang/lblogserver/ai/agent/draw/controller/DiagramController.java)",
+      "Bash(:)",
+      "Bash(grep -v \"^--$\")",
+      "Read(//e/tmp/**)",
+      "Bash(jar xf *)",
+      "Bash(sed -n '183,210p' org/springframework/ai/chat/client/advisor/ToolCallAdvisor.java)",
+      "Bash(sed -n '405,415p' org/springframework/ai/chat/client/advisor/ToolCallAdvisor.java)",
+      "Bash(xargs -I{} jar tf {})",
+      "Bash(xargs -I{} jar xf {} -C /tmp \"org/springframework/ai/chat/model/MessageAggregator.class\")",
+      "Bash(javap -c /tmp/org/springframework/ai/chat/model/MessageAggregator.class)",
+      "Bash(findstr \"LISTEN\")",
+      "Bash(break)"
     ]
   }
 }

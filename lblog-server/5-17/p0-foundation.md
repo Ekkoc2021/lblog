@@ -1028,7 +1028,7 @@ public class ChatSessionController {
 - 修改 SSE done 事件，返回 `sessionId`
 
 ```java
-// DiagramController 中
+// DrawController 中
 @PostMapping("/chat")
 public SseEmitter chat(@RequestBody DrawChatRequest request,
                        @AuthenticationPrincipal UserDetails user) {
