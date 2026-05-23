@@ -7,7 +7,7 @@ import '@blocknote/react/style.css';
 import MarkdownRenderer from '../../components/MarkdownRenderer';
 import { useSiteData } from '../../contexts/SiteDataContext';
 import type { Category, Tag, Series } from '../../types';
-import { getCategories, getTags, getSeries, getAdminPostById, createPost, updatePost, uploadImage } from '../../services/api';
+import { getAuthorCategories, getAuthorTags, getAuthorSeries, getAdminPostById, createPost, updatePost, uploadImage } from '../../services/api';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -117,9 +117,9 @@ const PostEditor: React.FC = () => {
 
   // 加载下拉选项
   useEffect(() => {
-    getCategories(100).then(res => setCategories(res.data)).catch((e: Error) => message.error(e.message));
-    getTags(100).then(res => setTags(res.data)).catch((e: Error) => message.error(e.message));
-    getSeries(100).then(res => setSeriesList(res.data)).catch((e: Error) => message.error(e.message));
+    getAuthorCategories({ page: 1, pageSize: 100 }).then(res => setCategories(res.data.list)).catch((e: Error) => message.error(e.message));
+    getAuthorTags({ page: 1, pageSize: 100 }).then(res => setTags(res.data.list)).catch((e: Error) => message.error(e.message));
+    getAuthorSeries({ page: 1, pageSize: 100 }).then(res => setSeriesList(res.data.list)).catch((e: Error) => message.error(e.message));
   }, []);
 
   // 编辑模式：从 API 加载已有文章

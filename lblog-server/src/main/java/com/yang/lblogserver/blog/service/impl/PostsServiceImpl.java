@@ -133,6 +133,14 @@ public class PostsServiceImpl implements PostsService {
         if (seriesLink != null) {
             vo.setPrevPost(seriesPostsMapper.selectPrevPost(seriesLink.getSeriesId(), seriesLink.getSortOrder()));
             vo.setNextPost(seriesPostsMapper.selectNextPost(seriesLink.getSeriesId(), seriesLink.getSortOrder()));
+            Series s = seriesMapper.selectById(seriesLink.getSeriesId());
+            if (s != null) {
+                SeriesVO svo = new SeriesVO();
+                svo.setId(s.getId());
+                svo.setTitle(s.getTitle());
+                svo.setSlug(s.getSlug());
+                vo.setSeries(svo);
+            }
         }
 
         return vo;
@@ -421,7 +429,7 @@ public class PostsServiceImpl implements PostsService {
             SeriesPosts sp = new SeriesPosts();
             sp.setSeriesId(req.getSeriesId());
             sp.setPostId(postId);
-            sp.setSortOrder(0);
+            sp.setSortOrder(seriesPostsMapper.selectMaxSortOrder(req.getSeriesId()) + 1);
             seriesPostsMapper.insert(sp);
         }
 
@@ -479,7 +487,7 @@ public class PostsServiceImpl implements PostsService {
             SeriesPosts sp = new SeriesPosts();
             sp.setSeriesId(req.getSeriesId());
             sp.setPostId(id);
-            sp.setSortOrder(0);
+            sp.setSortOrder(seriesPostsMapper.selectMaxSortOrder(req.getSeriesId()) + 1);
             seriesPostsMapper.insert(sp);
         }
 

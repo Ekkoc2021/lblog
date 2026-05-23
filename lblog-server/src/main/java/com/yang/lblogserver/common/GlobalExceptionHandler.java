@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -77,6 +78,13 @@ public class GlobalExceptionHandler {
     public ApiResponse<Void> handleNoHandlerFound(NoHandlerFoundException e) {
         // 可以选择不记录日志，或仅记录简要信息，因为这是正常的客户端错误
         return ApiResponse.error(404, "请求的资源不存在");
+    }
+
+    @ExceptionHandler(DuplicateKeyException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiResponse<Void> handleDuplicateKey(DuplicateKeyException e) {
+        log.warn("Duplicate key violation: {}", e.getMessage());
+        return ApiResponse.error(409, "数据重复，请检查唯一字段是否已存在");
     }
 
     @ExceptionHandler(Exception.class)

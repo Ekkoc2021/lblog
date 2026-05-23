@@ -20,6 +20,7 @@ import PostEditor from './pages/author/PostEditor';
 import CategoryManage from './pages/author/CategoryManage';
 import TagManage from './pages/author/TagManage';
 import SeriesManage from './pages/author/SeriesManage';
+import SeriesPostsManage from './pages/author/SeriesPostsManage';
 import Statistics from './pages/author/Statistics';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import PostManage from './pages/admin/PostManage';
@@ -85,6 +86,7 @@ return (
                 <Route path="categories" element={<CategoryManage />} />
                 <Route path="tags" element={<TagManage />} />
                 <Route path="series" element={<SeriesManage />} />
+                <Route path="series/:seriesId/posts" element={<SeriesPostsManage />} />
                 <Route path="statistics" element={<Statistics />} />
               </Route>
             </Routes>

@@ -137,7 +137,7 @@ const PostDetail: React.FC = () => {
                   {post.publishedAt?.split('T')[0]}
                 </Text>
                 <Text style={{ color: 'var(--color-text-tertiary)' }}>/</Text>
-                <Text style={{ color: 'var(--color-primary)', fontSize: 13 }}>{post.category?.name}</Text>
+                <Text style={{ color: 'var(--color-primary)', fontSize: 13, cursor: 'pointer' }} onClick={() => post.category?.slug && navigate(`/category/${post.category.slug}`)}>{post.category?.name}</Text>
                 <Text style={{ color: 'var(--color-border)' }}>|</Text>
                 <Space size={4} style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>
                   <EyeOutlined /> <span>{post.viewCount}</span>
@@ -159,11 +159,24 @@ const PostDetail: React.FC = () => {
               </div>
 
               {post.tags && post.tags.length > 0 && (
-                <Space style={{ marginBottom: 16 }}>
+                <Space size={[8, 6]} wrap style={{ marginBottom: 16 }}>
                   {post.tags.map(tag => (
-                    <Tag key={tag.id} style={{ borderRadius: 10, background: 'var(--color-bg-tag)', color: 'var(--color-text-secondary)', border: 'none', margin: 0 }}>{tag.name}</Tag>
+                    <Tag
+                      key={tag.id}
+                      style={{ borderRadius: 10, background: 'var(--color-bg-tag)', color: 'var(--color-text-secondary)', border: 'none', margin: 0, cursor: 'pointer' }}
+                      onClick={() => navigate(`/tag/${tag.slug}`)}
+                    >{tag.name}</Tag>
                   ))}
                 </Space>
+              )}
+              {post.series?.slug && (
+                <div style={{ marginBottom: 16 }}>
+                  <span style={{ fontSize: 13, color: 'var(--color-text-tertiary)', marginRight: 8 }}>专栏：</span>
+                  <span
+                    style={{ borderRadius: 10, background: 'var(--color-primary-bg)', color: 'var(--color-primary)', border: 'none', cursor: 'pointer', fontSize: 13, padding: '2px 12px', display: 'inline-block' }}
+                    onClick={() => navigate(`/series/${post.series!.slug}`)}
+                  >{post.series!.title}</span>
+                </div>
               )}
 
               {post.featuredImage && (

@@ -2,6 +2,7 @@ package com.yang.lblogserver.blog.mapper;
 
 import com.yang.lblogserver.blog.domain.SeriesPosts;
 import com.yang.lblogserver.blog.vo.PrevNextPostVO;
+import com.yang.lblogserver.blog.vo.SeriesPostVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -30,7 +31,13 @@ public interface SeriesPostsMapper {
                          @Param("postId") Long postId,
                          @Param("sortOrder") Integer sortOrder);
 
+    int selectMaxSortOrder(@Param("seriesId") Long seriesId);
+
     List<SeriesPosts> selectByPostIds(List<Long> postIds);
+
+    List<SeriesPostVO> selectPostsBySeriesId(@Param("seriesId") Long seriesId);
+
+    int deleteBySeriesIdAndPostId(@Param("seriesId") Long seriesId, @Param("postId") Long postId);
 }
 
 

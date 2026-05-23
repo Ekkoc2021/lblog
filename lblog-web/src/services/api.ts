@@ -1,21 +1,21 @@
 import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries, AdminComment } from '../types';
 
 function getToken(): string | null {
-  return sessionStorage.getItem('lblog_access_token');
+  return localStorage.getItem('lblog_access_token');
 }
 
 function getRefreshToken(): string | null {
-  return sessionStorage.getItem('lblog_refresh_token');
+  return localStorage.getItem('lblog_refresh_token');
 }
 
 function setTokens(accessToken: string, refreshToken: string): void {
-  sessionStorage.setItem('lblog_access_token', accessToken);
-  sessionStorage.setItem('lblog_refresh_token', refreshToken);
+  localStorage.setItem('lblog_access_token', accessToken);
+  localStorage.setItem('lblog_refresh_token', refreshToken);
 }
 
 function clearTokens(): void {
-  sessionStorage.removeItem('lblog_access_token');
-  sessionStorage.removeItem('lblog_refresh_token');
+  localStorage.removeItem('lblog_access_token');
+  localStorage.removeItem('lblog_refresh_token');
 }
 
 // Token 刷新模块级状态
@@ -403,6 +403,28 @@ export async function updateSeries(id: number, data: Partial<CreateSeriesRequest
 
 export async function deleteSeries(id: number): Promise<ApiResponse<null>> {
   return request<null>(`/api/v1/author/series/${id}`, { method: 'DELETE' });
+}
+
+export interface SeriesPostItem {
+  postId: number;
+  title: string;
+  slug: string;
+  sortOrder: number;
+}
+
+export async function getSeriesPosts(seriesId: number): Promise<ApiResponse<SeriesPostItem[]>> {
+  return request<SeriesPostItem[]>(`/api/v1/author/series/${seriesId}/posts`);
+}
+
+export async function sortSeriesPosts(seriesId: number, postIds: number[]): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/author/series/${seriesId}/posts/sort`, {
+    method: 'PUT',
+    body: JSON.stringify({ postIds }),
+  });
+}
+
+export async function removeSeriesPost(seriesId: number, postId: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/author/series/${seriesId}/posts/${postId}`, { method: 'DELETE' });
 }
 
 // ---- 作者统计 ----

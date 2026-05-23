@@ -129,8 +129,9 @@ create table categories
     updated_at  datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP,
     deleted_at  datetime                           null comment '软删除时间',
     is_delelte  int      default 0                 null comment '是否删除',
+    slug_active varchar(100) as (if(is_delelte = 0 and deleted_at is null, slug, null)) virtual null,
     constraint uk_slug
-        unique (slug)
+        unique (slug_active)
 )
     comment '分类表';
 
@@ -297,8 +298,9 @@ create table posts
     updated_at     datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP,
     deleted_at     datetime                           null comment '软删除时间',
     is_delelte     int      default 0                 null comment '是否删除',
+    slug_active    varchar(255) as (if(is_delelte = 0 and deleted_at is null, slug, null)) virtual null,
     constraint uk_slug
-        unique (slug)
+        unique (slug_active)
 )
     comment '文章元数据表';
 
@@ -351,8 +353,9 @@ create table series
     updated_at      datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP,
     deleted_at      datetime                           null comment '软删除时间',
     is_delelte      int      default 0                 null comment '是否删除',
+    slug_active     varchar(255) as (if(is_delelte = 0 and deleted_at is null, slug, null)) virtual null,
     constraint uk_slug
-        unique (slug)
+        unique (slug_active)
 )
     comment '专栏表';
 
@@ -398,8 +401,9 @@ create table tags
     updated_at datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP,
     deleted_at datetime                           null comment '软删除时间',
     is_delelte int      default 0                 null comment '是否删除',
+    slug_active varchar(100) as (if(is_delelte = 0 and deleted_at is null, slug, null)) virtual null,
     constraint uk_slug
-        unique (slug)
+        unique (slug_active)
 )
     comment '标签表';
 

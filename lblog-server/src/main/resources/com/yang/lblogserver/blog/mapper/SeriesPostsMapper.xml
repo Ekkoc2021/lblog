@@ -70,6 +70,10 @@
         WHERE series_id = #{seriesId} AND post_id = #{postId}
     </update>
 
+    <select id="selectMaxSortOrder" resultType="int">
+        SELECT COALESCE(MAX(sort_order), -1) FROM series_posts WHERE series_id = #{seriesId}
+    </select>
+
     <select id="selectByPostIds" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
         FROM series_posts
@@ -78,4 +82,17 @@
             #{postId}
         </foreach>
     </select>
+
+    <select id="selectPostsBySeriesId" resultType="com.yang.lblogserver.blog.vo.SeriesPostVO">
+        SELECT p.id AS postId, p.title, p.slug, sp.sort_order AS sortOrder
+        FROM series_posts sp
+        JOIN posts p ON sp.post_id = p.id
+        WHERE sp.series_id = #{seriesId}
+          AND p.is_delelte = 0 AND p.deleted_at IS NULL
+        ORDER BY sp.sort_order ASC
+    </select>
+
+    <delete id="deleteBySeriesIdAndPostId">
+        DELETE FROM series_posts WHERE series_id = #{seriesId} AND post_id = #{postId}
+    </delete>
 </mapper>

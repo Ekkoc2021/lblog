@@ -1,5 +1,6 @@
 package com.yang.lblogserver.blog.service;
 
+import com.yang.lblogserver.blog.vo.SeriesPostVO;
 import com.yang.lblogserver.blog.vo.SeriesVO;
 import com.yang.lblogserver.blog.vo.admin.CreateSeriesRequest;
 
@@ -24,4 +25,8 @@ public interface SeriesService {
     void linkPosts(Long seriesId, List<Long> postIds);
 
     void reorderPosts(Long seriesId, List<Long> postIds);
+
+    List<SeriesPostVO> getPostsBySeriesId(Long seriesId);
+
+    boolean removePostFromSeries(Long seriesId, Long postId);
 }

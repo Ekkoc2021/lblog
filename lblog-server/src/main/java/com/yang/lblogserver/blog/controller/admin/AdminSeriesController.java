@@ -10,6 +10,7 @@ import com.yang.lblogserver.blog.mapper.SeriesMapper;
 import com.yang.lblogserver.auth.service.UserQueryService;
 import com.yang.lblogserver.auth.security.model.LoginUser;
 import com.yang.lblogserver.blog.service.SeriesService;
+import com.yang.lblogserver.blog.vo.SeriesPostVO;
 import com.yang.lblogserver.blog.vo.SeriesVO;
 import com.yang.lblogserver.blog.vo.admin.AdminSeriesVO;
 import com.yang.lblogserver.blog.vo.admin.CreateSeriesRequest;
@@ -121,6 +122,25 @@ public class AdminSeriesController {
         Series series = seriesMapper.selectById(seriesId);
         if (series == null) return ApiResponse.error(404, "专栏不存在");
         seriesService.reorderPosts(seriesId, request.getPostIds());
+        return ApiResponse.success(null);
+    }
+
+    @Operation(summary = "获取专栏文章列表")
+    @GetMapping("/series/{seriesId}/posts")
+    public ApiResponse<List<SeriesPostVO>> getSeriesPosts(@PathVariable Long seriesId) {
+        Series series = seriesMapper.selectById(seriesId);
+        if (series == null) return ApiResponse.error(404, "专栏不存在");
+        return ApiResponse.success(seriesService.getPostsBySeriesId(seriesId));
+    }
+
+    @Operation(summary = "从专栏移除文章")
+    @DeleteMapping("/series/{seriesId}/posts/{postId}")
+    public ApiResponse<?> removeSeriesPost(@PathVariable Long seriesId, @PathVariable Long postId) {
+        Series series = seriesMapper.selectById(seriesId);
+        if (series == null) return ApiResponse.error(404, "专栏不存在");
+        if (!seriesService.removePostFromSeries(seriesId, postId)) {
+            return ApiResponse.error(404, "文章不在该专栏中");
+        }
         return ApiResponse.success(null);
     }
 

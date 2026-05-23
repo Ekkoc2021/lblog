@@ -5,6 +5,7 @@ import com.yang.lblogserver.blog.domain.SeriesPosts;
 import com.yang.lblogserver.blog.mapper.SeriesMapper;
 import com.yang.lblogserver.blog.mapper.SeriesPostsMapper;
 import com.yang.lblogserver.blog.service.SeriesService;
+import com.yang.lblogserver.blog.vo.SeriesPostVO;
 import com.yang.lblogserver.blog.vo.SeriesVO;
 import com.yang.lblogserver.blog.vo.admin.CreateSeriesRequest;
 import org.springframework.stereotype.Service;
@@ -106,5 +107,15 @@ public class SeriesServiceImpl implements SeriesService {
         for (int i = 0; i < postIds.size(); i++) {
             seriesPostsMapper.updateSortOrder(seriesId, postIds.get(i), i);
         }
+    }
+
+    @Override
+    public List<SeriesPostVO> getPostsBySeriesId(Long seriesId) {
+        return seriesPostsMapper.selectPostsBySeriesId(seriesId);
+    }
+
+    @Override
+    public boolean removePostFromSeries(Long seriesId, Long postId) {
+        return seriesPostsMapper.deleteBySeriesIdAndPostId(seriesId, postId) > 0;
     }
 }

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Table, Button, Space, Card, Tag, Modal, Input, Form, Select, Switch, message } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, PlusOutlined, OrderedListOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import type { Series, Category } from '../../types';
 import { getAuthorSeries, getAuthorCategories, createSeries, updateSeries, deleteSeries } from '../../services/api';
 
 const SeriesManage: React.FC = () => {
+  const navigate = useNavigate();
   const [seriesList, setSeriesList] = useState<Series[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
@@ -99,6 +101,7 @@ const SeriesManage: React.FC = () => {
       render: (_: unknown, record: Series) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openEdit(record)}>编辑</Button>
+          <Button type="link" size="small" icon={<OrderedListOutlined />} onClick={() => navigate(`/author/series/${record.id}/posts`)}>文章</Button>
           <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>删除</Button>
         </Space>
       ),
