@@ -138,6 +138,28 @@ html {
 .article-card {
   transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
+.article-card-inner {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+.article-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .article-card-inner .ant-image {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .article-card-tags,
+  .article-card-category {
+    display: none !important;
+  }
+}
 .article-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 30px rgba(0,0,0,0.08);

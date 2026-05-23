@@ -20,10 +20,18 @@ const DrawFloatingButton: React.FC<DrawFloatingButtonProps> = ({ onOpenDraw, onP
   const dragging = useRef(false)
   const dragStart = useRef({ x: 0, y: 0, left: 0, top: 0 })
   const hideTimer = useRef<number | null>(null)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
 
   const tools: ToolItem[] = [
     { id: 'draw', label: '绘图工具', icon: <PencilRuler size={14} />, action: () => { setHover(false); onOpenDraw() } },
   ]
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+    const handler = (e: MediaQueryListEvent | MediaQueryList) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   useEffect(() => {
     const p = { left: window.innerWidth - 120, top: 120 }
@@ -65,7 +73,7 @@ const DrawFloatingButton: React.FC<DrawFloatingButtonProps> = ({ onOpenDraw, onP
     hideTimer.current = window.setTimeout(() => setHover(false), 300)
   }
 
-  if (hidden) return null
+  if (hidden || isMobile) return null
 
   return (
     <div style={{

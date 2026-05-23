@@ -121,12 +121,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               style={{ marginRight: 8 }}
             />
           )}
-          <div
-            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', marginRight: isMobile ? 0 : 40 }}
-            onClick={() => navigate('/')}
-          >
-            <Text strong style={{ fontSize: 22, color: 'var(--color-text)', letterSpacing: '-0.02em' }}>LBlog</Text>
-          </div>
+          {!isMobile && (
+            <div
+              style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', marginRight: 40 }}
+              onClick={() => navigate('/')}
+            >
+              <Text strong style={{ fontSize: 22, color: 'var(--color-text)', letterSpacing: '-0.02em' }}>LBlog</Text>
+            </div>
+          )}
           {!isMobile && [{ key: '/', label: '首页' }, ...(user?.role === 'admin' ? [adminNavItem] : [])].map(item => {
             const isActive = item.key === '/' ? location.pathname === '/' : location.pathname.startsWith(item.key);
             return (
@@ -285,21 +287,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   </div>
                   <Divider style={{ margin: '12px 0' }} />
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <Button
-                      type="text"
-                      icon={<FileTextOutlined />}
-                      style={{ flex: 1, paddingLeft: 8 }}
-                      onClick={() => {
-                        setLoginModalVisible(false);
-                        if (user?.role === 'user') {
-                          message.info('申请成为作者后才能使用创作中心');
-                          return;
-                        }
-                        navigate('/author/posts');
-                      }}
-                    >
-                      创作中心
-                    </Button>
+                    {!isMobile && (
+                      <Button
+                        type="text"
+                        icon={<FileTextOutlined />}
+                        style={{ flex: 1, paddingLeft: 8 }}
+                        onClick={() => {
+                          setLoginModalVisible(false);
+                          if (user?.role === 'user') {
+                            message.info('申请成为作者后才能使用创作中心');
+                            return;
+                          }
+                          navigate('/author/posts');
+                        }}
+                      >
+                        创作中心
+                      </Button>
+                    )}
                     <Button
                       type="text"
                       icon={<LogoutOutlined />}

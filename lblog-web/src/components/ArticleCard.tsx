@@ -1,5 +1,6 @@
 import { Card, Tag, Space, Typography, Avatar, Divider, Image } from 'antd';
 import { EyeOutlined, LikeOutlined, MessageOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import type { Post, Tag as TagType } from '../types';
 
 const { Text, Paragraph } = Typography;
@@ -26,7 +27,9 @@ interface ArticleCardProps {
   onClick?: () => void;
 }
 
-const ArticleCard: React.FC<ArticleCardProps> = ({ post, keyword, onClick }) => (
+const ArticleCard: React.FC<ArticleCardProps> = ({ post, keyword, onClick }) => {
+  const navigate = useNavigate();
+  return (
   <Card
     hoverable
     className="article-card"
@@ -34,19 +37,21 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ post, keyword, onClick }) => 
     styles={{ body: { padding: '20px 24px' } }}
     onClick={onClick}
   >
-    <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
-      <div style={{ flex: 1, minWidth: 0 }}>
+    <div className="article-card-inner">
+      <div className="article-card-content">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
           <Avatar size={24} src={post.author?.avatar || undefined} style={{ background: post.author?.avatar ? undefined : 'var(--color-primary)', fontSize: 12 }}>
             {!post.author?.avatar && (post.author?.nickname?.[0] || 'U')}
           </Avatar>
-          <Text style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{post.author?.nickname}</Text>
+          <Text style={{ fontSize: 13, color: 'var(--color-text-secondary)', maxWidth: 120 }} ellipsis>{post.author?.nickname}</Text>
           <Divider type="vertical" style={{ borderColor: 'var(--color-border)' }} />
           <Text style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>
             {post.publishedAt?.split('T')[0]}
           </Text>
-          <Divider type="vertical" style={{ borderColor: 'var(--color-border)' }} />
-          <Text style={{ fontSize: 13, color: 'var(--color-primary)' }}>{post.category?.name}</Text>
+          <span className="article-card-category">
+            <Divider type="vertical" style={{ borderColor: 'var(--color-border)' }} />
+            <Text style={{ fontSize: 13, color: 'var(--color-primary)', cursor: 'pointer' }} onClick={(e) => { e.stopPropagation(); post.category?.slug && navigate(`/category/${post.category.slug}`); }}>{post.category?.name}</Text>
+          </span>
         </div>
         <Text strong style={{ fontSize: 17, display: 'block', marginBottom: 8, cursor: 'pointer', color: 'var(--color-text)', lineHeight: 1.4 }}>
           {keyword ? highlightText(post.title, keyword) : post.title}
@@ -57,7 +62,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ post, keyword, onClick }) => 
         >
           {keyword ? highlightText(post.excerpt, keyword) : post.excerpt}
         </Paragraph>
-        <Space size={20}>
+        <Space size={[16, 6]} wrap>
           <Space size={4} style={{ color: 'var(--color-text-tertiary)', fontSize: 13, cursor: 'pointer' }}>
             <LikeOutlined />
             <span>{post.likeCount}</span>
@@ -70,11 +75,17 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ post, keyword, onClick }) => 
             <EyeOutlined />
             <span>{post.viewCount}</span>
           </Space>
-          {post.tags?.map((tag: TagType) => (
-            <Tag key={tag.id} style={{ margin: 0, borderRadius: 10, background: 'var(--color-bg-tag)', color: 'var(--color-text-secondary)', border: 'none', fontSize: 12, padding: '1px 10px' }}>
-              {tag.name}
-            </Tag>
-          ))}
+          <span className="article-card-tags">
+            {post.tags?.map((tag: TagType) => (
+              <Tag
+                key={tag.id}
+                style={{ margin: 0, borderRadius: 10, background: 'var(--color-bg-tag)', color: 'var(--color-text-secondary)', border: 'none', fontSize: 12, padding: '1px 10px', cursor: 'pointer' }}
+                onClick={(e) => { e.stopPropagation(); navigate(`/tag/${tag.slug}`); }}
+              >
+                {tag.name}
+              </Tag>
+            ))}
+          </span>
         </Space>
       </div>
       {post.featuredImage && (
@@ -89,6 +100,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ post, keyword, onClick }) => 
       )}
     </div>
   </Card>
-);
+  );
+};
 
 export default ArticleCard;

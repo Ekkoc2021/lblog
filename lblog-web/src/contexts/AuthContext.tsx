@@ -17,18 +17,18 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(() => sessionStorage.getItem('lblog_access_token'));
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('lblog_access_token'));
   const [user, setUser] = useState<User | null>(null);
 
   // 页面刷新后，如果 token 还在，重新加载用户信息
   useEffect(() => {
-    const t = sessionStorage.getItem('lblog_access_token');
+    const t = localStorage.getItem('lblog_access_token');
     if (!t) return;
     getCurrentUser()
       .then(res => setUser(res.data))
       .catch(() => {
-        sessionStorage.removeItem('lblog_access_token');
-        sessionStorage.removeItem('lblog_refresh_token');
+        localStorage.removeItem('lblog_access_token');
+        localStorage.removeItem('lblog_refresh_token');
         setToken(null);
       });
   }, []);
@@ -38,8 +38,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiLogin(username, password);
       if (res.data?.accessToken) {
         // 存双 token
-        sessionStorage.setItem('lblog_access_token', res.data.accessToken);
-        sessionStorage.setItem('lblog_refresh_token', res.data.refreshToken);
+        localStorage.setItem('lblog_access_token', res.data.accessToken);
+        localStorage.setItem('lblog_refresh_token', res.data.refreshToken);
         setToken(res.data.accessToken);
         // 保存用户信息
         setUser(res.data.user);
@@ -55,8 +55,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const res = await apiRegister(data);
       if (res.data?.accessToken) {
-        sessionStorage.setItem('lblog_access_token', res.data.accessToken);
-        sessionStorage.setItem('lblog_refresh_token', res.data.refreshToken);
+        localStorage.setItem('lblog_access_token', res.data.accessToken);
+        localStorage.setItem('lblog_refresh_token', res.data.refreshToken);
         setToken(res.data.accessToken);
         setUser(res.data.user);
         return true;
@@ -71,15 +71,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // 尝试调后端登出（不 await，不阻塞 UI）
     apiLogout().catch(() => {});
     // 清本地
-    sessionStorage.removeItem('lblog_access_token');
-    sessionStorage.removeItem('lblog_refresh_token');
+    localStorage.removeItem('lblog_access_token');
+    localStorage.removeItem('lblog_refresh_token');
     setToken(null);
     setUser(null);
   }, []);
 
   const updateTokens = useCallback((accessToken: string, refreshToken: string) => {
-    sessionStorage.setItem('lblog_access_token', accessToken);
-    sessionStorage.setItem('lblog_refresh_token', refreshToken);
+    localStorage.setItem('lblog_access_token', accessToken);
+    localStorage.setItem('lblog_refresh_token', refreshToken);
     setToken(accessToken);
   }, []);
 
