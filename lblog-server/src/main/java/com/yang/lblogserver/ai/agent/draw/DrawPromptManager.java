@@ -3,7 +3,6 @@ package com.yang.lblogserver.ai.agent.draw;
 import com.yang.lblogserver.ai.prompt.service.AiPromptService;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -21,11 +20,6 @@ import java.util.Map;
  */
 @Component
 public class DrawPromptManager {
-
-    private static final List<String> EXTENDED_PROMPT_MODEL_PATTERNS = List.of(
-            "claude-opus-4-5",
-            "claude-haiku-4-5"
-    );
 
     private static final String DEFAULT_SYSTEM_PROMPT = """
             You are an expert diagram creation assistant specializing in draw.io XML generation.
@@ -270,15 +264,13 @@ public class DrawPromptManager {
 
             **Key principle:** When connecting distant nodes diagonally, route along the PERIMETER of the diagram, not through the middle where other shapes exist.""";
 
-    private static final String EXTENDED_SYSTEM_PROMPT = DEFAULT_SYSTEM_PROMPT + EXTENDED_ADDITIONS;
-
     private final AiPromptService promptService;
 
     public DrawPromptManager(AiPromptService promptService) {
         this.promptService = promptService;
     }
 
-    public String buildSystemPrompt(String modelId, boolean minimalStyle) {
+    public String buildSystemPrompt(boolean minimalStyle) {
         Map<String, String> p = promptService.getPromptMap("draw");
         boolean hasDbData = !p.isEmpty();
 
@@ -287,19 +279,14 @@ public class DrawPromptManager {
 
         if (hasDbData) {
             defaultPrompt = p.getOrDefault("system-default", DEFAULT_SYSTEM_PROMPT);
-            if (modelId != null && EXTENDED_PROMPT_MODEL_PATTERNS.stream().anyMatch(modelId::contains)) {
-                String extended = p.get("system-extended");
-                if (extended != null) {
-                    defaultPrompt += "\n\n" + extended;
-                }
+            String extended = p.get("system-extended");
+            if (extended != null) {
+                defaultPrompt += "\n\n" + extended;
             }
             styleContent = minimalStyle ? p.getOrDefault("style-minimal", MINIMAL_STYLE_INSTRUCTION)
                                         : p.getOrDefault("style-normal", STYLE_INSTRUCTIONS);
         } else {
-            defaultPrompt = DEFAULT_SYSTEM_PROMPT;
-            if (modelId != null && EXTENDED_PROMPT_MODEL_PATTERNS.stream().anyMatch(modelId::contains)) {
-                defaultPrompt += "\n\n" + EXTENDED_ADDITIONS;
-            }
+            defaultPrompt = DEFAULT_SYSTEM_PROMPT + "\n\n" + EXTENDED_ADDITIONS;
             styleContent = minimalStyle ? MINIMAL_STYLE_INSTRUCTION : STYLE_INSTRUCTIONS;
         }
 

@@ -168,7 +168,7 @@ public class DrawService {
 
     private String buildFullSystemPrompt(DrawChatRequest request) {
         String prompt = promptManager.buildSystemPrompt(
-                null, request.getMinimalStyle() != null && request.getMinimalStyle());
+                request.getMinimalStyle() != null && request.getMinimalStyle());
         String skillHint = skillPromptBuilder.buildLazyHint("draw");
         if (!skillHint.isEmpty()) {
             prompt += "\n" + skillHint;
