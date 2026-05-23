@@ -3,7 +3,9 @@ package com.yang.lblogserver.ai.agent.draw.controller;
 import com.yang.lblogserver.ai.agent.draw.DrawService;
 import com.yang.lblogserver.ai.agent.draw.DrawChatRequest;
 import com.yang.lblogserver.ai.agent.draw.DrawConfigVO;
+import com.yang.lblogserver.ai.agent.draw.DrawProperties;
 import com.yang.lblogserver.ai.agent.draw.config.DrawRateLimiter;
+import com.yang.lblogserver.ai.agent.transport.SseStreamTransport;
 import com.yang.lblogserver.ai.conversation.domain.ChatSession;
 import com.yang.lblogserver.ai.memory.ChatMemoryStore;
 import com.yang.lblogserver.common.ApiResponse;
@@ -16,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @Tag(name = "AI 绘图", description = "AI 辅助 draw.io 图表生成")
@@ -27,16 +30,22 @@ public class DrawController {
     private final DrawRateLimiter drawRateLimiter;
     private final SiteConfigMapper siteConfigMapper;
     private final ChatMemoryStore chatMemoryStore;
+    private final ScheduledExecutorService heartbeatScheduler;
+    private final DrawProperties drawProperties;
     private final String modelName;
 
     public DrawController(DrawService diagramService,
                           DrawRateLimiter drawRateLimiter, SiteConfigMapper siteConfigMapper,
                           ChatMemoryStore chatMemoryStore,
+                          ScheduledExecutorService heartbeatScheduler,
+                          DrawProperties drawProperties,
                           @Value("${spring.ai.deepseek.chat.options.model}") String modelName) {
         this.diagramService = diagramService;
         this.drawRateLimiter = drawRateLimiter;
         this.siteConfigMapper = siteConfigMapper;
         this.chatMemoryStore = chatMemoryStore;
+        this.heartbeatScheduler = heartbeatScheduler;
+        this.drawProperties = drawProperties;
         this.modelName = modelName;
     }
 
@@ -70,7 +79,9 @@ public class DrawController {
         SseEmitter emitter = new SseEmitter(TimeUnit.MINUTES.toMillis(3));
         emitter.onTimeout(emitter::complete);
 
-        diagramService.chatStream(request, emitter);
+        SseStreamTransport transport = new SseStreamTransport(
+                emitter, heartbeatScheduler, drawProperties.getDisconnectCheckIntervalSeconds());
+        diagramService.chatStream(request, transport);
 
         return emitter;
     }

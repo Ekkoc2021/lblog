@@ -1,5 +1,6 @@
 package com.yang.lblogserver.ai.agent.draw;
 
+import com.yang.lblogserver.ai.agent.transport.AgentStreamTransport;
 import com.yang.lblogserver.ai.skill.LoadSkillTool;
 import com.yang.lblogserver.ai.skill.SkillSystemPromptBuilder;
 import org.slf4j.Logger;
@@ -11,14 +12,10 @@ import org.springframework.ai.deepseek.DeepSeekAssistantMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class DrawService {
@@ -27,47 +24,29 @@ public class DrawService {
 
     private final ChatClient chatClient;
     private final DrawPromptManager promptManager;
-    private final DrawProperties diagramProperties;
     private final DisplayDrawTool displayDiagramTool;
     private final LoadSkillTool loadSkillTool;
     private final SkillSystemPromptBuilder skillPromptBuilder;
-    private final ScheduledExecutorService heartbeatScheduler;
 
     public DrawService(@Qualifier("drawChatClient") ChatClient chatClient,
                        DrawPromptManager promptManager,
-                       DrawProperties diagramProperties,
                        DisplayDrawTool displayDiagramTool,
                        LoadSkillTool loadSkillTool,
-                       SkillSystemPromptBuilder skillPromptBuilder,
-                       ScheduledExecutorService heartbeatScheduler) {
+                       SkillSystemPromptBuilder skillPromptBuilder) {
         this.chatClient = chatClient;
         this.promptManager = promptManager;
-        this.diagramProperties = diagramProperties;
         this.displayDiagramTool = displayDiagramTool;
         this.loadSkillTool = loadSkillTool;
         this.skillPromptBuilder = skillPromptBuilder;
-        this.heartbeatScheduler = heartbeatScheduler;
     }
 
     @Async("diagramTaskExecutor")
-    public void chatNonStream(DrawChatRequest request, SseEmitter emitter) {
-        Thread asyncThread = Thread.currentThread();
-
-        ScheduledFuture<?> heartbeat = heartbeatScheduler.scheduleAtFixedRate(() -> {
-            try {
-                emitter.send(SseEmitter.event().data("{}"));
-            } catch (Exception e) {
-                asyncThread.interrupt();
-                throw new RuntimeException(e);
-            }
-        }, diagramProperties.getDisconnectCheckIntervalSeconds(), diagramProperties.getDisconnectCheckIntervalSeconds(), TimeUnit.SECONDS);
-
-        emitter.onCompletion(() -> heartbeat.cancel(false));
-
+    public void chatNonStream(DrawChatRequest request, AgentStreamTransport transport) {
+        transport.start();
         try {
             String userContent = getLatestUserMessage(request);
             if (userContent == null) {
-                emitter.complete();
+                transport.complete();
                 return;
             }
 
@@ -85,7 +64,7 @@ public class DrawService {
                         }
                     })
                     .tools(displayDiagramTool, loadSkillTool)
-                    .toolContext(Map.of("emitter", emitter,
+                    .toolContext(Map.of("transport", transport,
                             "sessionId", request.getSessionId() != null ? request.getSessionId() : "",
                             "agentType", "draw"))
                     .call();
@@ -97,59 +76,35 @@ public class DrawService {
                 if (output instanceof DeepSeekAssistantMessage dsam) {
                     String rc = dsam.getReasoningContent();
                     if (rc != null && !rc.isEmpty()) {
-                        try {
-                            emitter.send(SseEmitter.event()
-                                    .data(Map.of("type", "reasoning", "delta", rc)));
-                        } catch (Exception e) {
-                            log.warn("Failed to send reasoning", e);
-                        }
+                        transport.send("reasoning", Map.of("delta", rc));
                     }
                 }
 
                 String text = output.getText();
                 if (text != null && !text.isEmpty()) {
-                    try {
-                        emitter.send(SseEmitter.event()
-                                .data(Map.of("type", "text-delta", "delta", text)));
-                    } catch (Exception e) {
-                        log.warn("Failed to send delta", e);
-                    }
+                    transport.send("text-delta", Map.of("delta", text));
                 }
             }
 
-            sendDone(emitter, request.getSessionId());
-            emitter.complete();
+            transport.send("done", Map.of("sessionId", request.getSessionId() != null ? request.getSessionId() : ""));
+            transport.complete();
 
         } catch (Exception e) {
             if (e instanceof WebClientResponseException wcre) {
                 log.error("API error: status={}, body={}", wcre.getStatusCode(), wcre.getResponseBodyAsString());
             }
             log.error("Error in non-stream chat", e);
-            emitter.completeWithError(e);
-        } finally {
-            heartbeat.cancel(false);
+            transport.completeWithError(e);
         }
     }
 
     @Async("diagramTaskExecutor")
-    public void chatStream(DrawChatRequest request, SseEmitter emitter) {
-        Thread asyncThread = Thread.currentThread();
-
-        ScheduledFuture<?> heartbeat = heartbeatScheduler.scheduleAtFixedRate(() -> {
-            try {
-                emitter.send(SseEmitter.event().data("{}"));
-            } catch (Exception e) {
-                asyncThread.interrupt();
-                throw new RuntimeException(e);
-            }
-        }, diagramProperties.getDisconnectCheckIntervalSeconds(), diagramProperties.getDisconnectCheckIntervalSeconds(), TimeUnit.SECONDS);
-
-        emitter.onCompletion(() -> heartbeat.cancel(false));
-
+    public void chatStream(DrawChatRequest request, AgentStreamTransport transport) {
+        transport.start();
         try {
             String userContent = getLatestUserMessage(request);
             if (userContent == null) {
-                emitter.complete();
+                transport.complete();
                 return;
             }
 
@@ -168,7 +123,7 @@ public class DrawService {
                             }
                         })
                         .tools(displayDiagramTool, loadSkillTool)
-                        .toolContext(Map.of("emitter", emitter,
+                        .toolContext(Map.of("transport", transport,
                                 "sessionId", request.getSessionId() != null ? request.getSessionId() : ""))
                         .stream()
                         .chatResponse()
@@ -180,23 +135,13 @@ public class DrawService {
                                 if (output instanceof DeepSeekAssistantMessage dsam) {
                                     String rc = dsam.getReasoningContent();
                                     if (rc != null && !rc.isEmpty()) {
-                                        try {
-                                            emitter.send(SseEmitter.event()
-                                                    .data(Map.of("type", "reasoning", "delta", rc)));
-                                        } catch (Exception e) {
-                                            log.warn("Failed to send reasoning", e);
-                                        }
+                                        transport.send("reasoning", Map.of("delta", rc));
                                     }
                                 }
 
                                 String text = output.getText();
                                 if (text != null && !text.isEmpty()) {
-                                    try {
-                                        emitter.send(SseEmitter.event()
-                                                .data(Map.of("type", "text-delta", "delta", text)));
-                                    } catch (Exception e) {
-                                        log.warn("Failed to send delta", e);
-                                    }
+                                    transport.send("text-delta", Map.of("delta", text));
                                 }
                             }
                         });
@@ -205,23 +150,19 @@ public class DrawService {
                     log.error("API error: status={}, body={}", wcre.getStatusCode(), wcre.getResponseBodyAsString());
                 }
                 log.error("Error in chat stream", e);
-                emitter.completeWithError(e);
+                transport.completeWithError(e);
                 return;
-            } finally {
-                heartbeat.cancel(false);
             }
 
-            sendDone(emitter, request.getSessionId());
-            emitter.complete();
+            transport.send("done", Map.of("sessionId", request.getSessionId() != null ? request.getSessionId() : ""));
+            transport.complete();
 
         } catch (Exception e) {
             if (e instanceof WebClientResponseException wcre) {
                 log.error("API error: status={}, body={}", wcre.getStatusCode(), wcre.getResponseBodyAsString());
             }
             log.error("Error in chat stream", e);
-            emitter.completeWithError(e);
-        } finally {
-            heartbeat.cancel(false);
+            transport.completeWithError(e);
         }
     }
 
@@ -246,14 +187,4 @@ public class DrawService {
         }
         return null;
     }
-
-    private void sendDone(SseEmitter emitter, String sessionId) {
-        try {
-            emitter.send(SseEmitter.event()
-                    .data(Map.of("type", "done", "sessionId", sessionId != null ? sessionId : "")));
-        } catch (Exception e) {
-            log.warn("Failed to send done event", e);
-        }
-    }
-
 }
