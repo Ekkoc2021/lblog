@@ -6,3 +6,19 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/iblog?characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: lblog
+    password: ${DB_PASSWORD:}
+    druid:
+      filters: wall,slf4j   # 生产环境去掉 stat 监控
+
+logging:
+  level:
+    root: INFO
+    com.yang.lblogserver: INFO
+
+lblog:
+  upload-dir: /data/lblog/uploads

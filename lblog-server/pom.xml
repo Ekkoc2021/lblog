@@ -172,7 +172,7 @@
                 <version>${spring-boot.version}</version>
                 <configuration>
                     <mainClass>com.yang.lblogserver.LblogServerApplication</mainClass>
-                    <skip>true</skip>
+                    <skip>false</skip>
                 </configuration>
                 <executions>
                     <execution>
