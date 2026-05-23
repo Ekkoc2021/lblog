@@ -536,7 +536,6 @@ const DrawPage: React.FC<DrawPageProps> = ({ onClose }) => {
           <div style={{ height: '100%', width: '100%' }}>
             <DrawIoEmbed
               ref={drawioRef}
-              xml={chartXML || undefined}
               autosave={true}
               exportFormat="xmlsvg"
               urlParameters={{

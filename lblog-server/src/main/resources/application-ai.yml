@@ -1,7 +1,7 @@
 spring:
   ai:
     deepseek:
-      api-key: ${AI_DEEPSEEK_API_KEY}
+      api-key: sk-5bc99d693c42462fb6b8bfeea207726
       chat:
         options:
           model: ${AI_DEEPSEEK_MODEL:deepseek-v4-flash}
