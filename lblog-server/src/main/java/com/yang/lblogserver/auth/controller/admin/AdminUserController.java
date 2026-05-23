@@ -145,7 +145,19 @@ public class AdminUserController {
         String nickname = request.getNickname() != null ? request.getNickname() : user.getNickname();
         String email = request.getEmail() != null ? request.getEmail() : user.getEmail();
         Integer status = request.getStatus() != null ? request.getStatus() : user.getStatus();
-        usersMapper.updateUser(id, nickname, email, status);
+
+        // 同步 users.role 字段（取最高优先级：admin > author > user）
+        String role = null;
+        if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
+            if (request.getRoleIds().contains(1L)) {
+                role = "admin";
+            } else if (request.getRoleIds().contains(2L)) {
+                role = "author";
+            } else if (request.getRoleIds().contains(3L)) {
+                role = "user";
+            }
+        }
+        usersMapper.updateUser(id, nickname, email, status, role);
 
         return ApiResponse.success(null);
     }
@@ -168,13 +180,18 @@ public class AdminUserController {
         return ApiResponse.success(null);
     }
 
-    @Operation(summary = "删除用户", description = "软删除用户")
+    @Operation(summary = "删除用户", description = "软删除用户，同时撤销令牌、清除角色。图片引用由 ImageUsageAspect 自动清理")
     @DeleteMapping("/users/{id}")
     public ApiResponse<?> deleteUser(@PathVariable Long id) {
         Users user = usersMapper.selectById(id);
         if (user == null) {
             return ApiResponse.error(404, "用户不存在");
         }
+        // 撤销所有 token
+        userTokenMapper.revokeAllByUserId(id);
+        // 清除角色
+        userRolesMapper.deleteByUserId(id);
+        // 软删除用户
         usersMapper.softDeleteUser(id);
         return ApiResponse.success(null);
     }

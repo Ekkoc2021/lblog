@@ -40,7 +40,7 @@ public class UserDiagramController {
 
     @Operation(summary = "新建图表")
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('AUTHOR')")
     public ApiResponse<Map<String, Long>> create(@RequestBody SaveDiagramRequest request,
                                                   Authentication auth) {
         Long userId = getUserId(auth);
@@ -56,7 +56,7 @@ public class UserDiagramController {
 
     @Operation(summary = "获取图表列表")
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('AUTHOR')")
     public ApiResponse<PageResult<DiagramListVO>> list(
             @RequestParam(defaultValue = "1") @Min(1) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(50) int pageSize,
@@ -68,7 +68,7 @@ public class UserDiagramController {
 
     @Operation(summary = "获取图表详情")
     @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('AUTHOR')")
     public ApiResponse<DiagramDetailVO> getById(@PathVariable Long id, Authentication auth) {
         Long userId = getUserId(auth);
         DiagramDetailVO vo = userDiagramsService.getById(id, userId);
@@ -80,7 +80,7 @@ public class UserDiagramController {
 
     @Operation(summary = "覆盖保存图表")
     @PutMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('AUTHOR')")
     public ApiResponse<Void> updateContent(@PathVariable Long id,
                                             @RequestBody SaveDiagramRequest request,
                                             Authentication auth) {
@@ -97,7 +97,7 @@ public class UserDiagramController {
 
     @Operation(summary = "更新图表元数据")
     @PatchMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('AUTHOR')")
     public ApiResponse<Void> updateMeta(@PathVariable Long id,
                                          @RequestBody UpdateMetaRequest request,
                                          Authentication auth) {
@@ -108,7 +108,7 @@ public class UserDiagramController {
 
     @Operation(summary = "删除图表")
     @DeleteMapping("/{id}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasRole('AUTHOR')")
     public ApiResponse<Void> delete(@PathVariable Long id, Authentication auth) {
         Long userId = getUserId(auth);
         userDiagramsService.delete(id, userId);

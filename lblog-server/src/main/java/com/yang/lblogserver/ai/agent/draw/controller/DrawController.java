@@ -13,6 +13,7 @@ import com.yang.lblogserver.site.mapper.SiteConfigMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.prepost.PreAuthorize;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 @Tag(name = "AI 绘图", description = "AI 辅助 draw.io 图表生成")
 @RestController
 @RequestMapping("/api/v1/draw")
+@PreAuthorize("hasRole('AUTHOR')")
 public class DrawController {
 
     private final DrawService diagramService;

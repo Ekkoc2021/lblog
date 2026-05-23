@@ -20,7 +20,7 @@ All build/run/debug operations must use IntelliJ IDEA MCP tools (不要用 mvn �
 
 ## Project Overview
 
-Spring Boot 3.5 + Java 17 blog backend API server. Serves the `lblog-web` React frontend (sibling directory). Uses MySQL 8, MyBatis, Druid connection pool, Spring Security, Log4j2.
+Spring Boot 3.5 + Java 21 blog backend API server. Serves the `lblog-web` React frontend (sibling directory). Uses MySQL 8, MyBatis, Druid connection pool, Spring Security, Log4j2.
 
 **API base path:** `/iblogserver/api/v1/`  
 **Port:** 8099  

@@ -45,7 +45,8 @@ public interface UsersMapper {
     int updateUser(@Param("id") Long id,
                    @Param("nickname") String nickname,
                    @Param("email") String email,
-                   @Param("status") Integer status);
+                   @Param("status") Integer status,
+                   @Param("role") String role);
 
     int countPostsByUserId(@Param("userId") Long userId);
 }

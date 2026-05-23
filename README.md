@@ -6,7 +6,7 @@
 
 ```
 lblog/
-├── lblog-server/   Spring Boot 3.5 + Java 17 + MyBatis + MySQL 8
+├── lblog-server/   Spring Boot 3.5 + Java 21 + MyBatis + MySQL 8
 └── lblog-web/      React 19 + TypeScript + Vite + Ant Design 6
 ```
 
@@ -15,12 +15,14 @@ lblog/
 | 层 | 后端 | 前端 |
 |---|------|------|
 | 框架 | Spring Boot 3.5 | React 19 |
-| 语言 | Java 17 | TypeScript 6 |
+| 语言 | Java 21 | TypeScript 6 |
 | 数据 | MyBatis 3 + MySQL 8 | — |
 | 连接池 | Druid | — |
 | 安全 | Spring Security | JWT Bearer Token |
 | UI | — | Ant Design 6 |
 | 构建 | Maven | Vite 8 |
+| AI | Spring AI + DeepSeek（SSE 流式） | — |
+| 缓存 | Caffeine（进程内） | — |
 | 文档 | springdoc-openapi (Swagger) | — |
 
 ## 功能概览
@@ -51,6 +53,7 @@ lblog/
 
 ### 亮点
 
+- **AI 绘图** — 自然语言描述 → draw.io 图表，SSE 流式生成，支持会话历史、Skill 技能包
 - **三主题切换** — Apple 极简风（亮色）、暗色护眼、书页暖色，通过 CSS 变量 + Ant Design token 统一驱动
 - **阅读进度条** — 文章页顶部 2px 蓝色进度条，跟随滚动实时更新
 - **骨架屏加载** — 首页和详情页首次加载使用 Skeleton 占位，体验流畅
@@ -62,59 +65,37 @@ lblog/
 
 ### 环境要求
 
-- JDK 17+
+- JDK 21
 - Node.js 18+
 - MySQL 8
 - Maven 3.9+
 
 ### 1. 数据库
 
-创建数据库并执行建表语句（见下方「数据库设计」章节），然后插入必要的初始数据：
-
-```sql
-USE iblog;
-
--- 角色数据（必须）
-INSERT INTO roles (name, label, description, sort_order) VALUES
-('admin', '管理员', '拥有所有权限', 0),
-('author', '作者', '可以管理自己的文章和评论', 1),
-('user', '用户', '只能浏览和评论', 2);
-
--- 默认管理员（不提供任何管理员注册接口，所以启动前至少需要一个 admin 用户），如下管理员密码为admin123，前缀{noop}表示明文存储到数据库。
--- password_hash 使用 BCrypt 加密，需要加密可在项目中运行以下代码生成后替换（项目运行后通过接口注册的用户密码均会自动加密）：
---   new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().encode("your-password")
-INSERT INTO users (username, password_hash, nickname, role, status) VALUES
-('admin', '{noop}admin123', 'Admin', 'admin', 1);
-
--- 用户角色关联
-INSERT INTO user_roles (user_id, role_id) VALUES (1, 1);
-
--- 站点默认配置：registration_enabled是否开启注册，image_cleanup_days垃圾图片清理控制（只清理过期了多少天后的图片）
-INSERT INTO site_config (config_key, config_value) VALUES
-('registration_enabled', 'true'),
-('image_cleanup_days', '30');
+```bash
+# 创建数据库和用户
+sudo mysql
 ```
 
-> **注意**：至少需要一个 admin 用户才能登录后台。`password_hash` 需使用 BCrypt 加密，可通过在线工具或 `spring-boot-starter-security` 的 `PasswordEncoder` 生成。
+```sql
+CREATE DATABASE iblog DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'lblog'@'localhost' IDENTIFIED BY '你的密码';
+GRANT ALL PRIVILEGES ON iblog.* TO 'lblog'@'localhost';
+FLUSH PRIVILEGES;
+```
 
-默认连接：`192.168.1.5:3306/iblog`（可在 `application.yml` 中修改）。
+```bash
+# 导入表结构和初始数据（角色、管理员、站点配置等）
+mysql -u lblog -p iblog < v1.0.sql
+```
+
+`v1.0.sql` 详情见脚本末尾 `-- 初始化数据` 部分。数据库连接配置见 `application.yml`（开发）和 `application-prod.yml`（生产）。
 
 ### 2. 启动后端
 
-开发环境（Swagger 可用）：
+开发环境：**通过 IntelliJ IDEA 运行** `LblogServerApplication`（默认 profile，Swagger 开启）。
 
-```bash
-cd lblog-server
-mvn spring-boot:run
-```
-
-或通过 IntelliJ IDEA 运行 `LblogServerApplication`（默认 profile，Swagger 开启）。
-
-生产环境（Swagger 关闭）：
-
-```bash
-java -jar lblog-server-*.jar --spring.profiles.active=prod
-```
+生产环境：见 `lblog-server/README.md` 部署文档。
 
 后端启动后访问：
 - API 基础路径：`http://localhost:8099/iblogserver/api/v1/`
@@ -148,7 +129,7 @@ cd lblog-web
 npm run build
 ```
 
-产物：`dist/` 目录，可直接由 Nginx 托管或放入后端 `src/main/resources/static/`。
+产物：`dist/` 目录，由 Nginx 托管。
 
 ## 端口与代理
 
@@ -187,70 +168,26 @@ config.setAllowedOrigins(List.of("http://localhost:3000"));
 
 ## 部署
 
-### 后端部署
+详细部署文档见 [`lblog-server/README.md`](lblog-server/README.md)。
 
-Spring Boot 配置加载机制：**`application.yml` 始终加载**（公共配置），指定 profile 后会**叠加**对应的 `application-{profile}.yml`（覆盖同名 key）。
-
-生产环境启动：
+简要步骤：
 
 ```bash
-java -jar lblog-server-*.jar --spring.profiles.active=prod
-```
-
-此时加载顺序：`application.yml` → `application-prod.yml`（后者覆盖前者同名配置）。`application-prod.yml` 中关闭了 Swagger UI，其余数据库连接、端口等沿用 `application.yml` 的默认值。
-
-如需外置配置文件覆盖（推荐），启动时指定路径：
-
-```bash
-java -jar lblog-server.jar --spring.config.additional-location=file:./config/
-```
-
-可通过环境变量或外部配置文件覆盖数据库连接等参数：
-
-```bash
-java -jar lblog-server.jar \
-  --spring.datasource.url=jdbc:mysql://your-host:3306/iblog \
-  --spring.datasource.username=your-user \
-  --spring.datasource.password=your-password
-```
-
-### 前端部署
-
-将 `dist/` 目录内容部署到 Nginx 或其他静态服务器，配置反向代理：
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    root /path/to/lblog-web/dist;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    location /iblogserver/ {
-        proxy_pass http://127.0.0.1:8099;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
-
-### 一体化部署
-
-也可将前端构建产物放入后端 `src/main/resources/static/` 目录后再打包，通过 Spring Boot 直接托管前端静态资源 + API。
-
-```bash
+# 1. 构建
 cd lblog-web && npm run build
-cp -r dist/* ../lblog-server/src/main/resources/static/
-cd ../lblog-server && mvn clean package -DskipTests
+cd ../lblog-server && mvn package -DskipTests
+
+# 2. 上传到服务器
+scp lblog-server/target/lblog-server-*.jar ubuntu@<IP>:/home/ubuntu/proj/
+scp -r lblog-web/dist/* ubuntu@<IP>:/home/ubuntu/proj/lblog-web/
+
+# 3. 服务器上启动（详见部署文档）
+./start.sh
 ```
 
 ## 数据库设计
 
-共 18 张表，默认数据库 `iblog`（MySQL 8），字符集 `utf8mb4`。
+共 24 张表，默认数据库 `iblog`（MySQL 8），字符集 `utf8mb4`。
 
 ### 核心内容
 

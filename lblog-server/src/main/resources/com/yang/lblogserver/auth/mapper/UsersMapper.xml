@@ -138,6 +138,7 @@
         SET nickname = #{nickname},
             email = #{email},
             status = #{status}
+            <if test="role != null">, role = #{role}</if>
         WHERE id = #{id}
     </update>
 

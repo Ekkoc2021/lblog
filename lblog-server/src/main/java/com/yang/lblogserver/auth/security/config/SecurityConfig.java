@@ -73,8 +73,8 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/posts/*/like/status").permitAll()
                 // 公开接口：站点配置
                 .requestMatchers("/api/v1/config").permitAll()
-                // 公开接口：AI 绘图（调试期间临时放开鉴权）
-                .requestMatchers("/api/v1/draw/**").permitAll()
+                // AI 绘图 & 工具箱：需作者权限（具体角色由 Controller @PreAuthorize 控制）
+                .requestMatchers("/api/v1/draw/**").authenticated()
                 // 公开接口：Skill 调试
                 .requestMatchers("/api/v1/debug/**", "/api/v1/test/**").permitAll()
                 // 公开接口：静态资源

@@ -1,5 +1,21 @@
 # LBlog 部署文档
 
+## 技术栈
+
+| 层 | 技术 | 版本 |
+|---|---|---|
+| 后端框架 | Spring Boot | 3.5.7 |
+| JDK | OpenJDK | 21 |
+| 数据库 | MySQL 8.0（iblog，utf8mb4） | — |
+| ORM | MyBatis + PageHelper | 3.0.3 / 2.1.0 |
+| 连接池 | Druid | 1.2.20 |
+| 认证 | Spring Security + JWT | — |
+| AI | Spring AI + DeepSeek | 1.1.5 / v4-flash |
+| 实时通信 | SSE（Server-Sent Events） | — |
+| 缓存 | Caffeine（进程内） | — |
+| 前端 | React 19 + Vite 8 + Ant Design 6 | — |
+| 反向代理 | Nginx | 1.24 |
+
 ## 服务器要求
 
 - Ubuntu 24.04，2c2g4m 起步
@@ -41,7 +57,7 @@ EXIT;
 mysql -u lblog -p iblog < v1.0.sql
 ```
 
-初始管理员：`ekko` / `admin123`（首次登录后修改）
+`v1.0.sql` 包含全部表结构和初始数据（角色、管理员账号、站点配置等），具体内容见脚本末尾的 `-- 初始化数据` 部分。
 
 ## 3. 目录结构
 
@@ -73,20 +89,22 @@ server {
         try_files $uri $uri/ /index.html;
     }
 
-    # API 代理
+    # API 代理（注意后端 context-path 是 /iblogserver）
     location /api/ {
         proxy_pass http://127.0.0.1:8099/iblogserver/api/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
 
-    # 上传文件
+    # 上传文件代理（必须带 /iblogserver 前缀）
     location /uploads/ {
-        proxy_pass http://127.0.0.1:8099/uploads/;
+        proxy_pass http://127.0.0.1:8099/iblogserver/uploads/;
         proxy_set_header Host $host;
     }
 }
 ```
+
+> 注意：`proxy_pass` 必须带上后端的 context-path `/iblogserver`，否则请求进不了 Spring MVC 会直接 404。
 
 ```bash
 sudo ln -sf /etc/nginx/sites-available/lblog /etc/nginx/sites-enabled/
@@ -115,13 +133,16 @@ npm run build
 
 ```bash
 cd lblog-server
+# 必须使用 JDK 21（Spring Boot 3.5 + Maven Plugin 要求 Java 17+，项目指定 java.version=21）
 export JAVA_HOME=/path/to/jdk-21
 export PATH=$JAVA_HOME/bin:$PATH
-mvn package -DskipTests
-# 产物：target/lblog-server-0.0.1-SNAPSHOT.jar
+mvn package -DskipTests -q
+# 产物：target/lblog-server-0.0.1-SNAPSHOT.jar（约 59MB fat JAR）
 ```
 
 上传：`scp target/lblog-server-0.0.1-SNAPSHOT.jar ubuntu@<IP>:/home/ubuntu/proj/`
+
+> 如果本地 Maven 使用 JDK 8，需先设置 `JAVA_HOME` 指向 JDK 21，否则 Spring Boot Maven Plugin 3.5.7 会报 `UnsupportedClassVersionError`。
 
 ## 6. 启动脚本
 
@@ -129,7 +150,7 @@ mvn package -DskipTests
 #!/bin/bash
 # /home/ubuntu/proj/start.sh
 
-mkdir -p /home/ubuntu/proj/logs
+mkdir -p /home/ubuntu/proj/logs /home/ubuntu/proj/uploads
 
 nohup env DB_PASSWORD=你的密码 java \
   -Xms256m -Xmx512m \
@@ -140,12 +161,15 @@ nohup env DB_PASSWORD=你的密码 java \
   --spring.ai.deepseek.api-key=你的AIKey \
   --lblog.upload-dir=/home/ubuntu/proj/uploads \
   > /home/ubuntu/proj/logs/app.log 2>&1 &
+echo "PID: $!"
 ```
 
 ```bash
 chmod +x /home/ubuntu/proj/start.sh
 ./start.sh
 ```
+
+> **AI Key 配置**：命令行 `--spring.ai.deepseek.api-key=xxx` 会直接覆盖 `application-ai.yml` 中的值，无需改配置文件重新打包。
 
 ## 7. 常用命令
 
@@ -173,7 +197,21 @@ pkill -f 'lblog-server.*SNAPSHOT' && ./start.sh
 
 如需 GC 调优可追加：`-XX:+UseG1GC -XX:MaxGCPauseMillis=200 -Xlog:gc*:file=/home/ubuntu/proj/logs/gc.log:time,level,tags:filecount=5,filesize=10M`
 
-## 9. 带宽优化
+> 2c2g 低并发博客场景默认 GC 足够，非必要不加。
+
+## 9. 图片迁移
+
+图片存储在 `lblog.upload-dir` 目录，与 JAR 独立。换服务器需拷贝：
+
+```bash
+# 同步图片文件
+scp -r /home/ubuntu/proj/uploads/* user@new-host:/home/ubuntu/proj/uploads/
+
+# 导出 images 表（MySQL）
+mysqldump -u lblog -p iblog images image_usages | mysql -h new-host -u lblog -p iblog
+```
+
+## 10. 带宽优化
 
 ```nginx
 # 在 nginx server 块中添加

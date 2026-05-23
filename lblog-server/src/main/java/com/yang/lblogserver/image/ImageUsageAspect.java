@@ -70,6 +70,13 @@ public class ImageUsageAspect {
         log.debug("Cleared image usages for deleted post {}", postId);
     }
 
+    @AfterReturning("execution(* com.yang.lblogserver.auth.controller.admin.AdminUserController.deleteUser(..)) && args(id)")
+    @Transactional(rollbackFor = Exception.class)
+    public void afterDeleteUser(Long id) {
+        imageUsageMapper.deleteByRef("user", id);
+        log.debug("Cleared image usages for deleted user {}", id);
+    }
+
     private void syncImageUsages(Long postId, String body, String featuredImage) {
         imageUsageMapper.deleteByRef("post", postId);
 
