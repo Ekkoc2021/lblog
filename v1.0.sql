@@ -1,4 +1,4 @@
-create table ai_chat_sessions
+create table iblog.ai_chat_sessions
 (
     id            bigint auto_increment comment '主键'
         primary key,
@@ -14,7 +14,7 @@ create table ai_chat_sessions
 )
     comment 'AI 对话会话表' collate = utf8mb4_unicode_ci;
 
-create table ai_chat_messages
+create table iblog.ai_chat_messages
 (
     id                bigint auto_increment comment '主键'
         primary key,
@@ -30,21 +30,21 @@ create table ai_chat_messages
     metadata          json                               null comment '扩展字段',
     created_at        datetime default CURRENT_TIMESTAMP not null comment '创建时间',
     constraint fk_message_session
-        foreign key (session_id) references ai_chat_sessions (id)
+        foreign key (session_id) references iblog.ai_chat_sessions (id)
             on delete cascade
 )
     comment 'AI 对话消息表' collate = utf8mb4_unicode_ci;
 
 create index idx_session_order
-    on ai_chat_messages (session_id, msg_index);
+    on iblog.ai_chat_messages (session_id, msg_index);
 
 create index idx_status
-    on ai_chat_sessions (status);
+    on iblog.ai_chat_sessions (status);
 
 create index idx_user_agent
-    on ai_chat_sessions (user_id, agent_type, updated_at);
+    on iblog.ai_chat_sessions (user_id, agent_type, updated_at);
 
-create table ai_prompts
+create table iblog.ai_prompts
 (
     id             bigint auto_increment
         primary key,
@@ -66,12 +66,12 @@ create table ai_prompts
 );
 
 create index idx_active
-    on ai_prompts (is_active);
+    on iblog.ai_prompts (is_active);
 
 create index idx_module_order
-    on ai_prompts (module, sort_order);
+    on iblog.ai_prompts (module, sort_order);
 
-create table ai_prompts_audit
+create table iblog.ai_prompts_audit
 (
     id          bigint auto_increment
         primary key,
@@ -89,15 +89,15 @@ create table ai_prompts_audit
 );
 
 create index idx_action_time
-    on ai_prompts_audit (created_at);
+    on iblog.ai_prompts_audit (created_at);
 
 create index idx_module_key
-    on ai_prompts_audit (module, prompt_key);
+    on iblog.ai_prompts_audit (module, prompt_key);
 
 create index idx_prompt_id
-    on ai_prompts_audit (prompt_id);
+    on iblog.ai_prompts_audit (prompt_id);
 
-create table ai_skill_packages
+create table iblog.ai_skill_packages
 (
     id           int auto_increment
         primary key,
@@ -115,7 +115,7 @@ create table ai_skill_packages
 )
     collate = utf8mb4_unicode_ci;
 
-create table categories
+create table iblog.categories
 (
     id          bigint auto_increment
         primary key,
@@ -129,19 +129,19 @@ create table categories
     updated_at  datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP,
     deleted_at  datetime                           null comment '软删除时间',
     is_delelte  int      default 0                 null comment '是否删除',
-    slug_active varchar(100) as (if(is_delelte = 0 and deleted_at is null, slug, null)) virtual null,
+    slug_active varchar(255) as (if(((`is_delelte` = 0) and (`deleted_at` is null)), `slug`, NULL)),
     constraint uk_slug
         unique (slug_active)
 )
     comment '分类表';
 
 create index idx_created_by
-    on categories (created_by);
+    on iblog.categories (created_by);
 
 create index idx_parent_id
-    on categories (parent_id);
+    on iblog.categories (parent_id);
 
-create table comments
+create table iblog.comments
 (
     id            bigint auto_increment
         primary key,
@@ -166,18 +166,18 @@ create table comments
     collate = utf8mb4_unicode_ci;
 
 create index idx_parent
-    on comments (parent_id);
+    on iblog.comments (parent_id);
 
 create index idx_post_status
-    on comments (post_id, status, created_at);
+    on iblog.comments (post_id, status, created_at);
 
 create index idx_root
-    on comments (root_id);
+    on iblog.comments (root_id);
 
 create index idx_user
-    on comments (user_id);
+    on iblog.comments (user_id);
 
-create table image_usages
+create table iblog.image_usages
 (
     id       bigint auto_increment comment '主键'
         primary key,
@@ -191,12 +191,12 @@ create table image_usages
     comment '图片引用关系';
 
 create index idx_image_id
-    on image_usages (image_id);
+    on iblog.image_usages (image_id);
 
 create index idx_ref
-    on image_usages (ref_type, ref_id);
+    on iblog.image_usages (ref_type, ref_id);
 
-create table images
+create table iblog.images
 (
     id            bigint auto_increment comment '主键'
         primary key,
@@ -215,18 +215,18 @@ create table images
     comment '图片库';
 
 create index idx_created_at
-    on images (created_at);
+    on iblog.images (created_at);
 
 create index idx_created_by
-    on images (created_by);
+    on iblog.images (created_by);
 
 create index idx_md5
-    on images (md5);
+    on iblog.images (md5);
 
 create index idx_url
-    on images (url(191));
+    on iblog.images (url(191));
 
-create table like_records
+create table iblog.like_records
 (
     id         bigint auto_increment
         primary key,
@@ -239,9 +239,9 @@ create table like_records
     comment '点赞记录表';
 
 create index idx_post_id
-    on like_records (post_id);
+    on iblog.like_records (post_id);
 
-create table permissions
+create table iblog.permissions
 (
     id         bigint auto_increment
         primary key,
@@ -252,7 +252,7 @@ create table permissions
 )
     comment '权限表';
 
-create table post_contents
+create table iblog.post_contents
 (
     id         bigint auto_increment
         primary key,
@@ -267,7 +267,7 @@ create table post_contents
 )
     comment '文章内容表';
 
-create table post_tags
+create table iblog.post_tags
 (
     post_id bigint not null,
     tag_id  bigint not null,
@@ -276,9 +276,9 @@ create table post_tags
     comment '文章标签关联表';
 
 create index idx_tag_id
-    on post_tags (tag_id);
+    on iblog.post_tags (tag_id);
 
-create table posts
+create table iblog.posts
 (
     id             bigint auto_increment
         primary key,
@@ -298,22 +298,22 @@ create table posts
     updated_at     datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP,
     deleted_at     datetime                           null comment '软删除时间',
     is_delelte     int      default 0                 null comment '是否删除',
-    slug_active    varchar(255) as (if(is_delelte = 0 and deleted_at is null, slug, null)) virtual null,
+    slug_active    varchar(255) as (if(((`is_delelte` = 0) and (`deleted_at` is null)), `slug`, NULL)),
     constraint uk_slug
         unique (slug_active)
 )
     comment '文章元数据表';
 
 create index idx_author_id
-    on posts (author_id);
+    on iblog.posts (author_id);
 
 create index idx_category_id
-    on posts (category_id);
+    on iblog.posts (category_id);
 
 create index idx_status_published
-    on posts (status, published_at);
+    on iblog.posts (status, published_at);
 
-create table role_permissions
+create table iblog.role_permissions
 (
     id            bigint auto_increment
         primary key,
@@ -324,7 +324,7 @@ create table role_permissions
 )
     comment '角色权限关联表';
 
-create table roles
+create table iblog.roles
 (
     id          bigint auto_increment
         primary key,
@@ -337,7 +337,7 @@ create table roles
 )
     comment '角色表';
 
-create table series
+create table iblog.series
 (
     id              bigint auto_increment
         primary key,
@@ -353,19 +353,19 @@ create table series
     updated_at      datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP,
     deleted_at      datetime                           null comment '软删除时间',
     is_delelte      int      default 0                 null comment '是否删除',
-    slug_active     varchar(255) as (if(is_delelte = 0 and deleted_at is null, slug, null)) virtual null,
+    slug_active     varchar(255) as (if(((`is_delelte` = 0) and (`deleted_at` is null)), `slug`, NULL)),
     constraint uk_slug
         unique (slug_active)
 )
     comment '专栏表';
 
 create index idx_category_id
-    on series (category_id);
+    on iblog.series (category_id);
 
 create index idx_created_by
-    on series (created_by);
+    on iblog.series (created_by);
 
-create table series_posts
+create table iblog.series_posts
 (
     series_id  bigint        not null,
     post_id    bigint        not null,
@@ -375,9 +375,9 @@ create table series_posts
     comment '专栏文章关联表';
 
 create index idx_post_id
-    on series_posts (post_id);
+    on iblog.series_posts (post_id);
 
-create table site_config
+create table iblog.site_config
 (
     id           bigint auto_increment
         primary key,
@@ -390,27 +390,27 @@ create table site_config
 )
     comment '站点配置';
 
-create table tags
+create table iblog.tags
 (
-    id         bigint auto_increment
+    id          bigint auto_increment
         primary key,
-    name       varchar(100)                       not null comment '标签名',
-    slug       varchar(100)                       not null comment 'URL标识',
-    created_by bigint                             null comment '创建者用户ID',
-    created_at datetime default CURRENT_TIMESTAMP not null,
-    updated_at datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP,
-    deleted_at datetime                           null comment '软删除时间',
-    is_delelte int      default 0                 null comment '是否删除',
-    slug_active varchar(100) as (if(is_delelte = 0 and deleted_at is null, slug, null)) virtual null,
+    name        varchar(100)                       not null comment '标签名',
+    slug        varchar(100)                       not null comment 'URL标识',
+    created_by  bigint                             null comment '创建者用户ID',
+    created_at  datetime default CURRENT_TIMESTAMP not null,
+    updated_at  datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP,
+    deleted_at  datetime                           null comment '软删除时间',
+    is_delelte  int      default 0                 null comment '是否删除',
+    slug_active varchar(255) as (if(((`is_delelte` = 0) and (`deleted_at` is null)), `slug`, NULL)),
     constraint uk_slug
         unique (slug_active)
 )
     comment '标签表';
 
 create index idx_created_by
-    on tags (created_by);
+    on iblog.tags (created_by);
 
-create table user_diagrams
+create table iblog.user_diagrams
 (
     id          bigint auto_increment
         primary key,
@@ -428,15 +428,15 @@ create table user_diagrams
     comment '用户绘图存储表' collate = utf8mb4_unicode_ci;
 
 create index idx_updated_at
-    on user_diagrams (updated_at);
+    on iblog.user_diagrams (updated_at);
 
 create index idx_user_id
-    on user_diagrams (user_id);
+    on iblog.user_diagrams (user_id);
 
 create index idx_user_updated
-    on user_diagrams (user_id asc, updated_at desc);
+    on iblog.user_diagrams (user_id asc, updated_at desc);
 
-create table user_roles
+create table iblog.user_roles
 (
     id      bigint auto_increment
         primary key,
@@ -447,7 +447,7 @@ create table user_roles
 )
     comment '用户角色关联表';
 
-create table users
+create table iblog.users
 (
     id            bigint auto_increment
         primary key,
@@ -471,7 +471,7 @@ create table users
 )
     comment '用户表';
 
-create table user_tokens
+create table iblog.user_tokens
 (
     id          bigint auto_increment
         primary key,
@@ -485,15 +485,17 @@ create table user_tokens
     constraint uk_token_hash
         unique (token_hash),
     constraint fk_token_user
-        foreign key (user_id) references users (id)
+        foreign key (user_id) references iblog.users (id)
 )
     comment '用户令牌表';
 
 create index idx_expires
-    on user_tokens (expires_at);
+    on iblog.user_tokens (expires_at);
 
 create index idx_user_id
-    on user_tokens (user_id);
+    on iblog.user_tokens (user_id);
+
+
 
 -- ============================================================
 -- 初始化数据

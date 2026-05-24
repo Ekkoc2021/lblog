@@ -34,7 +34,7 @@ const DrawFloatingButton: React.FC<DrawFloatingButtonProps> = ({ onOpenDraw, onP
   }, [])
 
   useEffect(() => {
-    const p = { left: window.innerWidth - 120, top: 120 }
+    const p = { left: window.innerWidth - 120, top: 200 }
     setPos(p)
     onPositionChange?.(p)
   }, [])

@@ -579,18 +579,15 @@ const PostEditor: React.FC = () => {
               style={{ display: 'none' }}
               onChange={handleCoverSelect}
             />
-            <div
-              onPaste={handleCoverPaste}
-              style={{ border: meta.featuredImage ? 'none' : '1px dashed #d9d9d9', borderRadius: 6, padding: meta.featuredImage ? 0 : 16, width: 'fit-content', cursor: 'pointer' }}
-              onClick={() => !meta.featuredImage && coverFileInputRef.current?.click()}
-            >
+            <div style={{ display: 'flex', alignItems: 'start', gap: 12 }}>
             {meta.featuredImage ? (
               <div style={{ position: 'relative', display: 'inline-block', borderRadius: 6, overflow: 'hidden' }}>
                 <Image
                   src={getImageUrl(meta.featuredImage)}
                   alt="封面图"
-                  style={{ maxWidth: 240, maxHeight: 135, objectFit: 'cover', borderRadius: 6 }}
+                  style={{ maxWidth: 240, maxHeight: 135, objectFit: 'cover', borderRadius: 6, cursor: 'pointer' }}
                   preview={{ mask: null }}
+                  onClick={() => coverFileInputRef.current?.click()}
                 />
                 <Button
                   type="text"
@@ -598,7 +595,7 @@ const PostEditor: React.FC = () => {
                   icon={<DeleteOutlined />}
                   danger
                   style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.45)', color: '#fff', border: 'none' }}
-                  onClick={handleCoverRemove}
+                  onClick={(e) => { e.stopPropagation(); handleCoverRemove(); }}
                 />
               </div>
             ) : (
@@ -606,11 +603,33 @@ const PostEditor: React.FC = () => {
                 icon={coverUploading ? <LoadingOutlined /> : <PlusOutlined />}
                 onClick={() => coverFileInputRef.current?.click()}
                 loading={coverUploading}
-                style={{ height: 80, width: 160, borderRadius: 6 }}
+                style={{ height: 80, width: 160, borderRadius: 6, border: '1px dashed #d9d9d9' }}
               >
                 {coverUploading ? '上传中...' : '上传封面'}
               </Button>
             )}
+              <div
+                onPaste={handleCoverPaste}
+                tabIndex={0}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: meta.featuredImage ? 135 : 80,
+                  width: 120,
+                  border: '1px dashed #d9d9d9',
+                  borderRadius: 6,
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  color: '#999',
+                  outline: 'none',
+                  transition: 'border-color 0.2s',
+                }}
+                onFocus={e => e.currentTarget.style.borderColor = 'var(--color-primary)'}
+                onBlur={e => e.currentTarget.style.borderColor = '#d9d9d9'}
+              >
+                点击此处后<br />Ctrl+V 粘贴
+              </div>
             </div>
           </div>
 
