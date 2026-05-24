@@ -3,6 +3,7 @@ package com.yang.lblogserver.site.controller;
 import com.yang.lblogserver.common.ApiResponse;
 import com.yang.lblogserver.site.domain.SiteConfig;
 import com.yang.lblogserver.site.mapper.SiteConfigMapper;
+import com.yang.lblogserver.site.service.SiteConfigCacheService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,9 +19,12 @@ import java.util.Map;
 public class AdminConfigController {
 
     private final SiteConfigMapper siteConfigMapper;
+    private final SiteConfigCacheService siteConfigCacheService;
 
-    public AdminConfigController(SiteConfigMapper siteConfigMapper) {
+    public AdminConfigController(SiteConfigMapper siteConfigMapper,
+                                 SiteConfigCacheService siteConfigCacheService) {
         this.siteConfigMapper = siteConfigMapper;
+        this.siteConfigCacheService = siteConfigCacheService;
     }
 
     @Operation(summary = "获取全部配置")
@@ -35,6 +39,7 @@ public class AdminConfigController {
     public ApiResponse<?> updateConfigs(@RequestBody Map<String, String> configs) {
         for (Map.Entry<String, String> entry : configs.entrySet()) {
             siteConfigMapper.updateConfigValue(entry.getKey(), entry.getValue());
+            siteConfigCacheService.refreshCache(entry.getKey());
         }
         return ApiResponse.success(null);
     }
@@ -43,6 +48,7 @@ public class AdminConfigController {
     @PostMapping("/configs")
     public ApiResponse<?> addConfig(@RequestBody SiteConfig config) {
         siteConfigMapper.updateConfigValue(config.getConfigKey(), config.getConfigValue());
+        siteConfigCacheService.refreshCache(config.getConfigKey());
         return ApiResponse.success(null);
     }
 
@@ -50,6 +56,7 @@ public class AdminConfigController {
     @DeleteMapping("/configs")
     public ApiResponse<?> deleteConfig(@RequestParam("key") String key) {
         siteConfigMapper.deleteByKey(key);
+        siteConfigCacheService.refreshCache(key);
         return ApiResponse.success(null);
     }
 
