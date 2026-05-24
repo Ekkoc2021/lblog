@@ -1,7 +1,7 @@
 import type { DrawChatRequest, SseEvent } from '../types/draw'
 
 function getToken(): string | null {
-    return localStorage.getItem('lblog_access_token')
+  try { return localStorage.getItem('lblog_access_token'); } catch { return null; }
 }
 
 export function drawChatStream(

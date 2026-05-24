@@ -105,7 +105,7 @@ const PostEditor: React.FC = () => {
     if (mode === 'wysiwyg') setBody(finalBody);
     // setBody 是异步的，直接手动保存草稿到 localStorage
     if (!isEdit) {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, body: finalBody, meta, slugEdited }));
+      try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, body: finalBody, meta, slugEdited })); } catch { /* */ }
     }
     navigate('/author/posts');
   }, [mode, bnEditor, body, isEdit, title, meta, slugEdited, navigate]);
@@ -168,13 +168,13 @@ const PostEditor: React.FC = () => {
   useEffect(() => {
     if (isEdit || !draftRestored) return;
     const timer = setTimeout(() => {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, body, meta, slugEdited }));
+      try { localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, body, meta, slugEdited })); } catch { /* */ }
     }, 300);
     return () => clearTimeout(timer);
   }, [title, body, meta, slugEdited, isEdit, draftRestored]);
 
   const clearDraft = useCallback(() => {
-    localStorage.removeItem(DRAFT_KEY);
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* */ }
   }, []);
 
   const handleTitleChange = (val: string) => {

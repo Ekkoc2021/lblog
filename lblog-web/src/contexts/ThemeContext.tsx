@@ -15,13 +15,15 @@ const themeOrder: Theme[] = ['light', 'dark', 'warm'];
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('lblog_theme');
-    if (saved === 'dark' || saved === 'warm') return saved;
+    try {
+      const saved = localStorage.getItem('lblog_theme');
+      if (saved === 'dark' || saved === 'warm') return saved;
+    } catch { /* localStorage 不可用 */ }
     return 'light';
   });
 
   useEffect(() => {
-    localStorage.setItem('lblog_theme', theme);
+    try { localStorage.setItem('lblog_theme', theme); } catch { /* */ }
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 

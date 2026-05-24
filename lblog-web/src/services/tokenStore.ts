@@ -33,31 +33,40 @@ function reveal(v: string): string {
   } catch { return ''; }
 }
 
-// 写入假 key，值长度与真 token 接近（base64 编码后约 50-60 字符），外观无法区分
 function seedDummies(): void {
-  for (const k of DUMMY_KEYS) {
-    localStorage.setItem(k, randomChars(randLen(48, 64)));
-  }
+  try {
+    for (const k of DUMMY_KEYS) {
+      localStorage.setItem(k, randomChars(randLen(48, 64)));
+    }
+  } catch { /* localStorage 不可用 */ }
 }
 
 export function getAccessToken(): string | null {
-  const v = localStorage.getItem(ACCESS_KEY);
-  return v ? reveal(v) || null : null;
+  try {
+    const v = localStorage.getItem(ACCESS_KEY);
+    return v ? reveal(v) || null : null;
+  } catch { return null; }
 }
 
 export function getRefreshToken(): string | null {
-  const v = localStorage.getItem(REFRESH_KEY);
-  return v ? reveal(v) || null : null;
+  try {
+    const v = localStorage.getItem(REFRESH_KEY);
+    return v ? reveal(v) || null : null;
+  } catch { return null; }
 }
 
 export function setTokens(access: string, refresh: string): void {
-  localStorage.setItem(ACCESS_KEY, obfuscate(access));
-  localStorage.setItem(REFRESH_KEY, obfuscate(refresh));
-  seedDummies();
+  try {
+    localStorage.setItem(ACCESS_KEY, obfuscate(access));
+    localStorage.setItem(REFRESH_KEY, obfuscate(refresh));
+    seedDummies();
+  } catch { /* localStorage 不可用 */ }
 }
 
 export function clearTokens(): void {
-  localStorage.removeItem(ACCESS_KEY);
-  localStorage.removeItem(REFRESH_KEY);
-  for (const k of DUMMY_KEYS) localStorage.removeItem(k);
+  try {
+    localStorage.removeItem(ACCESS_KEY);
+    localStorage.removeItem(REFRESH_KEY);
+    for (const k of DUMMY_KEYS) localStorage.removeItem(k);
+  } catch { /* */ }
 }

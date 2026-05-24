@@ -18,7 +18,7 @@ export function useSearchHistory() {
     setHistory(prev => {
       const filtered = prev.filter(k => k !== keyword);
       const updated = [keyword, ...filtered].slice(0, MAX_ITEMS);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(updated)); } catch { /* */ }
       return updated;
     });
   };
@@ -26,13 +26,13 @@ export function useSearchHistory() {
   const removeFromHistory = (keyword: string) => {
     setHistory(prev => {
       const updated = prev.filter(k => k !== keyword);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(updated)); } catch { /* */ }
       return updated;
     });
   };
 
   const clearHistory = () => {
-    localStorage.removeItem(STORAGE_KEY);
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* */ }
     setHistory([]);
   };
 
