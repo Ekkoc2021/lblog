@@ -50,7 +50,7 @@ export async function request<T>(path: string, options?: RequestInit): Promise<A
 
   let res: Response;
   try {
-    res = await fetch(path, { ...options, headers });
+    res = await fetch(path, { cache: 'no-cache', ...options, headers });
   } catch {
     throw new Error('网络连接失败，请检查网络或稍后重试');
   }

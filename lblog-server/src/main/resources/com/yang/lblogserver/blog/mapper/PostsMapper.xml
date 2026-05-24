@@ -144,9 +144,9 @@
             <if test="title != null">title = #{title},</if>
             <if test="slug != null">slug = #{slug},</if>
             <if test="excerpt != null">excerpt = #{excerpt},</if>
-            <if test="featuredImage != null">featured_image = #{featuredImage},</if>
+            featured_image = #{featuredImage},
             <if test="status != null">status = #{status},</if>
-            <if test="categoryId != null">category_id = #{categoryId},</if>
+            category_id = #{categoryId},
             <if test="commentEnable != null">comment_enable = #{commentEnable},</if>
             <if test="publishedAt != null">published_at = #{publishedAt},</if>
             updated_at = NOW()

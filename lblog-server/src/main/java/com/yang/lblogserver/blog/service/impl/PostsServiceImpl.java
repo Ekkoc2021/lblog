@@ -481,9 +481,9 @@ public class PostsServiceImpl implements PostsService {
             }
         }
 
-        // 更新专栏关联
+        // 更新专栏关联（先删，有值再插）
+        seriesPostsMapper.deleteByPostId(id);
         if (req.getSeriesId() != null) {
-            seriesPostsMapper.deleteByPostId(id);
             SeriesPosts sp = new SeriesPosts();
             sp.setSeriesId(req.getSeriesId());
             sp.setPostId(id);
