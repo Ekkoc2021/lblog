@@ -9,7 +9,7 @@ import Sidebar from '../components/Sidebar';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const { hotPosts, tags, categories, seriesList } = useSiteData();
+  const { hotPosts, tags, categories, seriesList, refreshSiteData } = useSiteData();
   const [activeTab, setActiveTab] = useState('recommend');
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
@@ -17,6 +17,12 @@ const Home: React.FC = () => {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 10;
+
+  // 每次进入首页刷新侧边栏和文章
+  useEffect(() => {
+    refreshSiteData();
+    loadPosts(1, false);
+  }, []);
 
   const loadPosts = (pageNum: number, append: boolean) => {
     if (append) {
