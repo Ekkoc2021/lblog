@@ -59,7 +59,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
         replyTo: null,
         likeCount: 0,
         replyCount: 0,
-        createdAt: new Date().toISOString(),
+        createdAt: localNow(),
         status: 0,
       };
       setComments(prev => [local, ...prev]);
@@ -88,7 +88,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
         replyTo: isRootReply ? null : { id: reply.parentId, nickname: reply.replyToName },
         likeCount: 0,
         replyCount: 0,
-        createdAt: new Date().toISOString(),
+        createdAt: localNow(),
         status: 0,
       };
       const rootId = reply.rootId;
@@ -156,13 +156,17 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
   };
 
   const formatTime = (t: string) => t ? t.replace('T', ' ').slice(0, 19) : '';
+const localNow = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+};
 
   const renderComment = (item: Comment, rootId?: number) => {
     const reply = inlineReplies[item.id];
     return (
       <div key={item.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--color-border)' }}>
         <div style={{ display: 'flex', gap: 10 }}>
-          <Avatar size={32} icon={<UserOutlined />} style={{ background: 'var(--color-primary)', flexShrink: 0 }} />
+          <Avatar size={32} src={item.author.avatar || undefined} icon={<UserOutlined />} style={{ background: item.author.avatar ? undefined : 'var(--color-primary)', flexShrink: 0 }} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
               <Text strong style={{ fontSize: 13, color: 'var(--color-text)' }}>{item.author.nickname}</Text>
@@ -216,7 +220,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
       {isAuthenticated ? (
         <div style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', gap: 10 }}>
-            <Avatar size={32} icon={<UserOutlined />} style={{ background: 'var(--color-primary)', flexShrink: 0 }} />
+            <Avatar size={32} src={user?.avatar || undefined} icon={<UserOutlined />} style={{ background: user?.avatar ? undefined : 'var(--color-primary)', flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <TextArea
                 rows={3}

@@ -298,9 +298,21 @@ html {
   }
 }
 
-.bn-editor-wysiwyg .bn-root,
+.bn-editor-wysiwyg {
+  display: flex;
+  flex-direction: column;
+}
+
+.bn-editor-wysiwyg .bn-root {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .bn-editor-wysiwyg .bn-editor {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 /* Page transitions */

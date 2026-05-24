@@ -18,6 +18,9 @@ mybatis:
     map-underscore-to-camel-case: true # 驼峰转化
 
 spring:
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
   sql:
     init:
       mode: always
