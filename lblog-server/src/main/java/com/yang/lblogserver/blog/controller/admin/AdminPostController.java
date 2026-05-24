@@ -5,7 +5,11 @@ import com.yang.lblogserver.common.PageResult;
 import com.yang.lblogserver.blog.domain.Posts;
 import com.yang.lblogserver.blog.mapper.PostsMapper;
 import com.yang.lblogserver.auth.security.model.LoginUser;
+import com.yang.lblogserver.blog.service.CategoriesCacheService;
+import com.yang.lblogserver.blog.service.HotPostsCacheService;
 import com.yang.lblogserver.blog.service.PostsService;
+import com.yang.lblogserver.blog.service.SeriesCacheService;
+import com.yang.lblogserver.blog.service.TagsCacheService;
 import com.yang.lblogserver.blog.vo.PostVO;
 import com.yang.lblogserver.blog.vo.admin.BatchPostsRequest;
 import com.yang.lblogserver.blog.vo.admin.UpdatePostRequest;
@@ -34,10 +38,29 @@ public class AdminPostController {
 
     private final PostsService postsService;
     private final PostsMapper postsMapper;
+    private final CategoriesCacheService categoriesCacheService;
+    private final TagsCacheService tagsCacheService;
+    private final SeriesCacheService seriesCacheService;
+    private final HotPostsCacheService hotPostsCacheService;
 
-    public AdminPostController(PostsService postsService, PostsMapper postsMapper) {
+    public AdminPostController(PostsService postsService, PostsMapper postsMapper,
+                               CategoriesCacheService categoriesCacheService,
+                               TagsCacheService tagsCacheService,
+                               SeriesCacheService seriesCacheService,
+                               HotPostsCacheService hotPostsCacheService) {
         this.postsService = postsService;
         this.postsMapper = postsMapper;
+        this.categoriesCacheService = categoriesCacheService;
+        this.tagsCacheService = tagsCacheService;
+        this.seriesCacheService = seriesCacheService;
+        this.hotPostsCacheService = hotPostsCacheService;
+    }
+
+    private void refreshAllCaches() {
+        categoriesCacheService.refresh();
+        tagsCacheService.refresh();
+        seriesCacheService.refresh();
+        hotPostsCacheService.refresh();
     }
 
     private Long getCurrentUserId() {
@@ -68,6 +91,7 @@ public class AdminPostController {
             return ApiResponse.error(400, "URL 别名已存在");
         }
         postsService.updatePost(id, request);
+        refreshAllCaches();
         return ApiResponse.success(null);
     }
 
@@ -86,6 +110,7 @@ public class AdminPostController {
         update.setId(id);
         update.setStatus(status);
         postsMapper.updatePost(update);
+        refreshAllCaches();
         return ApiResponse.success(null);
     }
 
@@ -125,6 +150,8 @@ public class AdminPostController {
                 failedIds.add(id);
             }
         }
+
+        refreshAllCaches();
 
         if (failedIds.isEmpty()) {
             return ApiResponse.success(null);

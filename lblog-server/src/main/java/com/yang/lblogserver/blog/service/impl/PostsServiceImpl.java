@@ -18,6 +18,9 @@ import com.yang.lblogserver.blog.vo.SeriesVO;
 import com.yang.lblogserver.blog.vo.TagVO;
 import com.yang.lblogserver.blog.vo.admin.*;
 import com.yang.lblogserver.auth.service.UserQueryService;
+import com.yang.lblogserver.common.cache.constant.CacheNames;
+import com.yang.lblogserver.common.cache.event.CacheRefreshEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,13 +39,15 @@ public class PostsServiceImpl implements PostsService {
     private final LikeRecordsMapper likeRecordsMapper;
     private final SeriesPostsMapper seriesPostsMapper;
     private final SeriesMapper seriesMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     public PostsServiceImpl(PostsMapper postsMapper, UserQueryService userQueryService,
                             CategoriesMapper categoriesMapper, PostTagsMapper postTagsMapper,
                             TagsMapper tagsMapper, PostContentsService postContentsService,
                             LikeRecordsMapper likeRecordsMapper,
                             SeriesPostsMapper seriesPostsMapper,
-                            SeriesMapper seriesMapper) {
+                            SeriesMapper seriesMapper,
+                            ApplicationEventPublisher eventPublisher) {
         this.postsMapper = postsMapper;
         this.userQueryService = userQueryService;
         this.categoriesMapper = categoriesMapper;
@@ -52,6 +57,7 @@ public class PostsServiceImpl implements PostsService {
         this.likeRecordsMapper = likeRecordsMapper;
         this.seriesPostsMapper = seriesPostsMapper;
         this.seriesMapper = seriesMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -149,6 +155,7 @@ public class PostsServiceImpl implements PostsService {
     @Override
     public void reportView(Long id) {
         postsMapper.incrementViewCount(id);
+        eventPublisher.publishEvent(new CacheRefreshEvent(CacheNames.HOT_POSTS));
     }
 
     @Override
@@ -433,6 +440,7 @@ public class PostsServiceImpl implements PostsService {
             seriesPostsMapper.insert(sp);
         }
 
+        publishCacheRefreshEvents();
         return postId;
     }
 
@@ -491,6 +499,7 @@ public class PostsServiceImpl implements PostsService {
             seriesPostsMapper.insert(sp);
         }
 
+        publishCacheRefreshEvents();
     }
 
     @Override
@@ -498,6 +507,14 @@ public class PostsServiceImpl implements PostsService {
         postsMapper.softDeletePost(id);
         postTagsMapper.deleteByPostId(id);
         seriesPostsMapper.deleteByPostId(id);
+        publishCacheRefreshEvents();
+    }
+
+    private void publishCacheRefreshEvents() {
+        eventPublisher.publishEvent(new CacheRefreshEvent(CacheNames.CATEGORIES));
+        eventPublisher.publishEvent(new CacheRefreshEvent(CacheNames.TAGS));
+        eventPublisher.publishEvent(new CacheRefreshEvent(CacheNames.SERIES));
+        eventPublisher.publishEvent(new CacheRefreshEvent(CacheNames.HOT_POSTS));
     }
 
     @Override

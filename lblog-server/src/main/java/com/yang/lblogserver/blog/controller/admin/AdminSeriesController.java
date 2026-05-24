@@ -9,6 +9,7 @@ import com.yang.lblogserver.auth.domain.Users;
 import com.yang.lblogserver.blog.mapper.SeriesMapper;
 import com.yang.lblogserver.auth.service.UserQueryService;
 import com.yang.lblogserver.auth.security.model.LoginUser;
+import com.yang.lblogserver.blog.service.SeriesCacheService;
 import com.yang.lblogserver.blog.service.SeriesService;
 import com.yang.lblogserver.blog.vo.SeriesPostVO;
 import com.yang.lblogserver.blog.vo.SeriesVO;
@@ -42,13 +43,16 @@ public class AdminSeriesController {
     private final SeriesService seriesService;
     private final SeriesMapper seriesMapper;
     private final UserQueryService userQueryService;
+    private final SeriesCacheService seriesCacheService;
 
     public AdminSeriesController(SeriesService seriesService,
                                  SeriesMapper seriesMapper,
-                                 UserQueryService userQueryService) {
+                                 UserQueryService userQueryService,
+                                 SeriesCacheService seriesCacheService) {
         this.seriesService = seriesService;
         this.seriesMapper = seriesMapper;
         this.userQueryService = userQueryService;
+        this.seriesCacheService = seriesCacheService;
     }
 
     private Long getCurrentUserId() {
@@ -81,6 +85,7 @@ public class AdminSeriesController {
             return ApiResponse.error(400, "URL 别名已存在");
         }
         Long id = seriesService.createSeries(request, getCurrentUserId());
+        seriesCacheService.refresh();
         return ApiResponse.success(new IdResponse(id));
     }
 
@@ -93,6 +98,7 @@ public class AdminSeriesController {
             return ApiResponse.error(400, "URL 别名已存在");
         }
         seriesService.updateSeries(id, request);
+        seriesCacheService.refresh();
         return ApiResponse.success(null);
     }
 
@@ -102,6 +108,7 @@ public class AdminSeriesController {
         Series series = seriesMapper.selectById(id);
         if (series == null) return ApiResponse.error(404, "专栏不存在");
         seriesService.deleteSeries(id);
+        seriesCacheService.refresh();
         return ApiResponse.success(null);
     }
 
@@ -112,6 +119,7 @@ public class AdminSeriesController {
         Series series = seriesMapper.selectById(seriesId);
         if (series == null) return ApiResponse.error(404, "专栏不存在");
         seriesService.linkPosts(seriesId, request.getPostIds());
+        seriesCacheService.refresh();
         return ApiResponse.success(null);
     }
 
@@ -122,6 +130,7 @@ public class AdminSeriesController {
         Series series = seriesMapper.selectById(seriesId);
         if (series == null) return ApiResponse.error(404, "专栏不存在");
         seriesService.reorderPosts(seriesId, request.getPostIds());
+        seriesCacheService.refresh();
         return ApiResponse.success(null);
     }
 
@@ -141,6 +150,7 @@ public class AdminSeriesController {
         if (!seriesService.removePostFromSeries(seriesId, postId)) {
             return ApiResponse.error(404, "文章不在该专栏中");
         }
+        seriesCacheService.refresh();
         return ApiResponse.success(null);
     }
 

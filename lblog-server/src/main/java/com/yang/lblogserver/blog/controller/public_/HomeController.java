@@ -28,16 +28,19 @@ import java.util.List;
 public class HomeController {
 
     private final PostsService postsService;
-    private final CategoriesService categoriesService;
-    private final TagsService tagsService;
-    private final SeriesService seriesService;
+    private final CategoriesCacheService categoriesCacheService;
+    private final TagsCacheService tagsCacheService;
+    private final SeriesCacheService seriesCacheService;
+    private final HotPostsCacheService hotPostsCacheService;
 
-    public HomeController(PostsService postsService, CategoriesService categoriesService,
-                          TagsService tagsService, SeriesService seriesService) {
+    public HomeController(PostsService postsService, CategoriesCacheService categoriesCacheService,
+                          TagsCacheService tagsCacheService, SeriesCacheService seriesCacheService,
+                          HotPostsCacheService hotPostsCacheService) {
         this.postsService = postsService;
-        this.categoriesService = categoriesService;
-        this.tagsService = tagsService;
-        this.seriesService = seriesService;
+        this.categoriesCacheService = categoriesCacheService;
+        this.tagsCacheService = tagsCacheService;
+        this.seriesCacheService = seriesCacheService;
+        this.hotPostsCacheService = hotPostsCacheService;
     }
 
     @Operation(summary = "获取文章列表", description = "首页核心接口，支持分页、排序、分类/标签/专栏筛选和关键词搜索")
@@ -58,7 +61,7 @@ public class HomeController {
     @GetMapping("/categories")
     public ApiResponse<List<CategoryVO>> getCategories(
             @Parameter(description = "返回数量") @RequestParam(name = "limit", defaultValue = "10") @Min(1) @Max(100) int limit) {
-        List<CategoryVO> catList = categoriesService.getCategoryList(limit, null);
+        List<CategoryVO> catList = categoriesCacheService.getCategoryList(limit);
         if (catList.size() > limit) catList = catList.subList(0, limit);
         return ApiResponse.success(catList);
     }
@@ -67,7 +70,7 @@ public class HomeController {
     @GetMapping("/tags")
     public ApiResponse<List<TagVO>> getTags(
             @Parameter(description = "返回数量") @RequestParam(name = "limit", defaultValue = "20") @Min(1) @Max(100) int limit) {
-        List<TagVO> tagList = tagsService.getTagList(limit, null);
+        List<TagVO> tagList = tagsCacheService.getTagList(limit);
         if (tagList.size() > limit) tagList = tagList.subList(0, limit);
         return ApiResponse.success(tagList);
     }
@@ -77,7 +80,7 @@ public class HomeController {
     public ApiResponse<List<SeriesVO>> getSeries(
             @Parameter(description = "返回数量") @RequestParam(name = "limit", defaultValue = "5") @Min(1) @Max(100) int limit,
             @Parameter(description = "分类ID") @RequestParam(name = "categoryId", required = false) Long categoryId) {
-        List<SeriesVO> seriesList = seriesService.getSeriesList(limit, categoryId, null);
+        List<SeriesVO> seriesList = seriesCacheService.getSeriesList(limit, categoryId);
         if (seriesList.size() > limit) seriesList = seriesList.subList(0, limit);
         return ApiResponse.success(seriesList);
     }
@@ -86,7 +89,7 @@ public class HomeController {
     @GetMapping("/posts/hot")
     public ApiResponse<List<HotPostVO>> getHotPosts(
             @Parameter(description = "返回数量") @RequestParam(name = "limit", defaultValue = "5") @Min(1) @Max(100) int limit) {
-        return ApiResponse.success(postsService.getHotPosts(limit));
+        return ApiResponse.success(hotPostsCacheService.getHotPosts(limit));
     }
 
     @Operation(summary = "获取文章详情", description = "根据slug获取文章完整信息（含正文）")

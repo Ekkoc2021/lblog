@@ -9,6 +9,7 @@ import com.yang.lblogserver.auth.domain.Users;
 import com.yang.lblogserver.blog.mapper.CategoriesMapper;
 import com.yang.lblogserver.auth.service.UserQueryService;
 import com.yang.lblogserver.auth.security.model.LoginUser;
+import com.yang.lblogserver.blog.service.CategoriesCacheService;
 import com.yang.lblogserver.blog.service.CategoriesService;
 import com.yang.lblogserver.blog.vo.CategoryVO;
 import com.yang.lblogserver.blog.vo.admin.AdminCategoryVO;
@@ -40,13 +41,16 @@ public class AdminCategoryController {
     private final CategoriesService categoriesService;
     private final CategoriesMapper categoriesMapper;
     private final UserQueryService userQueryService;
+    private final CategoriesCacheService categoriesCacheService;
 
     public AdminCategoryController(CategoriesService categoriesService,
                                    CategoriesMapper categoriesMapper,
-                                   UserQueryService userQueryService) {
+                                   UserQueryService userQueryService,
+                                   CategoriesCacheService categoriesCacheService) {
         this.categoriesService = categoriesService;
         this.categoriesMapper = categoriesMapper;
         this.userQueryService = userQueryService;
+        this.categoriesCacheService = categoriesCacheService;
     }
 
     private Long getCurrentUserId() {
@@ -78,6 +82,7 @@ public class AdminCategoryController {
             return ApiResponse.error(400, "URL 别名已存在");
         }
         Long id = categoriesService.createCategory(request, getCurrentUserId());
+        categoriesCacheService.refresh();
         return ApiResponse.success(new IdResponse(id));
     }
 
@@ -90,6 +95,7 @@ public class AdminCategoryController {
             return ApiResponse.error(400, "URL 别名已存在");
         }
         categoriesService.updateCategory(id, request);
+        categoriesCacheService.refresh();
         return ApiResponse.success(null);
     }
 
@@ -102,6 +108,7 @@ public class AdminCategoryController {
             return ApiResponse.error(400, "该分类下有文章，无法删除");
         }
         categoriesService.deleteCategory(id);
+        categoriesCacheService.refresh();
         return ApiResponse.success(null);
     }
 

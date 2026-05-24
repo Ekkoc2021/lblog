@@ -9,6 +9,7 @@ import com.yang.lblogserver.auth.domain.Users;
 import com.yang.lblogserver.blog.mapper.TagsMapper;
 import com.yang.lblogserver.auth.service.UserQueryService;
 import com.yang.lblogserver.auth.security.model.LoginUser;
+import com.yang.lblogserver.blog.service.TagsCacheService;
 import com.yang.lblogserver.blog.service.TagsService;
 import com.yang.lblogserver.blog.vo.TagVO;
 import com.yang.lblogserver.blog.vo.admin.AdminTagVO;
@@ -40,13 +41,16 @@ public class AdminTagController {
     private final TagsService tagsService;
     private final TagsMapper tagsMapper;
     private final UserQueryService userQueryService;
+    private final TagsCacheService tagsCacheService;
 
     public AdminTagController(TagsService tagsService,
                               TagsMapper tagsMapper,
-                              UserQueryService userQueryService) {
+                              UserQueryService userQueryService,
+                              TagsCacheService tagsCacheService) {
         this.tagsService = tagsService;
         this.tagsMapper = tagsMapper;
         this.userQueryService = userQueryService;
+        this.tagsCacheService = tagsCacheService;
     }
 
     private Long getCurrentUserId() {
@@ -78,6 +82,7 @@ public class AdminTagController {
             return ApiResponse.error(400, "URL 别名已存在");
         }
         Long id = tagsService.createTag(request, getCurrentUserId());
+        tagsCacheService.refresh();
         return ApiResponse.success(new IdResponse(id));
     }
 
@@ -90,6 +95,7 @@ public class AdminTagController {
             return ApiResponse.error(400, "URL 别名已存在");
         }
         tagsService.updateTag(id, request);
+        tagsCacheService.refresh();
         return ApiResponse.success(null);
     }
 
@@ -99,6 +105,7 @@ public class AdminTagController {
         Tags tag = tagsMapper.selectById(id);
         if (tag == null) return ApiResponse.error(404, "标签不存在");
         tagsService.deleteTag(id);
+        tagsCacheService.refresh();
         return ApiResponse.success(null);
     }
 
