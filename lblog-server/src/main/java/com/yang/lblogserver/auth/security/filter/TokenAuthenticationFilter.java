@@ -42,7 +42,19 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    private static final String ACCESS_COOKIE = "lblog_access_token";
+
     private String extractToken(HttpServletRequest request) {
+        // HttpOnly Cookie 优先（浏览器自动发送，JS不可读，防XSS窃取）
+        jakarta.servlet.http.Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (jakarta.servlet.http.Cookie c : cookies) {
+                if (ACCESS_COOKIE.equals(c.getName()) && StringUtils.hasText(c.getValue())) {
+                    return c.getValue();
+                }
+            }
+        }
+        // 兜底：Authorization header（App/第三方客户端/禁用Cookie的浏览器）
         String bearerToken = request.getHeader("Authorization");
         if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);

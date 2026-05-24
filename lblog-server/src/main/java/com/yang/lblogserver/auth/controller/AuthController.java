@@ -20,7 +20,9 @@ import com.yang.lblogserver.auth.vo.TokenPairVO;
 import com.yang.lblogserver.auth.vo.UserInfoVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -63,9 +65,55 @@ public class AuthController {
         this.registerProtectionService = registerProtectionService;
     }
 
+    // ── Cookie helpers ──
+    private static final String ACCESS_COOKIE = "lblog_access_token";
+    private static final String REFRESH_COOKIE = "lblog_refresh_token";
+    private static final int ACCESS_MAX_AGE = 7200;      // 120 min
+    private static final int REFRESH_MAX_AGE = 604800;   // 7 days
+
+    private void setAccessCookie(HttpServletResponse response, String token) {
+        Cookie c = new Cookie(ACCESS_COOKIE, token);
+        c.setHttpOnly(true);
+        c.setPath("/");
+        c.setMaxAge(ACCESS_MAX_AGE);
+        c.setAttribute("SameSite", "Lax");
+        response.addCookie(c);
+    }
+
+    private void setRefreshCookie(HttpServletResponse response, String token) {
+        Cookie c = new Cookie(REFRESH_COOKIE, token);
+        c.setHttpOnly(true);
+        c.setPath("/api/v1/auth/refresh");
+        c.setMaxAge(REFRESH_MAX_AGE);
+        c.setAttribute("SameSite", "Lax");
+        response.addCookie(c);
+    }
+
+    private void clearAuthCookies(HttpServletResponse response) {
+        Cookie ac = new Cookie(ACCESS_COOKIE, "");
+        ac.setHttpOnly(true); ac.setPath("/"); ac.setMaxAge(0);
+        ac.setAttribute("SameSite", "Lax");
+        response.addCookie(ac);
+        Cookie rc = new Cookie(REFRESH_COOKIE, "");
+        rc.setHttpOnly(true); rc.setPath("/api/v1/auth/refresh"); rc.setMaxAge(0);
+        rc.setAttribute("SameSite", "Lax");
+        response.addCookie(rc);
+    }
+
+    private String getRefreshCookie(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie c : cookies) {
+                if (REFRESH_COOKIE.equals(c.getName())) return c.getValue();
+            }
+        }
+        return null;
+    }
+
     @Operation(summary = "用户登录", description = "5 分钟内连续失败 5 次将被临时封锁")
     @PostMapping("/login")
-    public ApiResponse<TokenPairVO> login(@RequestBody LoginRequest request) {
+    public ApiResponse<TokenPairVO> login(@RequestBody LoginRequest request,
+                                          HttpServletResponse response) {
         String username = request.getUsername();
 
         if (loginAttemptService.isBlocked(username)) {
@@ -79,6 +127,8 @@ public class AuthController {
             loginAttemptService.resetAttempts(username);
             usersMapper.updateLoginInfo(loginUser.getUserId());
             TokenPairVO tokenPair = tokenService.issueTokenPair(loginUser.getUserId());
+            setAccessCookie(response, tokenPair.getAccessToken());
+            setRefreshCookie(response, tokenPair.getRefreshToken());
             return ApiResponse.success(tokenPair);
         } catch (DisabledException e) {
             loginAttemptService.recordFailedAttempt(username);
@@ -93,7 +143,8 @@ public class AuthController {
     @Operation(summary = "用户注册", description = "同一 IP 30 分钟仅可注册 1 次")
     @PostMapping("/register")
     public ApiResponse<TokenPairVO> register(@Valid @RequestBody RegisterRequest request,
-                                             HttpServletRequest servletRequest) {
+                                             HttpServletRequest servletRequest,
+                                             HttpServletResponse response) {
         // ——— 注册开关检查 ———
         String regEnabled = siteConfigMapper.selectConfigValue("registration_enabled");
         if (!"true".equals(regEnabled)) {
@@ -158,6 +209,8 @@ public class AuthController {
 
         // 签发 token
         TokenPairVO tokenPair = tokenService.issueTokenPair(user.getId());
+        setAccessCookie(response, tokenPair.getAccessToken());
+        setRefreshCookie(response, tokenPair.getRefreshToken());
         return ApiResponse.success(tokenPair);
     }
 
@@ -167,7 +220,7 @@ public class AuthController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()
                 || !(authentication.getPrincipal() instanceof LoginUser)) {
-            return ApiResponse.error(401, "未登录或 Token 已过期");
+            return ApiResponse.error(401, "登录已过期，请重新登录");
         }
         LoginUser loginUser = (LoginUser) authentication.getPrincipal();
         UserInfoVO userInfo = new UserInfoVO();
@@ -182,27 +235,39 @@ public class AuthController {
 
     @Operation(summary = "退出登录")
     @PostMapping("/logout")
-    public ApiResponse<Void> logout() {
+    public ApiResponse<Void> logout(HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getCredentials() instanceof String) {
             String rawToken = (String) authentication.getCredentials();
             tokenService.revokeToken(rawToken);
             SecurityContextHolder.clearContext();
         }
+        clearAuthCookies(response);
         return ApiResponse.success(null);
     }
 
     @Operation(summary = "刷新令牌")
     @PostMapping("/refresh")
-    public ApiResponse<TokenPairVO> refresh(@RequestBody RefreshRequest request) {
-        if (request.getRefreshToken() == null || request.getRefreshToken().isEmpty()) {
+    public ApiResponse<TokenPairVO> refresh(HttpServletRequest request,
+                                            HttpServletResponse response,
+                                            @RequestBody(required = false) RefreshRequest body) {
+        // Cookie 优先，body 兜底（App/禁用Cookie的浏览器）
+        String rawRefresh = getRefreshCookie(request);
+        boolean fromCookie = rawRefresh != null;
+        if (!fromCookie && body != null) rawRefresh = body.getRefreshToken();
+        if (rawRefresh == null || rawRefresh.isEmpty()) {
             return ApiResponse.error(400, "refreshToken 不能为空");
         }
-        TokenPairVO tokenPair = tokenService.refreshAccessToken(request.getRefreshToken());
+        TokenPairVO tokenPair = tokenService.refreshAccessToken(rawRefresh);
         if (tokenPair == null) {
+            clearAuthCookies(response);
             return ApiResponse.error(401, "refreshToken 无效或已过期");
         }
-        return ApiResponse.success(tokenPair);
+        setAccessCookie(response, tokenPair.getAccessToken());
+        setRefreshCookie(response, tokenPair.getRefreshToken());
+        // Cookie 来源：只设 Cookie，不返回 token 在 body（防止 XSS 伪造刷新窃取）
+        // Body 来源：返回 token 在 body（App / 禁用 Cookie 的浏览器需要）
+        return ApiResponse.success(fromCookie ? null : tokenPair);
     }
 
     @Operation(summary = "修改密码")

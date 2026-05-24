@@ -1,17 +1,39 @@
 import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries, AdminComment } from '../types';
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './tokenStore';
 
-// Token 刷新模块级状态
-let isRefreshing = false;
-let pendingRequests: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
+// 刷新锁：多个请求同时 401 时只发一次刷新
+let refreshPromise: Promise<boolean> | null = null;
 
-export async function refreshToken(): Promise<ApiResponse<TokenPairVO>> {
-  const token = getRefreshToken();
-  if (!token) throw new Error('No refresh token');
-  return request<TokenPairVO>('/api/v1/auth/refresh', {
-    method: 'POST',
-    body: JSON.stringify({ refreshToken: token }),
-  });
+async function tryRefresh(): Promise<boolean> {
+  if (refreshPromise) return refreshPromise;
+  refreshPromise = (async () => {
+    // Cookie 路径（空 body，refresh cookie 自动发送）
+    try {
+      const res = await fetch('/api/v1/auth/refresh', { method: 'POST' });
+      if (res.ok) return true;
+    } catch { /* 继续 */ }
+
+    // 兜底：localStorage refresh token
+    const rt = getRefreshToken();
+    if (rt) {
+      try {
+        const res = await fetch('/api/v1/auth/refresh', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken: rt }),
+        });
+        if (res.ok) {
+          const data: ApiResponse<TokenPairVO> = await res.json();
+          if (data.data?.accessToken) {
+            setTokens(data.data.accessToken, data.data.refreshToken);
+            return true;
+          }
+        }
+      } catch { /* 继续 */ }
+    }
+    return false;
+  })().finally(() => { refreshPromise = null; });
+  return refreshPromise;
 }
 
 export async function request<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
@@ -22,7 +44,6 @@ export async function request<T>(path: string, options?: RequestInit): Promise<A
     ...(options?.headers as Record<string, string>),
   };
 
-  // FormData 由浏览器自己设置 Content-Type（含 boundary）
   if (options?.body instanceof FormData) {
     delete headers['Content-Type'];
   }
@@ -34,78 +55,22 @@ export async function request<T>(path: string, options?: RequestInit): Promise<A
     throw new Error('网络连接失败，请检查网络或稍后重试');
   }
 
-  // 401 统一处理——自动续期
   if (res.status === 401) {
-    // 如果本身就是刷新请求，不触发刷新流程，直接清 token 抛异常
     if (path.includes('/auth/refresh')) {
       clearTokens();
-      throw new Error('Refresh token expired');
+      throw new Error('登录已过期，请重新登录');
     }
 
-    // 没有 token 说明是登录等公开接口的 401（密码错误），直接返回错误
-    if (!token) {
-      const json: ApiResponse<T> = await res.json();
-      throw new Error(json.message || '未登录或 Token 已过期');
-    }
-
-    // 并发控制：若正在刷新，排队等待
-    if (isRefreshing) {
-      return new Promise<ApiResponse<T>>((resolve, reject) => {
-        pendingRequests.push({
-          resolve: (newToken: string) => {
-            const newHeaders: Record<string, string> = {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${newToken}`,
-              ...(options?.headers as Record<string, string>),
-            };
-            fetch(path, { ...options, headers: newHeaders })
-              .then(async (r) => {
-                const j: ApiResponse<T> = await r.json();
-                if (j.code !== 0) throw new Error(j.message || '请求失败');
-                resolve(j);
-              })
-              .catch(reject);
-          },
-          reject,
-        });
-      });
-    }
-
-    // 开始刷新流程
-    isRefreshing = true;
-    try {
-      const refreshRes = await refreshToken();
-      const newToken = refreshRes.data.accessToken;
-      setTokens(newToken, refreshRes.data.refreshToken);
-
-      // 重放等待队列
-      const pending = [...pendingRequests];
-      pendingRequests = [];
-      pending.forEach((p) => p.resolve(newToken));
-
-      // 用新 token 重发当前请求
-      const newHeaders: Record<string, string> = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${newToken}`,
-        ...(options?.headers as Record<string, string>),
-      };
-      let retryRes: Response;
-      try {
-        retryRes = await fetch(path, { ...options, headers: newHeaders });
-      } catch {
-        throw new Error('网络连接失败，请检查网络或稍后重试');
-      }
-      const json: ApiResponse<T> = await retryRes.json();
-      if (json.code !== 0) throw new Error(json.message || '请求失败');
-      return json;
-    } catch (err) {
+    const ok = await tryRefresh();
+    if (ok) {
+      // 直接用新 token 重试 fetch，不回 request() 避免递归
+      const newToken = getAccessToken();
+      if (newToken) headers['Authorization'] = `Bearer ${newToken}`;
+      try { res = await fetch(path, { ...options, headers }); }
+      catch { throw new Error('网络连接失败，请检查网络或稍后重试'); }
+    } else {
       clearTokens();
-      const pending = [...pendingRequests];
-      pendingRequests = [];
-      pending.forEach((p) => p.reject(err));
-      throw err;
-    } finally {
-      isRefreshing = false;
+      throw new Error('登录已过期，请重新登录');
     }
   }
 

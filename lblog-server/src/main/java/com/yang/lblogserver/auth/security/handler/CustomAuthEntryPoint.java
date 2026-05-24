@@ -24,7 +24,7 @@ public class CustomAuthEntryPoint implements AuthenticationEntryPoint {
                          AuthenticationException authException) throws IOException {
         response.setContentType("application/json;charset=UTF-8");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        ApiResponse<Void> result = ApiResponse.error(401, "未登录或 Token 已过期");
+        ApiResponse<Void> result = ApiResponse.error(401, "登录已过期，请重新登录");
         objectMapper.writeValue(response.getWriter(), result);
     }
 }
