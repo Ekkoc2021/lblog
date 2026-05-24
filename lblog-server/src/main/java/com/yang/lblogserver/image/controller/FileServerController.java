@@ -42,10 +42,15 @@ public class FileServerController {
         }
 
         String contentType = determineContentType(relativePath);
-        return ResponseEntity.ok()
+        var response = ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CACHE_CONTROL, "public, max-age=31536000, immutable")
-                .body(resource);
+                .header("X-Content-Type-Options", "nosniff");
+        // SVG 强制下载而非内联渲染，防止脚本执行
+        if ("image/svg+xml".equals(contentType)) {
+            response.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + relativePath.substring(relativePath.lastIndexOf('/') + 1) + "\"");
+        }
+        return response.body(resource);
     }
 
     private String determineContentType(String path) {

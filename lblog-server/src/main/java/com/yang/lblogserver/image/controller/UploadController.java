@@ -9,6 +9,8 @@ import com.yang.lblogserver.storage.StorageResult;
 import com.yang.lblogserver.image.vo.UploadImageVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 
 @Tag(name = "上传", description = "图片上传")
@@ -31,6 +34,12 @@ public class UploadController {
 
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of("jpg", "jpeg", "png", "gif", "webp", "svg");
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+    // 常见图片格式魔术字节
+    private static final byte[] JPEG_MAGIC = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF};
+    private static final byte[] PNG_MAGIC = {(byte) 0x89, 0x50, 0x4E, 0x47};
+    private static final byte[] GIF_MAGIC = {0x47, 0x49, 0x46, 0x38};
+    private static final byte[] WEBP_RIFF = {0x52, 0x49, 0x46, 0x46}; // RIFF....WEBP
 
     private final FileStorage fileStorage;
     private final ImagesService imagesService;
@@ -46,6 +55,52 @@ public class UploadController {
             return ((LoginUser) authentication.getPrincipal()).getUserId();
         }
         return null;
+    }
+
+    /** 校验文件魔术字节是否与扩展名匹配 */
+    private boolean validateMagicBytes(byte[] bytes, String ext) {
+        if (bytes.length < 4) return false;
+        return switch (ext) {
+            case "jpg", "jpeg" -> startsWith(bytes, JPEG_MAGIC);
+            case "png" -> startsWith(bytes, PNG_MAGIC);
+            case "gif" -> startsWith(bytes, GIF_MAGIC);
+            case "webp" -> startsWith(bytes, WEBP_RIFF) && bytes.length > 12
+                    && bytes[8] == 0x57 && bytes[9] == 0x45 && bytes[10] == 0x42 && bytes[11] == 0x50; // "WEBP"
+            case "svg" -> isSvgContent(bytes);
+            default -> false;
+        };
+    }
+
+    private boolean startsWith(byte[] bytes, byte[] prefix) {
+        if (bytes.length < prefix.length) return false;
+        for (int i = 0; i < prefix.length; i++) {
+            if (bytes[i] != prefix[i]) return false;
+        }
+        return true;
+    }
+
+    /** 检测文件内容是否为 SVG（文本格式，以 &lt;?xml、&lt;svg 或 &lt;!DOCTYPE svg 开头） */
+    private boolean isSvgContent(byte[] bytes) {
+        String head = new String(bytes, 0, Math.min(bytes.length, 256), StandardCharsets.UTF_8)
+                .trim().toLowerCase();
+        return head.startsWith("<?xml") || head.startsWith("<svg") || head.startsWith("<!doctype svg");
+    }
+
+    /** SVG 净化：删除 &lt;script&gt; 标签和 on* 事件属性 */
+    private byte[] sanitizeSvg(byte[] bytes) {
+        String svg = new String(bytes, StandardCharsets.UTF_8);
+        Document doc = Jsoup.parse(svg, org.jsoup.parser.Parser.xmlParser());
+        // 删除所有 script 元素
+        doc.select("script").remove();
+        // 删除所有元素上的 on* 事件属性
+        doc.getAllElements().forEach(el -> {
+            el.attributes().forEach(attr -> {
+                if (attr.getKey().toLowerCase().startsWith("on")) {
+                    el.removeAttr(attr.getKey());
+                }
+            });
+        });
+        return doc.outerHtml().getBytes(StandardCharsets.UTF_8);
     }
 
     @Operation(summary = "上传图片", description = "支持 jpg/png/gif/webp/svg，最大 10MB，仅作者/管理员可用")
@@ -73,38 +128,47 @@ public class UploadController {
                     .body(ApiResponse.error(413, "图片大小超过限制（最大 10MB）"));
         }
 
-        String contentType = file.getContentType();
-        if (contentType == null) {
-            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
-        }
-
         try {
-            // 计算 MD5 用于去重
             byte[] fileBytes = file.getBytes();
+
+            // 魔术字节校验
+            if (!validateMagicBytes(fileBytes, ext)) {
+                return ResponseEntity.badRequest()
+                        .body(ApiResponse.error(400, "文件内容与扩展名不匹配"));
+            }
+
+            // SVG 净化
+            if ("svg".equals(ext)) {
+                fileBytes = sanitizeSvg(fileBytes);
+            }
+
             String md5 = DigestUtils.md5DigestAsHex(fileBytes);
 
             // 去重：检查是否已存在相同 MD5 的图片
             Images existing = imagesService.findByMd5(md5);
             if (existing != null) {
-                // 去重命中，直接返回已有记录
                 UploadImageVO data = new UploadImageVO(existing.getUrl(), existing.getOriginalName(),
                         existing.getFileSize(), existing.getMimeType());
                 data.setImageId(existing.getId());
                 return ResponseEntity.ok(ApiResponse.success(data));
             }
 
+            String contentType = file.getContentType();
+            if (contentType == null) {
+                contentType = "svg".equals(ext) ? "image/svg+xml" : MediaType.APPLICATION_OCTET_STREAM_VALUE;
+            }
+
             // 存储文件
             StorageResult result = fileStorage.store(new ByteArrayInputStream(fileBytes),
-                    originalName, file.getSize(), contentType);
+                    originalName, fileBytes.length, contentType);
 
             String fileName = result.getUrl().substring(result.getUrl().lastIndexOf('/') + 1);
 
-            // 记录图片到 images 表（url=浏览器访问地址, storagePath=存储后端路径）
             Long userId = getCurrentUserId();
             Long imageId = imagesService.recordImage(result.getUrl(), result.getStoragePath(),
-                    originalName, contentType, file.getSize(), null, null, md5, userId);
+                    originalName, contentType, fileBytes.length, null, null, md5, userId);
 
-            UploadImageVO data = new UploadImageVO(result.getUrl(), fileName, file.getSize(), contentType);
+            UploadImageVO data = new UploadImageVO(result.getUrl(), fileName, fileBytes.length, contentType);
             data.setImageId(imageId);
             return ResponseEntity.ok(ApiResponse.success(data));
         } catch (IOException e) {

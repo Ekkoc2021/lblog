@@ -1,22 +1,5 @@
 import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries, AdminComment } from '../types';
-
-function getToken(): string | null {
-  return localStorage.getItem('lblog_access_token');
-}
-
-function getRefreshToken(): string | null {
-  return localStorage.getItem('lblog_refresh_token');
-}
-
-function setTokens(accessToken: string, refreshToken: string): void {
-  localStorage.setItem('lblog_access_token', accessToken);
-  localStorage.setItem('lblog_refresh_token', refreshToken);
-}
-
-function clearTokens(): void {
-  localStorage.removeItem('lblog_access_token');
-  localStorage.removeItem('lblog_refresh_token');
-}
+import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './tokenStore';
 
 // Token 刷新模块级状态
 let isRefreshing = false;
@@ -32,7 +15,7 @@ export async function refreshToken(): Promise<ApiResponse<TokenPairVO>> {
 }
 
 export async function request<T>(path: string, options?: RequestInit): Promise<ApiResponse<T>> {
-  const token = getToken();
+  const token = getAccessToken();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),

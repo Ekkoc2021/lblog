@@ -51,11 +51,20 @@ function DrawioDiagram({ xml }: { xml: string }) {
 }
 
 function mkComponents(baseUrl: string): Components {
-  const fix = (src: string | undefined) => src && baseUrl && src.startsWith('/') ? `${baseUrl.replace(/\/$/, '')}${src}` : src;
+  const fixSrc = (src: string | undefined) =>
+    src && src.startsWith('/') && baseUrl ? `${baseUrl.replace(/\/$/, '')}${src}` : src;
   return {
     h1: withHeadingId('h1'), h2: withHeadingId('h2'), h3: withHeadingId('h3'),
     h4: withHeadingId('h4'), h5: withHeadingId('h5'), h6: withHeadingId('h6'),
-    img: ({ src, alt }) => <Image src={fix(src)} alt={alt || ''} style={{ maxWidth: '100%' }} />,
+    img: ({ src, alt }) => <Image src={fixSrc(src)} alt={alt || ''} style={{ maxWidth: '100%' }} />,
+    a: ({ href, children, node: _, ...rest }) => {
+      const external = href && (href.startsWith('http://') || href.startsWith('https://'));
+      return (
+        <a href={href} {...(external ? { target: '_blank', rel: 'nofollow noopener noreferrer' } : {})} {...rest}>
+          {children}
+        </a>
+      );
+    },
   };
 }
 
