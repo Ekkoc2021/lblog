@@ -157,9 +157,6 @@ const SeriesManage: React.FC = () => {
           <Form.Item name="isCompleted" label="状态" valuePropName="checked">
             <Switch checkedChildren="已完结" unCheckedChildren="连载中" />
           </Form.Item>
-          <Form.Item name="sortOrder" label="排序">
-            <Input type="number" placeholder="0" />
-          </Form.Item>
         </Form>
       </Modal>
     </>

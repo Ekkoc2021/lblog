@@ -84,7 +84,8 @@
         SELECT id, title, slug, view_count AS viewCount
         FROM posts
         WHERE status = 1 AND is_delelte = 0 AND deleted_at IS NULL
-        ORDER BY view_count DESC
+        ORDER BY (view_count * 0.1) / POWER(GREATEST(DATEDIFF(NOW(), published_at), 0) + 1, 1.5) DESC,
+                 published_at DESC
         LIMIT #{limit}
     </select>
 
