@@ -262,7 +262,7 @@ const PostManage: React.FC = () => {
               <Button size="small" danger loading={batchLoading} onClick={() => handleBatchAction('DELETE')}>批量删除</Button>
             </Space>
           ) : undefined}
-          scroll={{ x: 1200 }}
+          scroll={{ x: 1100 }}
         />
       </Card>
 

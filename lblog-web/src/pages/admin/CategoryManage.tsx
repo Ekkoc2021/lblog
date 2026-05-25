@@ -97,7 +97,7 @@ const CategoryManage: React.FC = () => {
     { title: '文章数', dataIndex: 'postCount', key: 'postCount', width: 70, align: 'right' as const },
     { title: '创建者', dataIndex: 'creatorName', key: 'creatorName', width: 100 },
     {
-      title: '操作', key: 'action', width: 120,
+      title: '操作', key: 'action', width: 120, fixed: 'right' as const,
       render: (_: unknown, record: AdminCategory) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openEdit(record)}>编辑</Button>
@@ -131,6 +131,7 @@ const CategoryManage: React.FC = () => {
           columns={columns}
           dataSource={categories.map(c => ({ ...c, key: c.id }))}
           loading={loading}
+          scroll={{ x: 800 }}
           pagination={{
             current: page,
             pageSize,

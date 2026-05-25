@@ -112,7 +112,7 @@ const SeriesManage: React.FC = () => {
     },
     { title: '创建者', dataIndex: 'creatorName', key: 'creatorName', width: 100 },
     {
-      title: '操作', key: 'action', width: 120,
+      title: '操作', key: 'action', width: 120, fixed: 'right' as const,
       render: (_: unknown, record: AdminSeries) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openEdit(record)}>编辑</Button>
@@ -154,6 +154,7 @@ const SeriesManage: React.FC = () => {
           columns={columns}
           dataSource={seriesList.map(s => ({ ...s, key: s.id }))}
           loading={loading}
+          scroll={{ x: 800 }}
           pagination={{
             current: page,
             pageSize,

@@ -83,8 +83,8 @@ const AdminLayout: React.FC = () => {
           </Button>
         </div>
       </Sider>
-      <Layout style={{ background: 'var(--color-bg)' }}>
-        <Content style={{ padding: 32 }}>
+      <Layout style={{ background: 'var(--color-bg)', minWidth: 0 }}>
+        <Content style={{ padding: 32, minWidth: 0 }}>
           <Outlet />
         </Content>
       </Layout>

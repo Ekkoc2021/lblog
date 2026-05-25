@@ -96,7 +96,7 @@ const TagManage: React.FC = () => {
     { title: '文章数', dataIndex: 'postCount', key: 'postCount', width: 70, align: 'right' as const },
     { title: '创建者', dataIndex: 'creatorName', key: 'creatorName', width: 100 },
     {
-      title: '操作', key: 'action', width: 120,
+      title: '操作', key: 'action', width: 120, fixed: 'right' as const,
       render: (_: unknown, record: AdminTag) => (
         <Space size="small">
           <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openEdit(record)}>编辑</Button>
@@ -130,6 +130,7 @@ const TagManage: React.FC = () => {
           columns={columns}
           dataSource={tags.map(t => ({ ...t, key: t.id }))}
           loading={loading}
+          scroll={{ x: 700 }}
           pagination={{
             current: page,
             pageSize,
