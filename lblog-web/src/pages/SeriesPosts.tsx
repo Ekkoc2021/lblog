@@ -13,7 +13,7 @@ const SeriesPosts: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const [series, setSeries] = useState<Series | null>(null);
-  const [activeTab, setActiveTab] = useState('recommend');
+  const [activeTab, setActiveTab] = useState('series');
   const { tags, categories, seriesList, hotPosts } = useSiteData();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
@@ -54,6 +54,7 @@ const SeriesPosts: React.FC = () => {
   }, [activeTab, series?.id]);
 
   const tabItems = [
+    { key: 'series', label: '专栏顺序' },
     { key: 'recommend', label: '推荐' },
     { key: 'newest', label: '最新' },
     { key: 'hot', label: '最热' },
