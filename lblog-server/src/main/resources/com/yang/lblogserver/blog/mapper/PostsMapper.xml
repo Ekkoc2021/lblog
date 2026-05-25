@@ -50,16 +50,32 @@
         SELECT
         <include refid="Base_Column_List"/>
         FROM posts p
+        <if test="sort == 'series' and seriesId != null">
+            LEFT JOIN series_posts sp ON p.id = sp.post_id AND sp.series_id = #{seriesId}
+        </if>
         <include refid="where_condition"/>
         <choose>
             <when test="sort == 'newest'">
                 ORDER BY p.published_at DESC
             </when>
             <when test="sort == 'hot'">
-                ORDER BY p.view_count DESC, p.published_at DESC
+                ORDER BY (
+                    p.view_count * #{wView} +
+                    p.like_count * #{wLike} +
+                    p.comment_count * #{wComment}
+                ) / POWER(GREATEST(DATEDIFF(NOW(), p.published_at), 0) + #{decayBase}, #{decayExponent}) DESC,
+                p.published_at DESC
+            </when>
+            <when test="sort == 'series' and seriesId != null">
+                ORDER BY COALESCE(sp.sort_order, 999999) ASC, p.published_at DESC
             </when>
             <otherwise>
-                ORDER BY p.like_count DESC, p.published_at DESC
+                ORDER BY (
+                    p.like_count * #{wLike} +
+                    p.comment_count * #{wComment} +
+                    p.view_count * #{wView}
+                ) / POWER(GREATEST(DATEDIFF(NOW(), p.published_at), 0) + #{decayBase}, #{decayExponent}) DESC,
+                p.published_at DESC
             </otherwise>
         </choose>
     </select>

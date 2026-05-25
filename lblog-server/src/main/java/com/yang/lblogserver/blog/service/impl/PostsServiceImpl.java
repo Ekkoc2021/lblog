@@ -2,6 +2,8 @@ package com.yang.lblogserver.blog.service.impl;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.yang.lblogserver.blog.service.RankConfig;
+import com.yang.lblogserver.blog.service.RankConfigService;
 import com.yang.lblogserver.common.PageResult;
 import com.yang.lblogserver.blog.domain.*;
 import com.yang.lblogserver.blog.mapper.*;
@@ -39,6 +41,7 @@ public class PostsServiceImpl implements PostsService {
     private final LikeRecordsMapper likeRecordsMapper;
     private final SeriesPostsMapper seriesPostsMapper;
     private final SeriesMapper seriesMapper;
+    private final RankConfigService rankConfigService;
     private final ApplicationEventPublisher eventPublisher;
 
     public PostsServiceImpl(PostsMapper postsMapper, UserQueryService userQueryService,
@@ -47,6 +50,7 @@ public class PostsServiceImpl implements PostsService {
                             LikeRecordsMapper likeRecordsMapper,
                             SeriesPostsMapper seriesPostsMapper,
                             SeriesMapper seriesMapper,
+                            RankConfigService rankConfigService,
                             ApplicationEventPublisher eventPublisher) {
         this.postsMapper = postsMapper;
         this.userQueryService = userQueryService;
@@ -57,18 +61,30 @@ public class PostsServiceImpl implements PostsService {
         this.likeRecordsMapper = likeRecordsMapper;
         this.seriesPostsMapper = seriesPostsMapper;
         this.seriesMapper = seriesMapper;
+        this.rankConfigService = rankConfigService;
         this.eventPublisher = eventPublisher;
     }
 
     @Override
     public PageResult<PostVO> getPostList(int page, int pageSize, String sort,
                                           Long categoryId, Long tagId, Long seriesId, String keyword) {
-        if (!Arrays.asList("recommend", "newest", "hot").contains(sort)) {
+        if (!Arrays.asList("recommend", "newest", "hot", "series").contains(sort)) {
             sort = "recommend";
         }
 
+        // 根据排序类型加载对应的权重参数
+        RankConfig rankConfig;
+        if ("hot".equals(sort)) {
+            rankConfig = rankConfigService.getHotConfig();
+        } else {
+            rankConfig = rankConfigService.getRecommendConfig();
+        }
+
         PageHelper.startPage(page, pageSize);
-        List<Posts> posts = postsMapper.selectPostList(sort, categoryId, tagId, seriesId, keyword);
+        List<Posts> posts = postsMapper.selectPostList(sort, categoryId, tagId, seriesId, keyword,
+            rankConfig.getWeightLike(), rankConfig.getWeightComment(),
+            rankConfig.getWeightView(), rankConfig.getDecayBase(),
+            rankConfig.getDecayExponent());
         PageInfo<Posts> pageInfo = new PageInfo<>(posts);
 
         if (posts.isEmpty()) {

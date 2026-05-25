@@ -34,7 +34,7 @@ const SeriesPosts: React.FC = () => {
     } else {
       setLoading(true);
     }
-    getPosts({ page: pageNum, pageSize, sort: activeTab as 'recommend' | 'newest' | 'hot', seriesId: series.id })
+    getPosts({ page: pageNum, pageSize, sort: activeTab as 'recommend' | 'newest' | 'hot' | 'series', seriesId: series.id })
       .then(res => {
         setPosts(prev => append ? [...prev, ...res.data.list] : res.data.list);
         setTotal(res.data.total);

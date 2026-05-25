@@ -17,7 +17,12 @@ public interface PostsMapper {
                                @Param("categoryId") Long categoryId,
                                @Param("tagId") Long tagId,
                                @Param("seriesId") Long seriesId,
-                               @Param("keyword") String keyword);
+                               @Param("keyword") String keyword,
+                               @Param("wLike") Double wLike,
+                               @Param("wComment") Double wComment,
+                               @Param("wView") Double wView,
+                               @Param("decayBase") Integer decayBase,
+                               @Param("decayExponent") Double decayExponent);
 
     List<HotPostVO> selectHotPosts(@Param("limit") int limit);
 
