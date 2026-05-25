@@ -505,14 +505,20 @@ public class PostsServiceImpl implements PostsService {
             }
         }
 
-        // 更新专栏关联（先删，有值再插）
-        seriesPostsMapper.deleteByPostId(id);
-        if (req.getSeriesId() != null) {
-            SeriesPosts sp = new SeriesPosts();
-            sp.setSeriesId(req.getSeriesId());
-            sp.setPostId(id);
-            sp.setSortOrder(seriesPostsMapper.selectMaxSortOrder(req.getSeriesId()) + 1);
-            seriesPostsMapper.insert(sp);
+        // 更新专栏关联（仅 seriesId 变化时才操作，保留原 sort_order）
+        SeriesPosts existingLink = seriesPostsMapper.selectByPostId(id);
+        Long oldSeriesId = existingLink != null ? existingLink.getSeriesId() : null;
+        Long newSeriesId = req.getSeriesId();
+
+        if (!Objects.equals(oldSeriesId, newSeriesId)) {
+            seriesPostsMapper.deleteByPostId(id);
+            if (newSeriesId != null) {
+                SeriesPosts sp = new SeriesPosts();
+                sp.setSeriesId(newSeriesId);
+                sp.setPostId(id);
+                sp.setSortOrder(seriesPostsMapper.selectMaxSortOrder(newSeriesId) + 1);
+                seriesPostsMapper.insert(sp);
+            }
         }
 
         publishCacheRefreshEvents();
