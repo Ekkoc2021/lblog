@@ -105,6 +105,31 @@ findByUsername("ekko") → null
 - 用户数 > 0 时走正常"用户名或密码错误"逻辑
 - 避免在已有用户的环境下误创建 ekko 账号
 
+### 3.4 统一配置入口 — 修复直接 Mapper 调用
+
+**问题**：以下 4 处绕过了 `SiteConfigCacheService`，直接调用 `siteConfigMapper.selectConfigValue()`。首次部署时 site_config 表为空，返回 null，导致行为异常：
+
+| 文件 | 配置键 | null 时的行为 | 后果 |
+|------|--------|-------------|------|
+| `AuthController.java:149` | `registration_enabled` | `!"true".equals(null)` = true | 巧合正确 |
+| `AdminImageController.java:46` | `image_cleanup_days` | 代码 fallback 30 | 有兜底 OK |
+| `DrawController.java:55` | `ai_draw_chat_enabled` | `"true".equalsIgnoreCase(null)` = **false** | **AI 绘图被禁用** |
+| `ChatHistoryAdvisor.java:279` | `reasoning_inject` | `"true".equals(null)` = **false** | **推理注入被禁用** |
+
+**修复**：全部改为调用 `siteConfigCacheService.getConfigValue()`，这样懒初始化自动生效，且享受缓存加速。
+
+改造示例（AuthController）：
+
+```java
+// 改前
+String regEnabled = siteConfigMapper.selectConfigValue("registration_enabled");
+
+// 改后
+String regEnabled = siteConfigCacheService.getConfigValue("registration_enabled");
+```
+
+其他 3 处同理。`AdminImageController` 已有 `siteConfigMapper` 注入，需改为注入 `SiteConfigCacheService`。
+
 ## 四、改动清单
 
 | # | 文件 | 操作 | 说明 |
@@ -115,7 +140,11 @@ findByUsername("ekko") → null
 | 4 | `auth/service/RoleService.java` | 新建 | 包装 RolesMapper，getByName/getAll 懒初始化 |
 | 5 | `auth/mapper/RolesMapper.java` | 新增方法 | `insert` |
 | 6 | `auth/service/impl/AuthServiceImpl.java`（或登录逻辑所在处）| 修改 | 首次 ekko 登录时自动创建管理员 |
-| 7 | `v1.0.sql` | 修改 | 删除末尾初始化数据段落（L504-L520） |
+| 7 | `auth/controller/AuthController.java` | 修改 | L149 `selectConfigValue` → `getConfigValue` |
+| 8 | `image/controller/admin/AdminImageController.java` | 修改 | L46 `selectConfigValue` → `getConfigValue`，注入改为 CacheService |
+| 9 | `ai/agent/draw/controller/DrawController.java` | 修改 | L55 `selectConfigValue` → `getConfigValue` |
+| 10 | `ai/memory/advisor/ChatHistoryAdvisor.java` | 修改 | L279 `selectConfigValue` → `getConfigValue` |
+| 11 | `v1.0.sql` | 修改 | 删除末尾初始化数据段落（L504-L520） |
 | 8 | `v1.1.sql` | 删除 | 排序配置由 DefaultConfig 接管 |
 
 ## 五、DefaultConfig.java 设计
@@ -208,14 +237,18 @@ public final class DefaultConfig {
 
 ## 十、实施检查清单
 
-- [ ] `DefaultConfig.java` — 集中管理所有默认配置键值对
+- [ ] `DefaultConfig.java` — 集中管理所有 15 个默认配置键值对
 - [ ] `SiteConfigCacheService.getConfigValue()` — 加懒初始化逻辑
 - [ ] `SiteConfigMapper.insertConfig()` — INSERT IGNORE
 - [ ] `RoleService.java` — getByName + getAll 懒初始化
 - [ ] `RolesMapper.insert()` — INSERT with generated keys
 - [ ] 登录流程 — 首次 ekko 登录自动创建管理员
+- [ ] `AuthController` L149 — `selectConfigValue` → `getConfigValue`
+- [ ] `AdminImageController` L46 — `selectConfigValue` → `getConfigValue`
+- [ ] `DrawController` L55 — `selectConfigValue` → `getConfigValue`
+- [ ] `ChatHistoryAdvisor` L279 — `selectConfigValue` → `getConfigValue`
 - [ ] `v1.0.sql` — 删除末尾初始化数据段落
 - [ ] 删除 `v1.1.sql`
 - [ ] 后端编译通过
-- [ ] 空库验证：首次启动 → 各触发点依次访问 → 数据自动落库
-- [ ] 幂等验证：二次启动 → 无重复数据
+- [ ] 空库验证：首次启动 → 各触发点依次访问 → 数据自动落库，AI 绘图可用
+- [ ] 幂等验证：二次启动 → 无重复数据，日志全部"已存在，跳过"
