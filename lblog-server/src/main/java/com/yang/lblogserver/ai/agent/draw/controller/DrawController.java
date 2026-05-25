@@ -9,7 +9,7 @@ import com.yang.lblogserver.ai.agent.transport.SseStreamTransport;
 import com.yang.lblogserver.ai.conversation.domain.ChatSession;
 import com.yang.lblogserver.ai.memory.ChatMemoryStore;
 import com.yang.lblogserver.common.ApiResponse;
-import com.yang.lblogserver.site.mapper.SiteConfigMapper;
+import com.yang.lblogserver.site.service.SiteConfigCacheService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,21 +30,21 @@ public class DrawController {
 
     private final DrawService diagramService;
     private final DrawRateLimiter drawRateLimiter;
-    private final SiteConfigMapper siteConfigMapper;
+    private final SiteConfigCacheService siteConfigCacheService;
     private final ChatMemoryStore chatMemoryStore;
     private final ScheduledExecutorService heartbeatScheduler;
     private final DrawProperties drawProperties;
     private final String modelName;
 
     public DrawController(DrawService diagramService,
-                          DrawRateLimiter drawRateLimiter, SiteConfigMapper siteConfigMapper,
+                          DrawRateLimiter drawRateLimiter, SiteConfigCacheService siteConfigCacheService,
                           ChatMemoryStore chatMemoryStore,
                           ScheduledExecutorService heartbeatScheduler,
                           DrawProperties drawProperties,
                           @Value("${spring.ai.deepseek.chat.options.model}") String modelName) {
         this.diagramService = diagramService;
         this.drawRateLimiter = drawRateLimiter;
-        this.siteConfigMapper = siteConfigMapper;
+        this.siteConfigCacheService = siteConfigCacheService;
         this.chatMemoryStore = chatMemoryStore;
         this.heartbeatScheduler = heartbeatScheduler;
         this.drawProperties = drawProperties;
@@ -52,7 +52,7 @@ public class DrawController {
     }
 
     private boolean isAiDrawEnabled() {
-        String val = siteConfigMapper.selectConfigValue("ai_draw_chat_enabled");
+        String val = siteConfigCacheService.getConfigValue("ai_draw_chat_enabled");
         return "true".equalsIgnoreCase(val);
     }
 

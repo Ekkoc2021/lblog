@@ -142,6 +142,10 @@
         WHERE id = #{id}
     </update>
 
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*) FROM users
+    </select>
+
     <select id="countPostsByUserId" resultType="int">
         SELECT COUNT(*)
         FROM posts

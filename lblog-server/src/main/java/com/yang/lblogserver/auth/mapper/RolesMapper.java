@@ -14,4 +14,6 @@ public interface RolesMapper {
     Roles selectById(@Param("id") Long id);
 
     Roles selectByName(@Param("name") String name);
+
+    int insert(Roles role);
 }

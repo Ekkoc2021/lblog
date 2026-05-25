@@ -11,6 +11,7 @@ import com.yang.lblogserver.auth.mapper.PermissionsMapper;
 import com.yang.lblogserver.auth.mapper.RolePermissionsMapper;
 import com.yang.lblogserver.auth.mapper.RolesMapper;
 import com.yang.lblogserver.auth.mapper.UserRolesMapper;
+import com.yang.lblogserver.auth.service.RoleService;
 import com.yang.lblogserver.auth.mapper.UserTokenMapper;
 import com.yang.lblogserver.auth.mapper.UsersMapper;
 import com.yang.lblogserver.auth.vo.*;
@@ -44,6 +45,7 @@ public class AdminUserController {
     private final RolePermissionsMapper rolePermissionsMapper;
     private final UserTokenMapper userTokenMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RoleService roleService;
 
     public AdminUserController(UsersMapper usersMapper,
                                UserRolesMapper userRolesMapper,
@@ -51,7 +53,8 @@ public class AdminUserController {
                                PermissionsMapper permissionsMapper,
                                RolePermissionsMapper rolePermissionsMapper,
                                UserTokenMapper userTokenMapper,
-                               PasswordEncoder passwordEncoder) {
+                               PasswordEncoder passwordEncoder,
+                               RoleService roleService) {
         this.usersMapper = usersMapper;
         this.userRolesMapper = userRolesMapper;
         this.rolesMapper = rolesMapper;
@@ -59,6 +62,7 @@ public class AdminUserController {
         this.rolePermissionsMapper = rolePermissionsMapper;
         this.userTokenMapper = userTokenMapper;
         this.passwordEncoder = passwordEncoder;
+        this.roleService = roleService;
     }
 
     @Operation(summary = "用户列表", description = "分页查询用户列表，支持关键词搜索、状态筛选、非活跃天数筛选、角色筛选")
@@ -209,7 +213,7 @@ public class AdminUserController {
     @Operation(summary = "角色列表", description = "获取所有角色，含权限列表")
     @GetMapping("/roles")
     public ApiResponse<List<Roles>> getRoleList() {
-        List<Roles> list = rolesMapper.selectAll();
+        List<Roles> list = roleService.getAll();
         List<Permissions> allPerms = permissionsMapper.selectAll();
         for (Roles role : list) {
             List<RolePermissions> rps = rolePermissionsMapper.selectByRoleId(role.getId());

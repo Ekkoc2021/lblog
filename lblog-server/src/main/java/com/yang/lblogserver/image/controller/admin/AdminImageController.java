@@ -4,7 +4,7 @@ import com.yang.lblogserver.common.ApiResponse;
 import com.yang.lblogserver.common.PageResult;
 import com.yang.lblogserver.image.domain.Images;
 import com.yang.lblogserver.image.mapper.ImagesMapper;
-import com.yang.lblogserver.site.mapper.SiteConfigMapper;
+import com.yang.lblogserver.site.service.SiteConfigCacheService;
 import com.yang.lblogserver.storage.FileStorage;
 import com.yang.lblogserver.image.vo.AdminImageVO;
 import com.yang.lblogserver.image.vo.ImageCleanupVO;
@@ -30,20 +30,20 @@ public class AdminImageController {
 
     private final ImagesMapper imagesMapper;
     private final FileStorage fileStorage;
-    private final SiteConfigMapper siteConfigMapper;
+    private final SiteConfigCacheService siteConfigCacheService;
 
     public AdminImageController(ImagesMapper imagesMapper, FileStorage fileStorage,
-                                SiteConfigMapper siteConfigMapper) {
+                                SiteConfigCacheService siteConfigCacheService) {
         this.imagesMapper = imagesMapper;
         this.fileStorage = fileStorage;
-        this.siteConfigMapper = siteConfigMapper;
+        this.siteConfigCacheService = siteConfigCacheService;
     }
 
     @Operation(summary = "图片统计概览", description = "总图片数、总大小、已引用/未引用数量、未引用超时天数可清理等")
     @GetMapping("/statistics")
     public ApiResponse<ImageStatisticsVO> getStatistics() {
         // 从 site_config 读取清理天数，与 cleanupImages 接口保持一致
-        String days = siteConfigMapper.selectConfigValue("image_cleanup_days");
+        String days = siteConfigCacheService.getConfigValue("image_cleanup_days");
         int cleanupDays = 30;
         if (days != null && !days.isBlank()) {
             try {
@@ -92,7 +92,7 @@ public class AdminImageController {
             @RequestParam(defaultValue = "true") boolean dryRun) {
         // 从 site_config 读取默认值，兜底 30 天
         if (beforeDays == null) {
-            String configVal = siteConfigMapper.selectConfigValue("image_cleanup_days");
+            String configVal = siteConfigCacheService.getConfigValue("image_cleanup_days");
             if (configVal != null) {
                 try {
                     beforeDays = Integer.parseInt(configVal);

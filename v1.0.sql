@@ -497,28 +497,3 @@ create index idx_user_id
 
 
 
--- ============================================================
--- 初始化数据
--- ============================================================
-
--- 角色表
-INSERT INTO roles (id, name, label, description, sort_order) VALUES
-(1, 'admin',  '管理员', '系统管理员，拥有所有权限', 0),
-(2, 'author', '作者',   '内容创作者',             1),
-(3, 'user',   '用户',   '普通注册用户',           2);
-
--- 管理员用户 (密码: admin123，首次登录后请修改)
-INSERT INTO users (id, username, password_hash, nickname, email, role, status) VALUES
-(1, 'ekko', '{noop}admin123', 'Ekko', 'ekko@example.com', 'admin', 1);
-
--- 用户角色关联
-INSERT INTO user_roles (user_id, role_id) VALUES (1, 1);
-
--- 站点配置
-INSERT INTO site_config (config_key, config_value) VALUES
-('registration_enabled', 'true'),
-('site_title', 'My Blog'),
-('ai_draw_chat_enabled', 'true'),
-('image_cleanup_days', '0'),
-('reasoning_inject', 'true');
-

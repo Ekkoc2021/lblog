@@ -34,6 +34,16 @@ public class SiteConfigCacheService {
 
         log.debug("cache miss: site_config.{}, loading from DB", key);
         String value = siteConfigMapper.selectConfigValue(key);
+        if (value == null) {
+            // 懒初始化：查默认值，有则 INSERT 入库
+            String defaultVal = com.yang.lblogserver.common.init.DefaultConfig.getDefault(key);
+            if (defaultVal != null) {
+                siteConfigMapper.insertConfig(key, defaultVal);
+                cache.put(key, defaultVal);
+                log.info("site_config {} —— 已自动创建（默认值）", key);
+                return defaultVal;
+            }
+        }
         if (value != null) {
             cache.put(key, value);
         }

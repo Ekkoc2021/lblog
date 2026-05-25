@@ -5,7 +5,7 @@ import com.yang.lblogserver.ai.memory.ChatMemoryStore;
 import com.yang.lblogserver.ai.memory.compression.LoadingStrategy;
 import com.yang.lblogserver.ai.memory.converter.ContextPolicy;
 import com.yang.lblogserver.ai.memory.converter.ModelMessageConverter;
-import com.yang.lblogserver.site.mapper.SiteConfigMapper;
+import com.yang.lblogserver.site.service.SiteConfigCacheService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClientRequest;
@@ -40,17 +40,17 @@ public class ChatHistoryAdvisor implements BaseAdvisor {
     private final ChatMemoryStore chatMemoryStore;
     private final List<ModelMessageConverter> converters;
     private final LoadingStrategy loadingStrategy;
-    private final SiteConfigMapper siteConfigMapper;
+    private final SiteConfigCacheService siteConfigCacheService;
     private final int order;
 
     public ChatHistoryAdvisor(ChatMemoryStore chatMemoryStore,
                               List<ModelMessageConverter> converters,
                               LoadingStrategy loadingStrategy,
-                              SiteConfigMapper siteConfigMapper) {
+                              SiteConfigCacheService siteConfigCacheService) {
         this.chatMemoryStore = chatMemoryStore;
         this.converters = converters;
         this.loadingStrategy = loadingStrategy;
-        this.siteConfigMapper = siteConfigMapper;
+        this.siteConfigCacheService = siteConfigCacheService;
         this.order = BaseAdvisor.HIGHEST_PRECEDENCE;
     }
 
@@ -276,7 +276,7 @@ public class ChatHistoryAdvisor implements BaseAdvisor {
      */
     private ContextPolicy buildPolicy() {
         ContextPolicy policy = new ContextPolicy();
-        String val = siteConfigMapper.selectConfigValue("reasoning_inject");
+        String val = siteConfigCacheService.getConfigValue("reasoning_inject");
         policy.setIncludeReasoning("true".equals(val));
         return policy;
     }

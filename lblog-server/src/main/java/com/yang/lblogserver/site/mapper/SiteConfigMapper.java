@@ -15,5 +15,7 @@ public interface SiteConfigMapper {
 
     List<SiteConfig> selectAll();
 
+    int insertConfig(@Param("configKey") String configKey, @Param("configValue") String configValue);
+
     int deleteByKey(@Param("configKey") String configKey);
 }

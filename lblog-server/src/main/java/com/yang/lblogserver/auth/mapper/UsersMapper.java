@@ -48,5 +48,7 @@ public interface UsersMapper {
                    @Param("status") Integer status,
                    @Param("role") String role);
 
+    int countAll();
+
     int countPostsByUserId(@Param("userId") Long userId);
 }

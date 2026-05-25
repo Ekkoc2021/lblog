@@ -38,4 +38,9 @@
         LIMIT 1
     </select>
 
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO roles (name, label, description, sort_order, created_at, updated_at)
+        VALUES (#{name}, #{label}, #{description}, #{sortOrder}, NOW(), NOW())
+    </insert>
+
 </mapper>

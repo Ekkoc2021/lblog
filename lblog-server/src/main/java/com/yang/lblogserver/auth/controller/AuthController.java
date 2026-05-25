@@ -6,11 +6,13 @@ import com.yang.lblogserver.auth.domain.UserRoles;
 import com.yang.lblogserver.auth.domain.Users;
 import com.yang.lblogserver.auth.mapper.RolesMapper;
 import com.yang.lblogserver.site.mapper.SiteConfigMapper;
+import com.yang.lblogserver.site.service.SiteConfigCacheService;
 import com.yang.lblogserver.auth.mapper.UserRolesMapper;
 import com.yang.lblogserver.auth.mapper.UsersMapper;
 import com.yang.lblogserver.auth.security.model.LoginUser;
 import com.yang.lblogserver.auth.service.LoginAttemptService;
 import com.yang.lblogserver.auth.service.RegisterProtectionService;
+import com.yang.lblogserver.auth.service.RoleService;
 import com.yang.lblogserver.auth.service.TokenService;
 import com.yang.lblogserver.auth.vo.ChangePasswordRequest;
 import com.yang.lblogserver.auth.vo.LoginRequest;
@@ -44,25 +46,31 @@ public class AuthController {
     private final UserRolesMapper userRolesMapper;
     private final RolesMapper rolesMapper;
     private final SiteConfigMapper siteConfigMapper;
+    private final SiteConfigCacheService siteConfigCacheService;
     private final PasswordEncoder passwordEncoder;
     private final LoginAttemptService loginAttemptService;
     private final RegisterProtectionService registerProtectionService;
+    private final RoleService roleService;
 
     public AuthController(AuthenticationManager authenticationManager, TokenService tokenService,
                           UsersMapper usersMapper, UserRolesMapper userRolesMapper,
                           RolesMapper rolesMapper, SiteConfigMapper siteConfigMapper,
+                          SiteConfigCacheService siteConfigCacheService,
                           PasswordEncoder passwordEncoder,
                           LoginAttemptService loginAttemptService,
-                          RegisterProtectionService registerProtectionService) {
+                          RegisterProtectionService registerProtectionService,
+                          RoleService roleService) {
         this.authenticationManager = authenticationManager;
         this.tokenService = tokenService;
         this.usersMapper = usersMapper;
         this.userRolesMapper = userRolesMapper;
         this.rolesMapper = rolesMapper;
         this.siteConfigMapper = siteConfigMapper;
+        this.siteConfigCacheService = siteConfigCacheService;
         this.passwordEncoder = passwordEncoder;
         this.loginAttemptService = loginAttemptService;
         this.registerProtectionService = registerProtectionService;
+        this.roleService = roleService;
     }
 
     // ── Cookie helpers ──
@@ -146,7 +154,7 @@ public class AuthController {
                                              HttpServletRequest servletRequest,
                                              HttpServletResponse response) {
         // ——— 注册开关检查 ———
-        String regEnabled = siteConfigMapper.selectConfigValue("registration_enabled");
+        String regEnabled = siteConfigCacheService.getConfigValue("registration_enabled");
         if (!"true".equals(regEnabled)) {
             return ApiResponse.error(403, "当前暂未开放注册");
         }
@@ -196,7 +204,7 @@ public class AuthController {
         usersMapper.insertUser(user);
 
         // 分配默认角色 "user"
-        Roles defaultRole = rolesMapper.selectByName("user");
+        Roles defaultRole = roleService.getByName("user");
         if (defaultRole != null) {
             UserRoles ur = new UserRoles();
             ur.setUserId(user.getId());

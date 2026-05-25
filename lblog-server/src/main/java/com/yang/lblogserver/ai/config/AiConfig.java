@@ -9,7 +9,7 @@ import com.yang.lblogserver.ai.memory.advisor.CompressionAdvisor;
 import com.yang.lblogserver.ai.memory.compression.SlidingWindowStrategy;
 import com.yang.lblogserver.ai.memory.converter.ModelMessageConverter;
 import com.yang.lblogserver.ai.memory.estimator.TokenEstimator;
-import com.yang.lblogserver.site.mapper.SiteConfigMapper;
+import com.yang.lblogserver.site.service.SiteConfigCacheService;
 import io.micrometer.observation.ObservationRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,13 +53,13 @@ public class AiConfig {
                                      ToolCallingManager toolCallingManager,
                                      ChatMemoryStore chatMemoryStore,
                                      List<ModelMessageConverter> converters,
-                                     SiteConfigMapper siteConfigMapper,
+                                     SiteConfigCacheService siteConfigCacheService,
                                      TokenEstimator tokenEstimator,
                                      @Value("${ai.context.max-history-tokens:4000}") int maxHistoryTokens) {
         SlidingWindowStrategy slidingWindow = new SlidingWindowStrategy(20, 30);
         return ChatClient.builder(chatModel)
                 .defaultAdvisors(
-                        new ChatHistoryAdvisor(chatMemoryStore, converters, slidingWindow, siteConfigMapper),
+                        new ChatHistoryAdvisor(chatMemoryStore, converters, slidingWindow, siteConfigCacheService),
                         new DeepSeekToolCallAdvisor(
                                 toolCallingManager,
                                 BaseAdvisor.HIGHEST_PRECEDENCE + 2,

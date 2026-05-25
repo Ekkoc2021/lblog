@@ -21,6 +21,10 @@
         ORDER BY id ASC
     </select>
 
+    <insert id="insertConfig">
+        INSERT IGNORE INTO site_config (config_key, config_value) VALUES (#{configKey}, #{configValue})
+    </insert>
+
     <delete id="deleteByKey">
         DELETE FROM site_config WHERE config_key = #{configKey}
     </delete>
