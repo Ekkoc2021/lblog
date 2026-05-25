@@ -6,6 +6,7 @@ import com.yang.lblogserver.blog.vo.admin.AuthorStatisticsVO;
 import com.yang.lblogserver.blog.vo.admin.StatisticsVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
@@ -29,6 +30,12 @@ public interface PostsMapper {
     int incrementLikeCount(@Param("id") Long id);
 
     int decrementLikeCount(@Param("id") Long id);
+
+    @Update("UPDATE posts SET comment_count = comment_count + 1 WHERE id = #{postId}")
+    int incrementCommentCount(@Param("postId") Long postId);
+
+    @Update("UPDATE posts SET comment_count = comment_count - 1 WHERE id = #{postId} AND comment_count > 0")
+    int decrementCommentCount(@Param("postId") Long postId);
 
     // ---- Admin ----
 

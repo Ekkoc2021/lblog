@@ -134,16 +134,45 @@ public class CommentsServiceImpl implements CommentsService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateStatus(Long id, Integer status) {
+        Comments comment = commentsMapper.selectById(id);
+        if (comment == null) {
+            return;
+        }
+        Integer oldStatus = comment.getStatus();
+
         commentsMapper.updateStatus(id, status);
+
+        // 维护 posts.comment_count：只有 status=1（通过）的评论才计入
+        boolean wasApproved = oldStatus != null && oldStatus == 1;
+        boolean isApproved = status != null && status == 1;
+
+        if (wasApproved && !isApproved) {
+            postsMapper.decrementCommentCount(comment.getPostId());
+        } else if (!wasApproved && isApproved) {
+            postsMapper.incrementCommentCount(comment.getPostId());
+        }
+        // 其他情况（1→1, 0→0, 0→2, 2→0, 2→2）均不操作
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteComment(Long id) {
         Comments c = commentsMapper.selectById(id);
-        if (c != null && c.getRootId() != null) {
+        if (c == null) {
+            return;
+        }
+
+        if (c.getRootId() != null) {
             commentsMapper.decrementReplyCount(c.getRootId());
         }
+
+        // 只有已通过的评论被删除时才减 post 计数
+        if (c.getStatus() != null && c.getStatus() == 1) {
+            postsMapper.decrementCommentCount(c.getPostId());
+        }
+
         commentsMapper.softDelete(id);
     }
 

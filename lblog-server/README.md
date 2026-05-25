@@ -63,7 +63,7 @@ mysql -u lblog -p iblog < v1.0.sql
 
 ```
 /home/ubuntu/proj/
-├── lblog-server-0.0.1-SNAPSHOT.jar   # 后端 JAR
+├── lblog-server-1.0.0.jar   # 后端 JAR
 ├── lblog-web/dist/                    # 前端静态文件
 ├── uploads/                           # 图片上传目录
 ├── logs/                              # 应用日志
@@ -84,9 +84,29 @@ server {
     root /home/ubuntu/proj/lblog-web/dist;
     index index.html;
 
+    # === 上传文件大小限制 ===
+    # Nginx 默认 client_max_body_size = 1m，超过返回 413。
+    # 博客管理后台会上传图片，建议 20m。
+    client_max_body_size 20m;
+
+    # === Gzip 压缩 ===
+    # 前端打包产物中 JS/CSS 体积较大（如 index.js 1.4MB、comments.js 1.1MB），
+    # 开启 gzip 后实际传输体积可缩减 60-70%，显著加快页面首次加载。
+    gzip on;
+    gzip_types text/plain application/json text/css application/javascript text/javascript image/svg+xml;
+    gzip_min_length 256;
+    gzip_comp_level 6;
+    gzip_vary on;
+
     # SPA 路由回退
     location / {
         try_files $uri $uri/ /index.html;
+    }
+
+    # 静态资源强缓存（文件名带 hash，可放心缓存一年）
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
     }
 
     # API 代理（注意后端 context-path 是 /iblogserver）
@@ -104,7 +124,11 @@ server {
 }
 ```
 
-> 注意：`proxy_pass` 必须带上后端的 context-path `/iblogserver`，否则请求进不了 Spring MVC 会直接 404。
+> **`client_max_body_size` 为什么需要？** Nginx 默认限制请求体大小为 1MB。博客管理后台涉及图片上传，超过 1MB 会被 Nginx 直接拒绝（返回 413），用户看到上传失败但后端日志毫无痕迹——因为请求根本没到达 Spring Boot。在 Nginx 层放大限制即可解决。
+>
+> **Gzip 为什么需要？** 前端 Vite 构建产物 raw 体积较大，但文本类文件（JS/CSS/HTML/JSON）压缩率极高。开启 gzip 后实际网络传输量降低 60-70%，首屏加载明显更快。`gzip_comp_level 6` 是压缩率与 CPU 开销的平衡点。`gzip_vary on` 让 Nginx 在响应头加上 `Vary: Accept-Encoding`，告诉 CDN/浏览器根据是否支持压缩分别缓存。
+>
+> **`/assets/` 强缓存为什么安全？** Vite 构建时文件名带 content hash（如 `index-B8StdVZn.js`），内容不变 hash 不变，内容变化 hash 变化即新 URL。因此可以放心设置 `expires 1y`，不会出现"发布了新版但用户看到旧文件"的问题。
 
 ```bash
 sudo ln -sf /etc/nginx/sites-available/lblog /etc/nginx/sites-enabled/
@@ -137,10 +161,10 @@ cd lblog-server
 export JAVA_HOME=/path/to/jdk-21
 export PATH=$JAVA_HOME/bin:$PATH
 mvn package -DskipTests -q
-# 产物：target/lblog-server-0.0.1-SNAPSHOT.jar（约 59MB fat JAR）
+# 产物：target/lblog-server-1.0.0.jar（约 59MB fat JAR）
 ```
 
-上传：`scp target/lblog-server-0.0.1-SNAPSHOT.jar ubuntu@<IP>:/home/ubuntu/proj/`
+上传：`scp target/lblog-server-1.0.0.jar ubuntu@<IP>:/home/ubuntu/proj/`
 
 > 如果本地 Maven 使用 JDK 8，需先设置 `JAVA_HOME` 指向 JDK 21，否则 Spring Boot Maven Plugin 3.5.7 会报 `UnsupportedClassVersionError`。
 
@@ -156,7 +180,7 @@ nohup env DB_PASSWORD=你的密码 java \
   -Xms256m -Xmx512m \
   -XX:+HeapDumpOnOutOfMemoryError \
   -XX:HeapDumpPath=/home/ubuntu/proj/logs \
-  -jar /home/ubuntu/proj/lblog-server-0.0.1-SNAPSHOT.jar \
+  -jar /home/ubuntu/proj/lblog-server-1.0.0.jar \
   --spring.profiles.active=prod \
   --spring.ai.deepseek.api-key=你的AIKey \
   --lblog.upload-dir=/home/ubuntu/proj/uploads \
@@ -178,13 +202,13 @@ chmod +x /home/ubuntu/proj/start.sh
 tail -f /home/ubuntu/proj/logs/app.log
 
 # 停止服务
-pkill -f 'lblog-server.*SNAPSHOT'
+pkill -f 'lblog-server-.*\.jar'
 
 # 重启 Nginx
 sudo systemctl restart nginx
 
 # 重启后端
-pkill -f 'lblog-server.*SNAPSHOT' && ./start.sh
+pkill -f 'lblog-server-.*\.jar' && ./start.sh
 ```
 
 ## 8. JVM 参数说明
@@ -211,17 +235,3 @@ scp -r /home/ubuntu/proj/uploads/* user@new-host:/home/ubuntu/proj/uploads/
 mysqldump -u lblog -p iblog images image_usages | mysql -h new-host -u lblog -p iblog
 ```
 
-## 10. 带宽优化
-
-```nginx
-# 在 nginx server 块中添加
-gzip on;
-gzip_types text/plain application/json text/css application/javascript;
-gzip_min_length 256;
-
-# 静态资源强缓存（文件名带 hash）
-location /assets/ {
-    expires 1y;
-    add_header Cache-Control "public, immutable";
-}
-```
