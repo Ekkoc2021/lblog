@@ -1,6 +1,7 @@
 package com.yang.lblogserver.ai.agent.draw;
 
 import com.yang.lblogserver.ai.agent.transport.AgentStreamTransport;
+import com.yang.lblogserver.ai.conversation.service.ChatMessageService;
 import com.yang.lblogserver.ai.skill.LoadSkillTool;
 import com.yang.lblogserver.ai.skill.SkillSystemPromptBuilder;
 import org.slf4j.Logger;
@@ -27,17 +28,20 @@ public class DrawService {
     private final DisplayDrawTool displayDiagramTool;
     private final LoadSkillTool loadSkillTool;
     private final SkillSystemPromptBuilder skillPromptBuilder;
+    private final ChatMessageService chatMessageService;
 
     public DrawService(@Qualifier("drawChatClient") ChatClient chatClient,
                        DrawPromptManager promptManager,
                        DisplayDrawTool displayDiagramTool,
                        LoadSkillTool loadSkillTool,
-                       SkillSystemPromptBuilder skillPromptBuilder) {
+                       SkillSystemPromptBuilder skillPromptBuilder,
+                       ChatMessageService chatMessageService) {
         this.chatClient = chatClient;
         this.promptManager = promptManager;
         this.displayDiagramTool = displayDiagramTool;
         this.loadSkillTool = loadSkillTool;
         this.skillPromptBuilder = skillPromptBuilder;
+        this.chatMessageService = chatMessageService;
     }
 
     @Async("diagramTaskExecutor")
@@ -69,6 +73,9 @@ public class DrawService {
                             "agentType", "draw"))
                     .call();
 
+            StringBuilder contentBuilder = new StringBuilder();
+            StringBuilder reasoningBuilder = new StringBuilder();
+
             if (callSpec != null && callSpec.chatResponse() != null
                     && callSpec.chatResponse().getResult() != null) {
                 AssistantMessage output = callSpec.chatResponse().getResult().getOutput();
@@ -76,15 +83,19 @@ public class DrawService {
                 if (output instanceof DeepSeekAssistantMessage dsam) {
                     String rc = dsam.getReasoningContent();
                     if (rc != null && !rc.isEmpty()) {
+                        reasoningBuilder.append(rc);
                         transport.send("reasoning", Map.of("delta", rc));
                     }
                 }
 
                 String text = output.getText();
                 if (text != null && !text.isEmpty()) {
+                    contentBuilder.append(text);
                     transport.send("text-delta", Map.of("delta", text));
                 }
             }
+
+            saveAssistantMessage(request, contentBuilder.toString(), reasoningBuilder.toString());
 
             transport.send("done", Map.of("sessionId", request.getSessionId() != null ? request.getSessionId() : ""));
             transport.complete();
@@ -111,6 +122,9 @@ public class DrawService {
             String systemPrompt = buildFullSystemPrompt(request);
             String xmlContext = promptManager.buildXmlContext(request.getXml(), request.getPreviousXml());
 
+            StringBuilder contentBuilder = new StringBuilder();
+            StringBuilder reasoningBuilder = new StringBuilder();
+
             try {
                 chatClient.prompt()
                         .system(systemPrompt + "\n\n" + xmlContext)
@@ -135,12 +149,14 @@ public class DrawService {
                                 if (output instanceof DeepSeekAssistantMessage dsam) {
                                     String rc = dsam.getReasoningContent();
                                     if (rc != null && !rc.isEmpty()) {
+                                        reasoningBuilder.append(rc);
                                         transport.send("reasoning", Map.of("delta", rc));
                                     }
                                 }
 
                                 String text = output.getText();
                                 if (text != null && !text.isEmpty()) {
+                                    contentBuilder.append(text);
                                     transport.send("text-delta", Map.of("delta", text));
                                 }
                             }
@@ -153,6 +169,8 @@ public class DrawService {
                 transport.completeWithError(e);
                 return;
             }
+
+            saveAssistantMessage(request, contentBuilder.toString(), reasoningBuilder.toString());
 
             transport.send("done", Map.of("sessionId", request.getSessionId() != null ? request.getSessionId() : ""));
             transport.complete();
@@ -186,5 +204,17 @@ public class DrawService {
             }
         }
         return null;
+    }
+
+    private void saveAssistantMessage(DrawChatRequest request, String text, String reasoning) {
+        if (request.getSessionId() == null) return;
+        if ((text == null || text.isEmpty()) && (reasoning == null || reasoning.isEmpty())) return;
+        try {
+            Long sid = Long.parseLong(request.getSessionId());
+            int msgIndex = chatMessageService.getMaxMsgIndex(sid) + 1;
+            chatMessageService.saveAssistantMessage(sid, text, reasoning, null, msgIndex, 0);
+        } catch (Exception e) {
+            log.error("Failed to save assistant message", e);
+        }
     }
 }

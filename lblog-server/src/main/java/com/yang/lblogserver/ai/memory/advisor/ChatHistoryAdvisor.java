@@ -22,7 +22,6 @@ import reactor.core.publisher.Flux;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * 对话记忆 advisor，负责注入历史 + 保存回复。不做压缩，压缩由 {@code CompressionAdvisor} 负责。
@@ -144,8 +143,8 @@ public class ChatHistoryAdvisor implements BaseAdvisor {
     }
 
     /**
-     * 流式场景：before 逻辑与同步一致，之后放行到下一个 advisor。
-     * 用 doOnNext 收集 SSE chunk，doOnComplete 时拼装成完整消息再持久化。
+     * 流式场景：注入历史消息后放行到下一个 advisor。
+     * assistant 消息持久化由调用方（DrawService）在流结束后负责。
      */
     @Override
     public Flux<ChatClientResponse> adviseStream(ChatClientRequest request, StreamAdvisorChain chain) {
@@ -188,34 +187,8 @@ public class ChatHistoryAdvisor implements BaseAdvisor {
 
             Prompt newPrompt = new Prompt(allMessages, request.prompt().getOptions());
             ChatClientRequest modifiedRequest = request.mutate().prompt(newPrompt).build();
-            // --- before 阶段结束 ---
 
-            // 将 sid/modelName 捕获到 final 变量，供 doOnComplete 闭包使用
-            final Long capturedSid = sid;
-            final String capturedModelName = modelName;
-
-            // 收集所有 SSE chunk，doOnComplete 时拼装为完整消息
-            List<ChatClientResponse> chunks = new CopyOnWriteArrayList<>();
-            Flux<ChatClientResponse> stream = chain.nextStream(modifiedRequest);
-
-            return stream
-                    .doOnNext(chunks::add)
-                    .doOnComplete(() -> {
-                        try {
-                            if (!chunks.isEmpty()) {
-                                // 将所有 chunk 中的文本片段拼接成一条完整的 assistant 消息
-                                ModelMessageConverter conv = findConverter(capturedModelName);
-                                int msgIndex = chatMemoryStore.getMaxMsgIndex(capturedSid) + 1;
-                                ChatMessage stored = conv.toStorageMessageFromChunks(
-                                        chunks, capturedSid, msgIndex);
-                                chatMemoryStore.saveMessages(capturedSid, List.of(stored));
-                                // updated_at 通过 DB ON UPDATE CURRENT_TIMESTAMP 自动刷新
-                            }
-                        } catch (Exception e) {
-                            log.error("ChatHistoryAdvisor.adviseStream doOnComplete error", e);
-                        }
-                    })
-                    .doOnError(e -> log.error("ChatHistoryAdvisor.adviseStream error", e));
+            return chain.nextStream(modifiedRequest);
 
         } catch (Exception e) {
             log.error("ChatHistoryAdvisor.adviseStream() error", e);

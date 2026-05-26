@@ -4,7 +4,9 @@ import com.yang.lblogserver.ai.conversation.domain.ChatMessage;
 import com.yang.lblogserver.ai.memory.ChatMemoryStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.MessageType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +43,13 @@ public class SlidingWindowStrategy implements CompressionStrategy {
     @Override
     public List<Message> compress(List<Message> messages) {
         if (messages == null || messages.size() <= maxMessages) return messages;
-        List<Message> result = new ArrayList<>(messages.subList(messages.size() - maxMessages, messages.size()));
+        int start = messages.size() - maxMessages;
+        // 如果保留区第一条是 tool 消息，说明对应的 assistant(tool_calls) 被切掉了，
+        // 需要往回找到 assistant 消息一起保留，避免 tool 消息变成孤儿
+        while (start > 0 && messages.get(start).getMessageType() == MessageType.TOOL) {
+            start--;
+        }
+        List<Message> result = new ArrayList<>(messages.subList(start, messages.size()));
         log.info("SlidingWindow: {} → {} messages", messages.size(), result.size());
         return result;
     }
@@ -50,7 +58,15 @@ public class SlidingWindowStrategy implements CompressionStrategy {
     public List<Message> tryCompress(List<Message> messages) {
         if (messages == null || messages.isEmpty()) return messages;
         List<Message> result = new ArrayList<>(messages);
-        result.removeFirst();
+        // 删除最旧的消息，但如果删除的是带 tool_calls 的 assistant 消息，
+        // 则必须同时删除紧随其后的 tool 响应消息，避免 tool 消息变成孤儿
+        // （DeepSeek API 要求 tool 消息必须有前驱 assistant 消息包含 tool_calls）
+        Message removed = result.removeFirst();
+        if (removed instanceof AssistantMessage am && am.hasToolCalls()) {
+            while (!result.isEmpty() && result.getFirst().getMessageType() == MessageType.TOOL) {
+                result.removeFirst();
+            }
+        }
         return result;
     }
 }
