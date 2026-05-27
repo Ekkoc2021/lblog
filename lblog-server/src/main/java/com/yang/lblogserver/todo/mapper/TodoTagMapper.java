@@ -11,6 +11,7 @@ public interface TodoTagMapper {
     TodoTag selectByUserIdAndName(@Param("userId") Long userId, @Param("name") String name);
     int insert(TodoTag tag);
     List<TodoTag> selectByTodoId(@Param("todoId") Long todoId);
+    List<TodoTag> selectByTodoIds(@Param("todoIds") List<Long> todoIds);
     int insertRelation(@Param("todoId") Long todoId, @Param("tagId") Long tagId);
     int deleteRelationsByTodoId(@Param("todoId") Long todoId);
 }

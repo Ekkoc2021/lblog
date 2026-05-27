@@ -3,6 +3,7 @@ package com.yang.lblogserver.todo.vo;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -19,6 +20,7 @@ public class CreateTodoRequest {
     @Schema(description = "优先级: 0=低 1=中 2=高")
     private Integer priority;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     @Schema(description = "截止日期")
     private Date dueDate;
 

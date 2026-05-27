@@ -5,7 +5,7 @@ import com.yang.lblogserver.todo.vo.*;
 import java.util.List;
 
 public interface TodoService {
-    PageResult<TodoVO> listTodos(Long userId, int page, int pageSize, Integer status, String tag);
+    PageResult<TodoVO> listTodos(Long userId, int page, int pageSize, Integer status, Integer priority, String tag);
     TodoVO getTodo(Long userId, Long id);
     TodoVO createTodo(Long userId, CreateTodoRequest req);
     TodoVO updateTodo(Long userId, Long id, UpdateTodoRequest req);

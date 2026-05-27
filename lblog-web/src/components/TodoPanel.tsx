@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Tabs, Button, Modal, Form, Input, Select, DatePicker, message } from 'antd';
+import { Tabs, Button, Modal, Form, Input, Select, DatePicker, message, theme } from 'antd';
 import { PlusOutlined, CloseOutlined, CheckSquareOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useTodos } from '../hooks/useTodos';
@@ -17,28 +17,50 @@ interface Props {
 }
 
 const TodoPanel: React.FC<Props> = ({ onClose }) => {
-  const { todos, loading, total, tags, loadTodos, loadTags, create, update, remove, addItem, updateItem, removeItem, reorder } = useTodos();
-  const [pos, setPos] = useState({ left: window.innerWidth - 420, top: 80 });
-  const [tab, setTab] = useState('all');
+  const { token } = theme.useToken();
+  const { todos, loading, total, hasMore, tags, loadTodos, loadMore, loadTags, create, update, remove, addItem, updateItem, removeItem, reorder } = useTodos();
+  const [pos, setPos] = useState(() => {
+    try {
+      const saved = localStorage.getItem('todoPanelPos');
+      if (saved) { const p = JSON.parse(saved); if (p && typeof p.left === 'number') return p; }
+    } catch { /* ignore */ }
+    return { left: Math.round((window.innerWidth - 380) / 2), top: Math.round(window.innerHeight / 5) };
+  });
+  const [tab, setTab] = useState('active');
   const [formVisible, setFormVisible] = useState(false);
   const [form] = Form.useForm();
   const dragging = useRef(false);
   const dragStart = useRef({ x: 0, y: 0, left: 0, top: 0 });
 
-  useEffect(() => { loadTodos(); loadTags(); }, [loadTodos, loadTags]);
+  useEffect(() => {
+    const s = tab === 'active' ? 0 : tab === 'done' ? 1 : undefined;
+    loadTodos(s !== undefined ? { status: s } : {});
+  }, [loadTodos, tab]);
+  useEffect(() => { loadTags(); }, [loadTags]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     dragging.current = true;
     dragStart.current = { x: e.clientX, y: e.clientY, left: pos.left, top: pos.top };
+    let lastClientX = e.clientX;
+    let lastClientY = e.clientY;
     const onMove = (ev: MouseEvent) => {
       if (!dragging.current) return;
+      lastClientX = ev.clientX;
+      lastClientY = ev.clientY;
       setPos({
         left: Math.max(0, Math.min(window.innerWidth - 400, dragStart.current.left + ev.clientX - dragStart.current.x)),
         top: Math.max(0, Math.min(window.innerHeight - 100, dragStart.current.top + ev.clientY - dragStart.current.y)),
       });
     };
-    const onUp = () => { dragging.current = false; window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+    const onUp = () => {
+      dragging.current = false;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      const newLeft = Math.max(0, Math.min(window.innerWidth - 400, dragStart.current.left + lastClientX - dragStart.current.x));
+      const newTop = Math.max(0, Math.min(window.innerHeight - 100, dragStart.current.top + lastClientY - dragStart.current.y));
+      try { localStorage.setItem('todoPanelPos', JSON.stringify({ left: newLeft, top: newTop })); } catch { /* ignore */ }
+    };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
   }, [pos]);
@@ -65,11 +87,7 @@ const TodoPanel: React.FC<Props> = ({ onClose }) => {
     await update(id, data);
   };
 
-  const filteredTodos = todos.filter(t => {
-    if (tab === 'active') return t.status === 0;
-    if (tab === 'done') return t.status === 1;
-    return true;
-  });
+  const filteredTodos = tab === 'all' ? todos : todos.filter(t => tab === 'active' ? t.status === 0 : t.status === 1);
 
   return (
     <div style={{
@@ -77,11 +95,12 @@ const TodoPanel: React.FC<Props> = ({ onClose }) => {
       left: pos.left,
       top: pos.top,
       width: 380,
+      minHeight: 280,
       maxHeight: '70vh',
       zIndex: 1000,
-      background: '#fff',
+      background: token.colorBgElevated,
       borderRadius: 12,
-      boxShadow: '0 8px 40px rgba(0,0,0,0.12)',
+      boxShadow: token.boxShadowSecondary,
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
@@ -92,30 +111,30 @@ const TodoPanel: React.FC<Props> = ({ onClose }) => {
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '10px 16px', cursor: 'grab', userSelect: 'none',
-          borderBottom: '1px solid #f0f0f0', flexShrink: 0,
+          borderBottom: `1px solid ${token.colorBorderSecondary}`, flexShrink: 0,
         }}
       >
-        <span style={{ fontWeight: 600, fontSize: 15 }}>
+        <span style={{ fontWeight: 600, fontSize: 15, color: token.colorText }}>
           <CheckSquareOutlined style={{ marginRight: 8 }} />
           我的代办
-          <span style={{ marginLeft: 8, fontSize: 12, color: '#999', fontWeight: 400 }}>
-            {todos.filter(t => t.status === 0).length}/{total}
+          <span style={{ marginLeft: 8, fontSize: 12, color: token.colorTextTertiary, fontWeight: 400 }}>
+            {total}
           </span>
         </span>
-        <CloseOutlined style={{ cursor: 'pointer', color: '#999' }} onClick={onClose} />
+        <CloseOutlined style={{ cursor: 'pointer', color: token.colorTextTertiary }} onClick={onClose} />
       </div>
 
       {/* Tabs + Add */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', borderBottom: '1px solid #f0f0f0', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', borderBottom: `1px solid ${token.colorBorderSecondary}`, flexShrink: 0 }}>
         <Tabs
           activeKey={tab}
           onChange={setTab}
           size="small"
           style={{ marginBottom: 0 }}
           items={[
-            { key: 'all', label: `全部 (${total})` },
-            { key: 'active', label: `进行中 (${todos.filter(t => t.status === 0).length})` },
-            { key: 'done', label: `已完成 (${todos.filter(t => t.status === 1).length})` },
+            { key: 'active', label: `进行中${tab === 'active' ? ` (${total})` : ''}` },
+            { key: 'done', label: `已完成${tab === 'done' ? ` (${total})` : ''}` },
+            { key: 'all', label: `全部${tab === 'all' ? ` (${total})` : ''}` },
           ]}
         />
         <Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => setFormVisible(true)}>新建</Button>
@@ -126,6 +145,8 @@ const TodoPanel: React.FC<Props> = ({ onClose }) => {
         <TodoList
           todos={filteredTodos}
           loading={loading}
+          hasMore={hasMore}
+          onLoadMore={loadMore}
           onUpdate={handleUpdate}
           onDelete={remove}
           onAddItem={addItem}

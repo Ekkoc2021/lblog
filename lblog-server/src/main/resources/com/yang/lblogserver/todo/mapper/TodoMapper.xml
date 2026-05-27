@@ -55,8 +55,14 @@
     </delete>
 
     <update id="updateSortOrders">
-        <foreach collection="items" item="item" separator=";">
-            UPDATE todos SET sort_order = #{item.sortOrder} WHERE id = #{item.id}
+        UPDATE todos SET sort_order = CASE id
+        <foreach collection="items" item="item">
+            WHEN #{item.id} THEN #{item.sortOrder}
+        </foreach>
+        END
+        WHERE id IN
+        <foreach collection="items" item="item" open="(" close=")" separator=",">
+            #{item.id}
         </foreach>
     </update>
 </mapper>

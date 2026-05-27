@@ -26,11 +26,11 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @Override
-    public PageResult<TodoVO> listTodos(Long userId, int page, int pageSize, Integer status, String tag) {
+    public PageResult<TodoVO> listTodos(Long userId, int page, int pageSize, Integer status, Integer priority, String tag) {
         PageHelper.startPage(page, pageSize);
-        List<Todo> todos = todoMapper.selectByUserId(userId, status, null, tag);
+        List<Todo> todos = todoMapper.selectByUserId(userId, status, priority, tag);
         PageInfo<Todo> pageInfo = new PageInfo<>(todos);
-        List<TodoVO> voList = todos.stream().map(t -> toVO(t, userId)).collect(Collectors.toList());
+        List<TodoVO> voList = toVOList(todos, userId);
         return PageResult.of(page, pageSize, pageInfo.getTotal(), voList);
     }
 
@@ -90,6 +90,7 @@ public class TodoServiceImpl implements TodoService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void sortTodos(Long userId, List<SortRequest.SortItem> items) {
+        if (items == null || items.isEmpty()) return;
         List<Todo> list = new ArrayList<>();
         for (SortRequest.SortItem item : items) {
             Todo t = new Todo();
@@ -164,6 +165,7 @@ public class TodoServiceImpl implements TodoService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void sortItems(Long userId, Long todoId, List<SortRequest.SortItem> items) {
+        if (items == null || items.isEmpty()) return;
         Todo todo = todoMapper.selectById(todoId);
         if (todo == null || !todo.getUserId().equals(userId)) return;
         List<TodoItem> list = new ArrayList<>();
@@ -184,27 +186,43 @@ public class TodoServiceImpl implements TodoService {
 
     // --- Private helpers ---
 
+    private List<TodoVO> toVOList(List<Todo> todos, Long userId) {
+        if (todos.isEmpty()) return Collections.emptyList();
+
+        // 批量查所有 todo 的 tags 和 items
+        List<Long> todoIds = todos.stream().map(Todo::getId).collect(Collectors.toList());
+        Map<Long, List<String>> tagsMap = todoTagMapper.selectByTodoIds(todoIds).stream()
+                .collect(Collectors.groupingBy(TodoTag::getTodoId,
+                        Collectors.mapping(TodoTag::getName, Collectors.toList())));
+        Map<Long, List<TodoItem>> itemsMap = todoItemMapper.selectByTodoIds(todoIds).stream()
+                .collect(Collectors.groupingBy(TodoItem::getTodoId));
+
+        return todos.stream().map(todo -> {
+            TodoVO vo = new TodoVO();
+            vo.setId(todo.getId());
+            vo.setTitle(todo.getTitle());
+            vo.setNote(todo.getNote());
+            vo.setPriority(todo.getPriority());
+            vo.setStatus(todo.getStatus());
+            vo.setDueDate(todo.getDueDate());
+            vo.setSortOrder(todo.getSortOrder());
+            vo.setCreatedAt(todo.getCreatedAt());
+            vo.setUpdatedAt(todo.getUpdatedAt());
+            vo.setTags(tagsMap.getOrDefault(todo.getId(), Collections.emptyList()));
+            vo.setItems(itemsMap.getOrDefault(todo.getId(), Collections.emptyList()).stream().map(i -> {
+                TodoVO.SubItemVO s = new TodoVO.SubItemVO();
+                s.setId(i.getId());
+                s.setTitle(i.getTitle());
+                s.setCompleted(i.getCompleted());
+                s.setSortOrder(i.getSortOrder());
+                return s;
+            }).collect(Collectors.toList()));
+            return vo;
+        }).collect(Collectors.toList());
+    }
+
     private TodoVO toVO(Todo todo, Long userId) {
-        TodoVO vo = new TodoVO();
-        vo.setId(todo.getId());
-        vo.setTitle(todo.getTitle());
-        vo.setNote(todo.getNote());
-        vo.setPriority(todo.getPriority());
-        vo.setStatus(todo.getStatus());
-        vo.setDueDate(todo.getDueDate());
-        vo.setSortOrder(todo.getSortOrder());
-        vo.setCreatedAt(todo.getCreatedAt());
-        vo.setTags(todoTagMapper.selectByTodoId(todo.getId()).stream()
-                .map(TodoTag::getName).collect(Collectors.toList()));
-        vo.setItems(todoItemMapper.selectByTodoId(todo.getId()).stream().map(i -> {
-            TodoVO.SubItemVO s = new TodoVO.SubItemVO();
-            s.setId(i.getId());
-            s.setTitle(i.getTitle());
-            s.setCompleted(i.getCompleted());
-            s.setSortOrder(i.getSortOrder());
-            return s;
-        }).collect(Collectors.toList()));
-        return vo;
+        return toVOList(Collections.singletonList(todo), userId).get(0);
     }
 
     private void syncTags(Long userId, Long todoId, List<String> tagNames) {

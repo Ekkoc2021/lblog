@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Input, Checkbox } from 'antd';
+import { Input, Checkbox, theme } from 'antd';
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons';
 import type { TodoItem } from '../types';
 
@@ -12,6 +12,7 @@ interface Props {
 }
 
 const TodoSubtaskList: React.FC<Props> = ({ todoId, items, onAdd, onUpdate, onDelete }) => {
+  const { token } = theme.useToken();
   const [newTitle, setNewTitle] = useState('');
   const [adding, setAdding] = useState(false);
 
@@ -32,22 +33,28 @@ const TodoSubtaskList: React.FC<Props> = ({ todoId, items, onAdd, onUpdate, onDe
             checked={item.completed}
             onChange={e => onUpdate(item.id, { completed: e.target.checked })}
           />
-          <span style={{
-            flex: 1,
-            fontSize: 13,
-            textDecoration: item.completed ? 'line-through' : 'none',
-            color: item.completed ? '#999' : undefined,
-          }}>
+          <span
+            title={item.title}
+            style={{
+              flex: 1,
+              fontSize: 13,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              textDecoration: item.completed ? 'line-through' : 'none',
+              color: item.completed ? token.colorTextTertiary : token.colorText,
+            }}
+          >
             {item.title}
           </span>
           <DeleteOutlined
-            style={{ fontSize: 12, color: '#bbb', cursor: 'pointer', flexShrink: 0 }}
+            style={{ fontSize: 12, color: token.colorTextQuaternary, cursor: 'pointer', flexShrink: 0 }}
             onClick={() => onDelete(item.id)}
           />
         </div>
       ))}
       <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-        <PlusOutlined style={{ fontSize: 12, color: '#bbb' }} />
+        <PlusOutlined style={{ fontSize: 12, color: token.colorTextQuaternary }} />
         <Input
           size="small"
           variant="borderless"

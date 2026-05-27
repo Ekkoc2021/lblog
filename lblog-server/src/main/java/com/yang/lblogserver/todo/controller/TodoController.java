@@ -46,8 +46,9 @@ public class TodoController {
             @RequestParam(defaultValue = "1") @Min(1) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int pageSize,
             @RequestParam(required = false) Integer status,
+            @RequestParam(required = false) Integer priority,
             @RequestParam(required = false) String tag) {
-        return ApiResponse.success(todoService.listTodos(getCurrentUserId(), page, pageSize, status, tag));
+        return ApiResponse.success(todoService.listTodos(getCurrentUserId(), page, pageSize, status, priority, tag));
     }
 
     @PostMapping("/todos")
@@ -90,15 +91,21 @@ public class TodoController {
     @Operation(summary = "添加子任务")
     public ApiResponse<TodoVO.SubItemVO> addItem(@PathVariable Long id, @RequestBody Map<String, String> body) {
         String title = body.get("title");
-        return ApiResponse.success(todoService.addItem(getCurrentUserId(), id, title));
+        if (title == null || title.isBlank()) return ApiResponse.error(400, "标题不能为空");
+        TodoVO.SubItemVO result = todoService.addItem(getCurrentUserId(), id, title);
+        if (result == null) return ApiResponse.error(404, "代办不存在");
+        return ApiResponse.success(result);
     }
 
     @PutMapping("/todos/items/{id}")
     @Operation(summary = "更新子任务")
     public ApiResponse<TodoVO.SubItemVO> updateItem(@PathVariable Long id,
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) Boolean completed) {
-        return ApiResponse.success(todoService.updateItem(getCurrentUserId(), id, title, completed));
+            @RequestBody Map<String, Object> body) {
+        String title = body.get("title") instanceof String s ? s : null;
+        Boolean completed = body.get("completed") instanceof Boolean b ? b : null;
+        TodoVO.SubItemVO result = todoService.updateItem(getCurrentUserId(), id, title, completed);
+        if (result == null) return ApiResponse.error(404, "子任务不存在");
+        return ApiResponse.success(result);
     }
 
     @DeleteMapping("/todos/items/{id}")

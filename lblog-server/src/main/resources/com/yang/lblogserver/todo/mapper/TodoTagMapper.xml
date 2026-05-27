@@ -7,6 +7,7 @@
         <id property="id" column="id"/>
         <result property="userId" column="user_id"/>
         <result property="name" column="name"/>
+        <result property="todoId" column="todo_id"/>
     </resultMap>
 
     <select id="selectByUserId" resultMap="TodoTagResult">
@@ -30,6 +31,15 @@
     <insert id="insertRelation">
         INSERT INTO todo_tag_relations (todo_id, tag_id) VALUES (#{todoId}, #{tagId})
     </insert>
+
+    <select id="selectByTodoIds" resultMap="TodoTagResult">
+        SELECT g.*, r.todo_id FROM todo_tags g
+        INNER JOIN todo_tag_relations r ON g.id = r.tag_id
+        WHERE r.todo_id IN
+        <foreach collection="todoIds" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
 
     <delete id="deleteRelationsByTodoId">
         DELETE FROM todo_tag_relations WHERE todo_id = #{todoId}

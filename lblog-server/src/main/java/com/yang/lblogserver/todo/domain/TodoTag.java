@@ -7,4 +7,5 @@ public class TodoTag {
     private Long id;
     private Long userId;
     private String name;
+    private Long todoId; // transient: only used in batch queries
 }

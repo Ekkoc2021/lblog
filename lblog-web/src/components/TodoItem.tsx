@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Checkbox, Tag, Popconfirm } from 'antd';
+import { Checkbox, Tag, Popconfirm, theme } from 'antd';
 import { DeleteOutlined, DownOutlined, RightOutlined } from '@ant-design/icons';
 import type { Todo } from '../types';
 import TodoSubtaskList from './TodoSubtaskList';
@@ -26,23 +26,26 @@ function isOverdue(dueDate: string | null): boolean {
 }
 
 const TodoItem: React.FC<Props> = ({ todo, onUpdate, onDelete, onAddItem, onUpdateItem, onDeleteItem, dragHandleProps }) => {
+  const { token } = theme.useToken();
   const [expanded, setExpanded] = useState(false);
-  const hasItems = todo.items.length > 0;
-  const p = PRIORITY_MAP[todo.priority] ?? PRIORITY_MAP[0];
+  const items = todo.items ?? [];
+  const tags = todo.tags ?? [];
+  const hasItems = items.length > 0;
+  const p = PRIORITY_MAP[todo.priority ?? 0] ?? PRIORITY_MAP[0];
 
   return (
     <div
       style={{
         padding: '8px 14px',
-        borderBottom: '1px solid #f0f0f0',
-        background: todo.status === 1 ? '#fafafa' : undefined,
+        borderBottom: `1px solid ${token.colorBorderSecondary}`,
+        background: todo.status === 1 ? token.colorFillAlter : undefined,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
         {/* Drag handle */}
         <span
           {...dragHandleProps}
-          style={{ cursor: 'grab', color: '#ccc', fontSize: 14, lineHeight: '22px', userSelect: 'none', flexShrink: 0 }}
+          style={{ cursor: 'grab', color: token.colorTextQuaternary, fontSize: 14, lineHeight: '22px', userSelect: 'none', flexShrink: 0 }}
         >
           ⠿
         </span>
@@ -57,12 +60,20 @@ const TodoItem: React.FC<Props> = ({ todo, onUpdate, onDelete, onAddItem, onUpda
         {/* Content */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-            <span style={{
-              textDecoration: todo.status === 1 ? 'line-through' : 'none',
-              color: todo.status === 1 ? '#999' : undefined,
-              fontSize: 14,
-              wordBreak: 'break-word',
-            }}>
+            <span
+              title={todo.title}
+              style={{
+                textDecoration: todo.status === 1 ? 'line-through' : 'none',
+                color: todo.status === 1 ? token.colorTextTertiary : token.colorText,
+                fontSize: 14,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                maxWidth: 200,
+                display: 'inline-block',
+                verticalAlign: 'bottom',
+              }}
+            >
               {todo.title}
             </span>
             <Tag color={p.color} style={{ margin: 0, fontSize: 11, lineHeight: '18px' }}>{p.label}</Tag>
@@ -72,23 +83,24 @@ const TodoItem: React.FC<Props> = ({ todo, onUpdate, onDelete, onAddItem, onUpda
           </div>
 
           {/* Meta row */}
-          <div style={{ fontSize: 12, color: '#999', marginTop: 2, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ fontSize: 12, color: token.colorTextTertiary, marginTop: 2, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             {todo.dueDate && <span>📅 {todo.dueDate}</span>}
-            {todo.tags.map(t => (
+            {todo.status === 1 && todo.updatedAt && <span>✅ {todo.updatedAt.substring(0, 10)}</span>}
+            {tags.map(t => (
               <Tag key={t} style={{ margin: 0, fontSize: 11, lineHeight: '18px' }}>{t}</Tag>
             ))}
             {hasItems && (
               <span
-                style={{ cursor: 'pointer', color: '#1677ff' }}
+                style={{ cursor: 'pointer', color: token.colorPrimary }}
                 onClick={() => setExpanded(!expanded)}
               >
-                {expanded ? <DownOutlined /> : <RightOutlined />} {todo.items.length} 子任务
-                ({todo.items.filter(i => i.completed).length}/{todo.items.length})
+                {expanded ? <DownOutlined /> : <RightOutlined />} {items.length} 子任务
+                ({items.filter(i => i.completed).length}/{items.length})
               </span>
             )}
             {!hasItems && (
               <span
-                style={{ cursor: 'pointer', color: '#bbb' }}
+                style={{ cursor: 'pointer', color: token.colorTextQuaternary }}
                 onClick={() => setExpanded(!expanded)}
               >
                 {expanded ? <DownOutlined /> : <RightOutlined />} 子任务
@@ -100,7 +112,7 @@ const TodoItem: React.FC<Props> = ({ todo, onUpdate, onDelete, onAddItem, onUpda
           {expanded && (
             <TodoSubtaskList
               todoId={todo.id}
-              items={todo.items}
+              items={items}
               onAdd={onAddItem}
               onUpdate={onUpdateItem}
               onDelete={onDeleteItem}
@@ -115,7 +127,7 @@ const TodoItem: React.FC<Props> = ({ todo, onUpdate, onDelete, onAddItem, onUpda
           okText="删除"
           cancelText="取消"
         >
-          <DeleteOutlined style={{ color: '#bbb', cursor: 'pointer', flexShrink: 0, marginTop: 2 }} />
+          <DeleteOutlined style={{ color: token.colorTextQuaternary, cursor: 'pointer', flexShrink: 0, marginTop: 2 }} />
         </Popconfirm>
       </div>
     </div>

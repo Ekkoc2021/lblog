@@ -1,5 +1,6 @@
 package com.yang.lblogserver.todo.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.List;
@@ -21,6 +22,7 @@ public class TodoVO {
     @Schema(description = "状态: 0=待办 1=已完成")
     private Integer status;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     @Schema(description = "截止日期")
     private Date dueDate;
 
@@ -35,6 +37,9 @@ public class TodoVO {
 
     @Schema(description = "创建时间")
     private Date createdAt;
+
+    @Schema(description = "更新时间")
+    private Date updatedAt;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -56,6 +61,8 @@ public class TodoVO {
     public void setItems(List<SubItemVO> items) { this.items = items; }
     public Date getCreatedAt() { return createdAt; }
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+    public Date getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
 
     @Schema(description = "子任务")
     public static class SubItemVO {

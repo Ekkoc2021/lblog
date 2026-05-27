@@ -1,5 +1,6 @@
 package com.yang.lblogserver.todo.vo;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
 import java.util.Date;
@@ -20,6 +21,7 @@ public class UpdateTodoRequest {
     @Schema(description = "状态: 0=待办 1=已完成")
     private Integer status;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     @Schema(description = "截止日期")
     private Date dueDate;
 

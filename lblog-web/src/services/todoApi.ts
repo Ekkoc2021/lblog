@@ -43,8 +43,9 @@ export function addTodoItem(todoId: number, title: string): Promise<ApiResponse<
 }
 
 export function updateTodoItem(itemId: number, data: { title?: string; completed?: boolean }): Promise<ApiResponse<TodoItem>> {
-  return request<TodoItem>(`/api/v1/todos/items/${itemId}?${buildQuery(data as Record<string, string | number | undefined>)}`, {
+  return request<TodoItem>(`/api/v1/todos/items/${itemId}`, {
     method: 'PUT',
+    body: JSON.stringify(data),
   });
 }
 

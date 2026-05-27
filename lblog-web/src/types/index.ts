@@ -299,6 +299,7 @@ export interface Todo {
   tags: string[];
   items: TodoItem[];
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateTodoRequest {

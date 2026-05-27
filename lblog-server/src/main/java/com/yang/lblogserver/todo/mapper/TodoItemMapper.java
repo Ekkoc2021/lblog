@@ -8,6 +8,7 @@ import java.util.List;
 @Mapper
 public interface TodoItemMapper {
     List<TodoItem> selectByTodoId(@Param("todoId") Long todoId);
+    List<TodoItem> selectByTodoIds(@Param("todoIds") List<Long> todoIds);
     TodoItem selectById(@Param("id") Long id);
     int insert(TodoItem item);
     int update(TodoItem item);
