@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.todo.mapper.TodoItemMapper">
+
+    <resultMap id="TodoItemResult" type="com.yang.lblogserver.todo.domain.TodoItem">
+        <id property="id" column="id"/>
+        <result property="todoId" column="todo_id"/>
+        <result property="title" column="title"/>
+        <result property="completed" column="completed"/>
+        <result property="sortOrder" column="sort_order"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="selectByTodoId" resultMap="TodoItemResult">
+        SELECT * FROM todo_items WHERE todo_id = #{todoId} ORDER BY sort_order ASC
+    </select>
+
+    <select id="selectById" resultMap="TodoItemResult">
+        SELECT * FROM todo_items WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO todo_items (todo_id, title, completed, sort_order)
+        VALUES (#{todoId}, #{title}, #{completed}, #{sortOrder})
+    </insert>
+
+    <update id="update">
+        UPDATE todo_items
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="completed != null">completed = #{completed},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM todo_items WHERE id = #{id}
+    </delete>
+
+    <delete id="deleteByTodoId">
+        DELETE FROM todo_items WHERE todo_id = #{todoId}
+    </delete>
+
+    <update id="updateSortOrders">
+        <foreach collection="items" item="item" separator=";">
+            UPDATE todo_items SET sort_order = #{item.sortOrder} WHERE id = #{item.id}
+        </foreach>
+    </update>
+</mapper>

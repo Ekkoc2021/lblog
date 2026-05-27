@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Wrench, PencilRuler } from 'lucide-react'
+import { Wrench, PencilRuler, CheckSquare } from 'lucide-react'
 
 interface ToolItem {
   id: string
@@ -10,11 +10,12 @@ interface ToolItem {
 
 interface DrawFloatingButtonProps {
   onOpenDraw: () => void
+  onOpenTodo: () => void
   onPositionChange?: (pos: { left: number; top: number }) => void
   hidden?: boolean
 }
 
-const DrawFloatingButton: React.FC<DrawFloatingButtonProps> = ({ onOpenDraw, onPositionChange, hidden }) => {
+const DrawFloatingButton: React.FC<DrawFloatingButtonProps> = ({ onOpenDraw, onOpenTodo, onPositionChange, hidden }) => {
   const [hover, setHover] = useState(false)
   const [pos, setPos] = useState({ left: 0, top: 0 })
   const dragging = useRef(false)
@@ -24,6 +25,7 @@ const DrawFloatingButton: React.FC<DrawFloatingButtonProps> = ({ onOpenDraw, onP
 
   const tools: ToolItem[] = [
     { id: 'draw', label: '绘图工具', icon: <PencilRuler size={14} />, action: () => { setHover(false); onOpenDraw() } },
+    { id: 'todo', label: '代办事项', icon: <CheckSquare size={14} />, action: () => { setHover(false); onOpenTodo() } },
   ]
 
   useEffect(() => {

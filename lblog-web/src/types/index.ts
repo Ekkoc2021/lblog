@@ -278,3 +278,47 @@ export interface AdminComment {
   postTitle: string;
   postSlug: string;
 }
+
+// ---- 代办 ----
+
+export interface TodoItem {
+  id: number;
+  title: string;
+  completed: boolean;
+  sortOrder: number;
+}
+
+export interface Todo {
+  id: number;
+  title: string;
+  note: string | null;
+  priority: number;       // 0=低 1=中 2=高
+  status: number;         // 0=待办 1=已完成
+  dueDate: string | null;
+  sortOrder: number;
+  tags: string[];
+  items: TodoItem[];
+  createdAt: string;
+}
+
+export interface CreateTodoRequest {
+  title: string;
+  note?: string;
+  priority?: number;
+  dueDate?: string;
+  tags?: string[];
+}
+
+export interface UpdateTodoRequest {
+  title?: string;
+  note?: string;
+  priority?: number;
+  status?: number;
+  dueDate?: string;
+  sortOrder?: number;
+  tags?: string[];
+}
+
+export interface SortRequest {
+  items: { id: number; sortOrder: number }[];
+}

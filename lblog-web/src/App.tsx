@@ -6,6 +6,7 @@ import { SiteDataProvider } from './contexts/SiteDataContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { DiagramProvider, useDiagram } from './contexts/diagram-context';
 import DrawFloatingButton from './components/DrawFloatingButton';
+import TodoPanel from './components/TodoPanel';
 import DrawPage from './pages/DrawPage';
 import MainLayout from './layouts/MainLayout';
 import AdminLayout from './layouts/AdminLayout';
@@ -35,6 +36,7 @@ import CommentManage from './pages/admin/CommentManage';
 const AppContent: React.FC = () => {
   const { theme: currentTheme } = useTheme();
   const [showDrawPage, setShowDrawPage] = useState(false);
+  const [showTodoPanel, setShowTodoPanel] = useState(false);
   const [toolboxPos, setToolboxPos] = useState({ left: 0, top: 0 });
 
   const themeConfig = {
@@ -93,7 +95,7 @@ return (
           </MainLayout>
 
           {/* 写作工具箱：仅登录用户可见 */}
-          <ToolboxButton showDrawPage={showDrawPage} onOpenDraw={() => setShowDrawPage(true)} onPositionChange={setToolboxPos} />
+          <ToolboxButton showDrawPage={showDrawPage} onOpenDraw={() => setShowDrawPage(true)} onOpenTodo={() => setShowTodoPanel(v => !v)} onPositionChange={setToolboxPos} />
 
           {/* AI 绘图面板 —— 从按钮位置缩放展开 */}
           <div style={{
@@ -112,6 +114,9 @@ return (
           }}>
             <DrawPage onClose={() => setShowDrawPage(false)} />
           </div>
+
+          {/* Todo 面板 */}
+          {showTodoPanel && <TodoPanel onClose={() => setShowTodoPanel(false)} />}
         </DiagramProvider>
       </AuthProvider>
       </SiteDataProvider>
@@ -144,13 +149,13 @@ function DiagramAuthGuard() {
 }
 
 /** 工具箱包装器：仅在登录且角色为 admin/author 时显示 */
-function ToolboxButton({ showDrawPage, onOpenDraw, onPositionChange }: {
-  showDrawPage: boolean; onOpenDraw: () => void; onPositionChange: (pos: { left: number; top: number }) => void
+function ToolboxButton({ showDrawPage, onOpenDraw, onOpenTodo, onPositionChange }: {
+  showDrawPage: boolean; onOpenDraw: () => void; onOpenTodo: () => void; onPositionChange: (pos: { left: number; top: number }) => void
 }) {
   const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated || !user) return null;
   if (user.role !== 'admin' && user.role !== 'author') return null;
-  return <DrawFloatingButton onOpenDraw={onOpenDraw} onPositionChange={onPositionChange} hidden={showDrawPage} />;
+  return <DrawFloatingButton onOpenDraw={onOpenDraw} onOpenTodo={onOpenTodo} onPositionChange={onPositionChange} hidden={showDrawPage} />;
 }
 
 function App() {
