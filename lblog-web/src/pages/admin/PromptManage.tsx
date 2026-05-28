@@ -26,6 +26,7 @@ const PromptManage: React.FC = () => {
   const [auditDrawerVisible, setAuditDrawerVisible] = useState(false);
   const [seedVisible, setSeedVisible] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<AdminPrompt | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const [createForm] = Form.useForm();
   const [editContentForm] = Form.useForm();
@@ -69,14 +70,18 @@ const PromptManage: React.FC = () => {
   };
 
   const handleCreate = async () => {
+    setSubmitting(true);
     try {
       const values = await createForm.validateFields();
       await createAdminPrompt(values);
       message.success('提示词已创建');
       setCreateVisible(false);
+      setPage(1);
       loadData();
     } catch (e: unknown) {
       if (e instanceof Error) message.error(e.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -119,6 +124,7 @@ const PromptManage: React.FC = () => {
 
   const handleEditMeta = async () => {
     if (!selectedPrompt) return;
+    setSubmitting(true);
     try {
       const values = await editMetaForm.validateFields();
       await updateAdminPromptMeta(selectedPrompt.id, { ...values, operator: 'admin' });
@@ -127,6 +133,8 @@ const PromptManage: React.FC = () => {
       loadData();
     } catch (e: unknown) {
       if (e instanceof Error) message.error(e.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -142,6 +150,7 @@ const PromptManage: React.FC = () => {
         try {
           await deleteAdminPrompt(record.id, 'admin');
           message.success('已删除');
+          setPage(1);
           loadData();
         } catch (e: unknown) {
           message.error((e as { message?: string })?.message || '删除失败');
@@ -188,14 +197,18 @@ const PromptManage: React.FC = () => {
   };
 
   const handleSeed = async () => {
+    setSubmitting(true);
     try {
       const values = await seedForm.validateFields();
       const res = await seedPrompts(values.module);
       message.success(typeof res.data === 'string' ? res.data : '导入完成');
       setSeedVisible(false);
+      setPage(1);
       loadData();
     } catch (e: unknown) {
       if (e instanceof Error) message.error(e.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -269,6 +282,7 @@ const PromptManage: React.FC = () => {
         open={createVisible}
         onOk={handleCreate}
         onCancel={() => setCreateVisible(false)}
+        confirmLoading={submitting}
         okText="创建"
       >
         <Form form={createForm} layout="vertical">
@@ -319,6 +333,7 @@ const PromptManage: React.FC = () => {
         open={editMetaVisible}
         onOk={handleEditMeta}
         onCancel={() => setEditMetaVisible(false)}
+        confirmLoading={submitting}
         okText="保存"
       >
         <Form form={editMetaForm} layout="vertical">
@@ -357,6 +372,8 @@ const PromptManage: React.FC = () => {
               {viewingVersionContent.content}
             </pre>
           </div>
+        ) : versions.length === 0 ? (
+          <Text type="secondary">暂无历史版本</Text>
         ) : (
           <Timeline
             items={versions.map(v => ({
@@ -419,6 +436,7 @@ const PromptManage: React.FC = () => {
         open={seedVisible}
         onOk={handleSeed}
         onCancel={() => setSeedVisible(false)}
+        confirmLoading={submitting}
         okText="导入"
       >
         <Form form={seedForm} layout="vertical">
