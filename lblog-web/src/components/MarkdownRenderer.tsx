@@ -56,7 +56,11 @@ function mkComponents(baseUrl: string): Components {
   return {
     h1: withHeadingId('h1'), h2: withHeadingId('h2'), h3: withHeadingId('h3'),
     h4: withHeadingId('h4'), h5: withHeadingId('h5'), h6: withHeadingId('h6'),
-    img: ({ src, alt }) => <Image src={fixSrc(src)} alt={alt || ''} style={{ maxWidth: '100%' }} />,
+    img: ({ src, alt }) => (
+      <div style={{ display: 'flex', justifyContent: 'center', margin: '12px 0' }}>
+        <Image src={fixSrc(src)} alt={alt || ''} style={{ maxWidth: '100%', borderRadius: 12 }} />
+      </div>
+    ),
     a: ({ href, children, node: _, ...rest }) => {
       const external = href && (href.startsWith('http://') || href.startsWith('https://'));
       return (
