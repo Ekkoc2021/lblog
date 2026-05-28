@@ -1,4 +1,4 @@
-import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries, AdminComment } from '../types';
+import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries, AdminComment, AdminPrompt, AdminPromptAudit } from '../types';
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './tokenStore';
 
 // 刷新锁：多个请求同时 401 时只发一次刷新
@@ -719,4 +719,69 @@ export async function batchAdminComments(ids: number[], action: 'APPROVE' | 'REJ
     method: 'POST',
     body: JSON.stringify({ ids, action }),
   });
+}
+
+// ---- 管理端 AI Prompt 管理 ----
+
+export async function getAdminPrompts(params?: {
+  module?: string;
+  promptKey?: string;
+  isActive?: boolean;
+}): Promise<ApiResponse<AdminPrompt[]>> {
+  return request<AdminPrompt[]>(`/api/v1/admin/ai/prompts${buildQuery(params as Record<string, string | number | undefined>)}`);
+}
+
+export async function getAdminPromptById(id: number): Promise<ApiResponse<AdminPrompt>> {
+  return request<AdminPrompt>(`/api/v1/admin/ai/prompts/${id}`);
+}
+
+export async function createAdminPrompt(data: {
+  module: string;
+  promptKey: string;
+  content: string;
+  description?: string;
+  sortOrder?: number;
+}): Promise<ApiResponse<AdminPrompt>> {
+  return request<AdminPrompt>('/api/v1/admin/ai/prompts', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateAdminPromptContent(id: number, content: string, operator: string): Promise<ApiResponse<AdminPrompt>> {
+  return request<AdminPrompt>(`/api/v1/admin/ai/prompts/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ content, operator }),
+  });
+}
+
+export async function updateAdminPromptMeta(id: number, data: {
+  description?: string;
+  sortOrder?: number;
+  operator?: string;
+}): Promise<ApiResponse<AdminPrompt>> {
+  return request<AdminPrompt>(`/api/v1/admin/ai/prompts/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteAdminPrompt(id: number, operator?: string): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/ai/prompts/${id}${buildQuery({ operator })}`, { method: 'DELETE' });
+}
+
+export async function getAdminPromptVersions(id: number): Promise<ApiResponse<AdminPrompt[]>> {
+  return request<AdminPrompt[]>(`/api/v1/admin/ai/prompts/${id}/versions`);
+}
+
+export async function getAdminPromptAudit(id: number): Promise<ApiResponse<AdminPromptAudit[]>> {
+  return request<AdminPromptAudit[]>(`/api/v1/admin/ai/prompts/${id}/audit`);
+}
+
+export async function reloadPromptCache(): Promise<ApiResponse<null>> {
+  return request<null>('/api/v1/admin/ai/prompts/reload', { method: 'POST' });
+}
+
+export async function seedPrompts(module: string): Promise<ApiResponse<string>> {
+  return request<string>(`/api/v1/admin/ai/prompts/seed?module=${encodeURIComponent(module)}`, { method: 'POST' });
 }

@@ -323,3 +323,37 @@ export interface UpdateTodoRequest {
 export interface SortRequest {
   items: { id: number; sortOrder: number }[];
 }
+
+// ---- AI Prompt 管理 ----
+
+export interface AdminPrompt {
+  id: number;
+  module: string;
+  promptKey: string;
+  content: string;
+  version: number;
+  sortOrder: number;
+  description: string | null;
+  isActive: boolean;
+  effectiveFrom: string | null;
+  effectiveTo: string | null;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminPromptAudit {
+  id: number;
+  promptId: number;
+  module: string;
+  promptKey: string;
+  oldContent: string | null;
+  newContent: string | null;
+  oldVersion: number | null;
+  newVersion: number | null;
+  action: string;
+  operator: string;
+  remark: string | null;
+  createdAt: string;
+}

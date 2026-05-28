@@ -1,5 +1,5 @@
 import { Card, Row, Col, Typography } from 'antd';
-import { SettingOutlined, PictureOutlined, UserOutlined, FileTextOutlined, FolderOutlined, TagsOutlined, BookOutlined, MessageOutlined } from '@ant-design/icons';
+import { SettingOutlined, PictureOutlined, UserOutlined, FileTextOutlined, FolderOutlined, TagsOutlined, BookOutlined, MessageOutlined, RobotOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 const { Title, Paragraph } = Typography;
@@ -60,6 +60,13 @@ const features = [
     description: '全站评论审核，通过、驳回或删除评论',
     icon: <MessageOutlined style={{ fontSize: 32, color: '#eb2f96' }} />,
     path: '/admin/comments',
+  },
+  {
+    key: 'prompts',
+    title: '提示词管理',
+    description: '管理各 AI 模块的系统提示词，支持版本控制和审计',
+    icon: <RobotOutlined style={{ fontSize: 32, color: '#13c2c2' }} />,
+    path: '/admin/prompts',
   },
 ];
 
