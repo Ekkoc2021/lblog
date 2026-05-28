@@ -23,7 +23,7 @@ export function useTodos() {
     statusRef.current = params?.status;
     try {
       const res = await todoApi.getTodos({ page: 1, pageSize: PAGE_SIZE, ...params });
-      setTodos(res.data.list);
+      setTodos(res.data.list.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)));
       setTotal(res.data.total);
     } catch (e: unknown) {
       if (e instanceof Error) message.error(e.message);
@@ -40,7 +40,7 @@ export function useTodos() {
     const nextPage = pageRef.current + 1;
     try {
       const res = await todoApi.getTodos({ page: nextPage, pageSize: PAGE_SIZE, status: statusRef.current });
-      setTodos(prev => [...prev, ...res.data.list]);
+      setTodos(prev => [...prev, ...res.data.list].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)));
       setTotal(res.data.total);
       pageRef.current = nextPage;
     } catch (e: unknown) {
@@ -133,7 +133,10 @@ export function useTodos() {
   const reorder = useCallback(async (items: { id: number; sortOrder: number }[]) => {
     const prevTodos = todos;
     const sortMap = new Map(items.map(i => [i.id, i.sortOrder]));
-    setTodos(prev => prev.map(t => ({ ...t, sortOrder: sortMap.get(t.id) ?? t.sortOrder })));
+    setTodos(prev => {
+      const updated = prev.map(t => ({ ...t, sortOrder: sortMap.get(t.id) ?? t.sortOrder }));
+      return updated.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+    });
     try {
       await todoApi.sortTodos({ items });
     } catch {
