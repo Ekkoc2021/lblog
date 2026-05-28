@@ -59,11 +59,63 @@ mysql -u lblog -p iblog < v1.0.sql
 
 `v1.0.sql` 包含全部表结构和初始数据（角色、管理员账号、站点配置等），具体内容见脚本末尾的 `-- 初始化数据` 部分。
 
+### v1.1 新增：个人代办
+
+```bash
+# 导入代办功能表结构
+mysql -u lblog -p iblog < sql/todo_v1.sql
+```
+
+```sql
+-- 代办主表
+CREATE TABLE todos (
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id       BIGINT NOT NULL,
+    title         VARCHAR(500) NOT NULL,
+    note          TEXT,
+    priority      TINYINT DEFAULT 0 COMMENT '0=低 1=中 2=高',
+    status        TINYINT DEFAULT 0 COMMENT '0=待办 1=已完成',
+    due_date      DATE,
+    sort_order    INT DEFAULT 0,
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_todos_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 标签表（用户级，输入时自动创建）
+CREATE TABLE todo_tags (
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id       BIGINT NOT NULL,
+    name          VARCHAR(50) NOT NULL,
+    UNIQUE KEY uk_user_tag (user_id, name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 代办-标签关联
+CREATE TABLE todo_tag_relations (
+    todo_id       BIGINT NOT NULL,
+    tag_id        BIGINT NOT NULL,
+    PRIMARY KEY (todo_id, tag_id),
+    FOREIGN KEY (todo_id) REFERENCES todos(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES todo_tags(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 子任务
+CREATE TABLE todo_items (
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY,
+    todo_id       BIGINT NOT NULL,
+    title         VARCHAR(500) NOT NULL,
+    completed     TINYINT(1) DEFAULT 0,
+    sort_order    INT DEFAULT 0,
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (todo_id) REFERENCES todos(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
 ## 3. 目录结构
 
 ```
 /home/ubuntu/proj/
-├── lblog-server-1.0.0.jar   # 后端 JAR
+├── lblog-server-1.1.0.jar   # 后端 JAR
 ├── lblog-web/dist/                    # 前端静态文件
 ├── uploads/                           # 图片上传目录
 ├── logs/                              # 应用日志
@@ -161,10 +213,10 @@ cd lblog-server
 export JAVA_HOME=/path/to/jdk-21
 export PATH=$JAVA_HOME/bin:$PATH
 mvn package -DskipTests -q
-# 产物：target/lblog-server-1.0.0.jar（约 59MB fat JAR）
+# 产物：target/lblog-server-1.1.0.jar（约 59MB fat JAR）
 ```
 
-上传：`scp target/lblog-server-1.0.0.jar ubuntu@<IP>:/home/ubuntu/proj/`
+上传：`scp target/lblog-server-1.1.0.jar ubuntu@<IP>:/home/ubuntu/proj/`
 
 > 如果本地 Maven 使用 JDK 8，需先设置 `JAVA_HOME` 指向 JDK 21，否则 Spring Boot Maven Plugin 3.5.7 会报 `UnsupportedClassVersionError`。
 
@@ -180,7 +232,7 @@ nohup env DB_PASSWORD=你的密码 java \
   -Xms256m -Xmx512m \
   -XX:+HeapDumpOnOutOfMemoryError \
   -XX:HeapDumpPath=/home/ubuntu/proj/logs \
-  -jar /home/ubuntu/proj/lblog-server-1.0.0.jar \
+  -jar /home/ubuntu/proj/lblog-server-1.1.0.jar \
   --spring.profiles.active=prod \
   --spring.ai.deepseek.api-key=你的AIKey \
   --lblog.upload-dir=/home/ubuntu/proj/uploads \
