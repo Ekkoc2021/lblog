@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Table, Button, Space, Card, Segmented, Tag, message, Modal, Form, Input, InputNumber, Drawer, Timeline, Typography, Descriptions } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, HistoryOutlined, AuditOutlined, ReloadOutlined, ImportOutlined, EyeOutlined } from '@ant-design/icons';
 import type { AdminPrompt, AdminPromptAudit } from '../../types';
@@ -27,23 +27,26 @@ const PromptManage: React.FC = () => {
   const [seedVisible, setSeedVisible] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<AdminPrompt | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [reloading, setReloading] = useState(false);
 
   const [createForm] = Form.useForm();
   const [editContentForm] = Form.useForm();
   const [editMetaForm] = Form.useForm();
   const [seedForm] = Form.useForm();
 
-  const loadData = () => {
+  const loadData = useCallback((signal?: AbortSignal) => {
     setLoading(true);
     getAdminPrompts({ module, isActive: true })
-      .then(res => setPrompts(res.data))
-      .catch((e: Error) => message.error(e.message))
-      .finally(() => setLoading(false));
-  };
+      .then(res => { if (!signal?.aborted) setPrompts(res.data); })
+      .catch((e: Error) => { if (!signal?.aborted) message.error(e.message); })
+      .finally(() => { if (!signal?.aborted) setLoading(false); });
+  }, [module]);
 
   useEffect(() => {
-    loadData();
-  }, [module]);
+    const controller = new AbortController();
+    loadData(controller.signal);
+    return () => controller.abort();
+  }, [loadData]);
 
   // 提取所有不重复的 module 作为 tabs
   const modules = useMemo(() => {
@@ -153,7 +156,7 @@ const PromptManage: React.FC = () => {
           setPage(1);
           loadData();
         } catch (e: unknown) {
-          message.error((e as { message?: string })?.message || '删除失败');
+          if (e instanceof Error) message.error(e.message);
         }
       },
     });
@@ -191,9 +194,11 @@ const PromptManage: React.FC = () => {
 
   // ---- 缓存 & 导入 ----
   const handleReload = () => {
+    setReloading(true);
     reloadPromptCache()
       .then(() => message.success('缓存已重载'))
-      .catch((e: Error) => message.error(e.message));
+      .catch((e: Error) => message.error(e.message))
+      .finally(() => setReloading(false));
   };
 
   const handleSeed = async () => {
@@ -252,7 +257,7 @@ const PromptManage: React.FC = () => {
           onChange={handleModuleChange}
         />
         <Space>
-          <Button icon={<ReloadOutlined />} onClick={handleReload}>重载缓存</Button>
+          <Button icon={<ReloadOutlined />} onClick={handleReload} loading={reloading}>重载缓存</Button>
           <Button icon={<ImportOutlined />} onClick={() => { seedForm.resetFields(); setSeedVisible(true); }}>导入文件</Button>
           <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>新建提示词</Button>
         </Space>
@@ -366,7 +371,7 @@ const PromptManage: React.FC = () => {
               </Descriptions.Item>
             </Descriptions>
             <pre style={{
-              background: '#f5f5f5', padding: 16, borderRadius: 8, maxHeight: '60vh',
+              background: 'var(--ant-color-fill-alter)', padding: 16, borderRadius: 8, maxHeight: '60vh',
               overflow: 'auto', whiteSpace: 'pre-wrap', fontSize: 13, lineHeight: 1.6,
             }}>
               {viewingVersionContent.content}
