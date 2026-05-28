@@ -61,11 +61,8 @@ public class AdminPromptController {
         if (current == null) {
             return ApiResponse.error(404, "Prompt not found");
         }
-        List<AiPrompt> versions = promptService.getPrompts(current.getModule());
-        List<PromptVO> vos = versions.stream()
-                .filter(p -> p.getPromptKey().equals(current.getPromptKey()))
-                .map(PromptVO::from)
-                .toList();
+        List<AiPrompt> versions = promptMapper.selectVersions(current.getModule(), current.getPromptKey());
+        List<PromptVO> vos = versions.stream().map(PromptVO::from).toList();
         return ApiResponse.success(vos);
     }
 
