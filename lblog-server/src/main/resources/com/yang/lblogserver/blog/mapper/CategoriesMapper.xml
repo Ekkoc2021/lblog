@@ -42,7 +42,6 @@
         <if test="createdBy != null">AND c.created_by = #{createdBy}</if>
         GROUP BY c.id, c.name, c.slug, c.parent_id, c.description, c.sort_order
         ORDER BY post_count DESC, c.id ASC
-        <if test="limit != null">LIMIT #{limit}</if>
     </select>
 
     <select id="selectBatchIds" resultMap="BaseResultMap">

@@ -101,6 +101,5 @@
         GROUP BY s.id, s.title, s.slug, s.description, s.cover_image_url,
                  s.category_id, s.is_completed, s.sort_order
         ORDER BY s.sort_order ASC, s.id ASC
-        <if test="limit != null">LIMIT #{limit}</if>
     </select>
 </mapper>
