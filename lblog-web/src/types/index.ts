@@ -357,3 +357,31 @@ export interface AdminPromptAudit {
   remark: string | null;
   createdAt: string;
 }
+
+// 密码本
+export interface PasswordEntry {
+  id: number;
+  siteName: string;
+  siteUrl: string;
+  username: string;
+  encryptedPassword: string;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreatePasswordEntryRequest {
+  siteName: string;
+  siteUrl?: string;
+  username: string;
+  encryptedPassword: string;
+  note?: string;
+}
+
+export interface UpdatePasswordEntryRequest {
+  siteName?: string;
+  siteUrl?: string;
+  username?: string;
+  encryptedPassword?: string;
+  note?: string;
+}
