@@ -385,3 +385,61 @@ export interface UpdatePasswordEntryRequest {
   encryptedPassword?: string;
   note?: string;
 }
+
+// 日记本
+export interface JournalEntry {
+  id: number;
+  title: string;
+  content: string;
+  mood: string;
+  moodEmoji: string;
+  weather: string;
+  journalDate: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CalendarDay {
+  journalDate: string;
+  moodEmoji: string;
+}
+
+export interface CreateJournalRequest {
+  title?: string;
+  content?: string;
+  mood?: string;
+  moodEmoji?: string;
+  weather?: string;
+  journalDate: string;
+}
+
+export interface UpdateJournalRequest {
+  title?: string;
+  content?: string;
+  mood?: string;
+  moodEmoji?: string;
+  weather?: string;
+}
+
+export const MOOD_OPTIONS = [
+  { emoji: '😊', label: '开心', color: '#52c41a' },
+  { emoji: '😢', label: '难过', color: '#1677ff' },
+  { emoji: '😡', label: '生气', color: '#ff4d4f' },
+  { emoji: '😴', label: '疲惫', color: '#8c8c8c' },
+  { emoji: '🎉', label: '兴奋', color: '#fa8c16' },
+  { emoji: '💪', label: '充实', color: '#722ed1' },
+  { emoji: '😰', label: '焦虑', color: '#faad14' },
+  { emoji: '😌', label: '平静', color: '#13c2c2' },
+  { emoji: '📝', label: '记录', color: '#666' },
+] as const;
+
+export const WEATHER_OPTIONS = [
+  { emoji: '☀️', label: '晴' },
+  { emoji: '⛅', label: '多云' },
+  { emoji: '☁️', label: '阴' },
+  { emoji: '🌧️', label: '雨' },
+  { emoji: '⛈️', label: '暴雨' },
+  { emoji: '❄️', label: '雪' },
+  { emoji: '🌬️', label: '大风' },
+  { emoji: '🌫️', label: '雾' },
+] as const;
