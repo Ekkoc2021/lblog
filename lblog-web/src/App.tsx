@@ -8,6 +8,7 @@ import { DiagramProvider, useDiagram } from './contexts/diagram-context';
 import DrawFloatingButton from './components/DrawFloatingButton';
 import TodoPanel from './components/TodoPanel';
 import HashbookPanel from './components/HashbookPanel';
+import JournalPanel from './components/JournalPanel';
 import DrawPage from './pages/DrawPage';
 import MainLayout from './layouts/MainLayout';
 import AdminLayout from './layouts/AdminLayout';
@@ -40,6 +41,7 @@ const AppContent: React.FC = () => {
   const [showDrawPage, setShowDrawPage] = useState(false);
   const [showTodoPanel, setShowTodoPanel] = useState(false);
   const [showHashbookPanel, setShowHashbookPanel] = useState(false);
+  const [showJournalPanel, setShowJournalPanel] = useState(false);
   const [toolboxPos, setToolboxPos] = useState({ left: 0, top: 0 });
 
   const themeConfig = {
@@ -99,7 +101,7 @@ return (
           </MainLayout>
 
           {/* 写作工具箱：仅登录用户可见 */}
-          <ToolboxButton showDrawPage={showDrawPage} onOpenDraw={() => setShowDrawPage(true)} onOpenTodo={() => setShowTodoPanel(v => !v)} onOpenHashbook={() => setShowHashbookPanel(v => !v)} onPositionChange={setToolboxPos} />
+          <ToolboxButton showDrawPage={showDrawPage} onOpenDraw={() => setShowDrawPage(true)} onOpenTodo={() => setShowTodoPanel(v => !v)} onOpenHashbook={() => setShowHashbookPanel(v => !v)} onOpenJournal={() => setShowJournalPanel(v => !v)} onPositionChange={setToolboxPos} />
 
           {/* AI 绘图面板 —— 从按钮位置缩放展开 */}
           <div style={{
@@ -124,6 +126,9 @@ return (
 
           {/* 密码本面板 */}
           {showHashbookPanel && <HashbookPanel onClose={() => setShowHashbookPanel(false)} />}
+
+          {/* 日记本面板 */}
+          {showJournalPanel && <JournalPanel onClose={() => setShowJournalPanel(false)} />}
         </DiagramProvider>
       </AuthProvider>
       </SiteDataProvider>
@@ -156,13 +161,13 @@ function DiagramAuthGuard() {
 }
 
 /** 工具箱包装器：仅在登录且角色为 admin/author 时显示 */
-function ToolboxButton({ showDrawPage, onOpenDraw, onOpenTodo, onOpenHashbook, onPositionChange }: {
-  showDrawPage: boolean; onOpenDraw: () => void; onOpenTodo: () => void; onOpenHashbook: () => void; onPositionChange: (pos: { left: number; top: number }) => void
+function ToolboxButton({ showDrawPage, onOpenDraw, onOpenTodo, onOpenHashbook, onOpenJournal, onPositionChange }: {
+  showDrawPage: boolean; onOpenDraw: () => void; onOpenTodo: () => void; onOpenHashbook: () => void; onOpenJournal: () => void; onPositionChange: (pos: { left: number; top: number }) => void
 }) {
   const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated || !user) return null;
   if (user.role !== 'admin' && user.role !== 'author') return null;
-  return <DrawFloatingButton onOpenDraw={onOpenDraw} onOpenTodo={onOpenTodo} onOpenHashbook={onOpenHashbook} onPositionChange={onPositionChange} hidden={showDrawPage} />;
+  return <DrawFloatingButton onOpenDraw={onOpenDraw} onOpenTodo={onOpenTodo} onOpenHashbook={onOpenHashbook} onOpenJournal={onOpenJournal} onPositionChange={onPositionChange} hidden={showDrawPage} />;
 }
 
 function App() {

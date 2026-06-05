@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.journal.mapper.JournalMapper">
+
+    <resultMap id="JournalResult" type="com.yang.lblogserver.journal.domain.Journal">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="mood" column="mood"/>
+        <result property="moodEmoji" column="mood_emoji"/>
+        <result property="weather" column="weather"/>
+        <result property="journalDate" column="journal_date"/>
+        <result property="isDeleted" column="is_deleted"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <select id="selectByMonth" resultMap="JournalResult">
+        SELECT id, user_id, journal_date, mood_emoji
+        FROM journals
+        WHERE user_id = #{userId}
+          AND journal_date >= #{startDate}
+          AND journal_date &lt; #{endDate}
+          AND is_deleted = 0
+        ORDER BY journal_date
+    </select>
+
+    <select id="selectByUserId" resultMap="JournalResult">
+        SELECT * FROM journals
+        WHERE user_id = #{userId} AND is_deleted = 0
+        ORDER BY journal_date DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="selectByDate" resultMap="JournalResult">
+        SELECT * FROM journals
+        WHERE user_id = #{userId} AND journal_date = #{date} AND is_deleted = 0
+    </select>
+
+    <select id="selectById" resultMap="JournalResult">
+        SELECT * FROM journals
+        WHERE id = #{id} AND user_id = #{userId} AND is_deleted = 0
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO journals (user_id, title, content, mood, mood_emoji, weather, journal_date)
+        VALUES (#{userId}, #{title}, #{content}, #{mood}, #{moodEmoji}, #{weather}, #{journalDate})
+    </insert>
+
+    <insert id="upsert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO journals (user_id, title, content, mood, mood_emoji, weather, journal_date)
+        VALUES (#{userId}, #{title}, #{content}, #{mood}, #{moodEmoji}, #{weather}, #{journalDate})
+        ON DUPLICATE KEY UPDATE
+            title = VALUES(title),
+            content = VALUES(content),
+            mood = VALUES(mood),
+            mood_emoji = VALUES(mood_emoji),
+            weather = VALUES(weather),
+            is_deleted = 0,
+            updated_at = CURRENT_TIMESTAMP
+    </insert>
+
+    <update id="update">
+        UPDATE journals
+        <set>
+            <if test="journal.title != null">title = #{journal.title},</if>
+            <if test="journal.content != null">content = #{journal.content},</if>
+            <if test="journal.mood != null">mood = #{journal.mood},</if>
+            <if test="journal.moodEmoji != null">mood_emoji = #{journal.moodEmoji},</if>
+            <if test="journal.weather != null">weather = #{journal.weather},</if>
+            <if test="journal.journalDate != null">journal_date = #{journal.journalDate},</if>
+        </set>
+        WHERE id = #{journal.id} AND user_id = #{userId} AND is_deleted = 0
+    </update>
+
+    <update id="softDelete">
+        UPDATE journals SET is_deleted = 1
+        WHERE id = #{id} AND user_id = #{userId} AND is_deleted = 0
+    </update>
+</mapper>
