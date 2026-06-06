@@ -62,13 +62,22 @@ const PdfReaderPage: React.FC = () => {
         {sidebarCollapsed && (
           <div onClick={() => setSidebarCollapsed(false)}
             style={{
-              position: 'absolute', left: 0, top: 0, bottom: 0, width: 5, zIndex: 99,
+              position: 'absolute', left: 0, top: 0, bottom: 0, width: 22, zIndex: 99,
               cursor: 'pointer',
-              background: 'var(--color-border, #d9d9d9)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'var(--color-bg-elevated)',
               borderRight: '1px solid var(--color-border, #d9d9d9)',
+              borderTopRightRadius: 8, borderBottomRightRadius: 8,
+              boxShadow: '2px 0 8px rgba(0,0,0,0.06)',
+              color: 'var(--color-text-tertiary)',
+              fontSize: 12,
             }}
             title="展开侧边栏"
-          />
+          >
+            <span style={{ writingMode: 'vertical-rl', letterSpacing: 2 }}>
+              书架
+            </span>
+          </div>
         )}
         <Sider width={300} collapsedWidth={0} collapsed={sidebarCollapsed}
           style={{ background: 'var(--color-bg-elevated)', borderRight: '1px solid var(--color-border, #e8e8e8)', overflow: 'auto' }}>
