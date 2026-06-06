@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Card, Input, Button, Table, Tag, message, Modal,
+  Card, Input, Button, Table, Tag, message, Modal, Select,
   Typography, Space, Pagination, InputNumber, Row, Col
 } from 'antd';
 import {
@@ -14,6 +14,12 @@ import {
 
 const { Title, Text } = Typography;
 
+const statusOptions = [
+  { value: 'active', label: '活跃会话' },
+  { value: 'revoked', label: '已吊销' },
+  { value: 'expired', label: '已过期' },
+];
+
 const SessionManage: React.FC = () => {
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
   const [loading, setLoading] = useState(false);
@@ -21,6 +27,7 @@ const SessionManage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
   const [keyword, setKeyword] = useState('');
+  const [status, setStatus] = useState('active');
 
   const [config, setConfig] = useState<TokenConfig | null>(null);
   const [configLoading, setConfigLoading] = useState(false);
@@ -30,7 +37,7 @@ const SessionManage: React.FC = () => {
   const loadSessions = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await getSessions({ page, pageSize, keyword: keyword || undefined });
+      const res = await getSessions({ page, pageSize, keyword: keyword || undefined, status });
       setSessions(res.data.list);
       setTotal(res.data.total);
     } catch (e: unknown) {
@@ -38,7 +45,7 @@ const SessionManage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, keyword]);
+  }, [page, pageSize, keyword, status]);
 
   const loadConfig = useCallback(async () => {
     try {
@@ -153,24 +160,29 @@ const SessionManage: React.FC = () => {
     },
     {
       title: '状态', key: 'status', width: 100,
-      render: (_: unknown, r: SessionInfo) => (
-        <Tag color={r.expiringSoon ? 'orange' : 'green'}>
-          {r.expiringSoon ? '即将过期' : '正常'}
-        </Tag>
-      ),
+      render: (_: unknown, r: SessionInfo) => {
+        if (r.revoked) return <Tag color="red">已吊销</Tag>;
+        if (r.expiringSoon) return <Tag color="orange">即将过期</Tag>;
+        return <Tag color="green">正常</Tag>;
+      },
     },
     {
       title: '操作', key: 'action', width: 180,
       render: (_: unknown, r: SessionInfo) => (
         <Space>
-          <Button type="link" size="small" danger icon={<LogoutOutlined />}
-            onClick={() => handleRevoke(r.id, r.username)}>
-            吊销
-          </Button>
-          <Button type="link" size="small" danger icon={<UserDeleteOutlined />}
-            onClick={() => handleKick(r.userId, r.username)}>
-            踢下线
-          </Button>
+          {!r.revoked && (
+            <>
+              <Button type="link" size="small" danger icon={<LogoutOutlined />}
+                onClick={() => handleRevoke(r.id, r.username)}>
+                吊销
+              </Button>
+              <Button type="link" size="small" danger icon={<UserDeleteOutlined />}
+                onClick={() => handleKick(r.userId, r.username)}>
+                踢下线
+              </Button>
+            </>
+          )}
+          {r.revoked && <Text type="secondary">—</Text>}
         </Space>
       ),
     },
@@ -208,9 +220,15 @@ const SessionManage: React.FC = () => {
       </Card>
 
       <Card
-        title={`活跃会话（${total}）`}
+        title={`会话列表（${total}）`}
         extra={
           <Space>
+            <Select
+              value={status}
+              onChange={v => { setStatus(v); setPage(1); }}
+              options={statusOptions}
+              style={{ width: 130 }}
+            />
             <Input.Search placeholder="搜索用户名" allowClear style={{ width: 200 }}
               onSearch={v => { setKeyword(v); setPage(1); }} />
             <Button icon={<DeleteOutlined />} danger onClick={handleCleanup}>

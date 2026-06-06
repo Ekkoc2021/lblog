@@ -792,6 +792,7 @@ export async function getSessions(params?: {
   page?: number;
   pageSize?: number;
   keyword?: string;
+  status?: string;
 }): Promise<ApiResponse<PageResult<SessionInfo>>> {
   return request<PageResult<SessionInfo>>(`/api/v1/admin/sessions${buildQuery(params as Record<string, string | number | undefined>)}`);
 }

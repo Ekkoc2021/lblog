@@ -443,6 +443,7 @@ export interface SessionInfo {
   tokenPreview: string;
   createdAt: string;
   expiresAt: string;
+  revoked: boolean;
   expiringSoon: boolean;
 }
 

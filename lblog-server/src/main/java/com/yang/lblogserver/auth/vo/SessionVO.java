@@ -29,6 +29,9 @@ public class SessionVO {
     @Schema(description = "过期时间")
     private String expiresAt;
 
+    @Schema(description = "是否已吊销")
+    private boolean revoked;
+
     @Schema(description = "是否即将过期（<30min）")
     private boolean expiringSoon;
 
@@ -48,6 +51,8 @@ public class SessionVO {
     public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
     public String getExpiresAt() { return expiresAt; }
     public void setExpiresAt(String expiresAt) { this.expiresAt = expiresAt; }
+    public boolean isRevoked() { return revoked; }
+    public void setRevoked(boolean revoked) { this.revoked = revoked; }
     public boolean isExpiringSoon() { return expiringSoon; }
     public void setExpiringSoon(boolean expiringSoon) { this.expiringSoon = expiringSoon; }
 }

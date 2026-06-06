@@ -22,6 +22,7 @@
             <result property="tokenType" column="token_type" />
             <result property="createdAt" column="created_at" />
             <result property="expiresAt" column="expires_at" />
+            <result property="revoked" column="revoked" />
             <result property="username" column="username" />
             <result property="nickname" column="nickname" />
     </resultMap>
@@ -110,12 +111,19 @@
 
     <select id="selectActiveSessions" resultMap="SessionResultMap">
         SELECT ut.id, ut.user_id, u.username, u.nickname,
-               ut.token_type, ut.token_hash, ut.created_at, ut.expires_at
+               ut.token_type, ut.token_hash, ut.created_at, ut.expires_at, ut.revoked
         FROM user_tokens ut
         JOIN users u ON u.id = ut.user_id
-        WHERE ut.revoked = 0
-          AND ut.expires_at > NOW()
-          AND u.deleted_at IS NULL
+        WHERE u.deleted_at IS NULL
+        <if test="status == null or status == 'active'">
+          AND ut.revoked = 0 AND ut.expires_at > NOW()
+        </if>
+        <if test="status == 'revoked'">
+          AND ut.revoked = 1
+        </if>
+        <if test="status == 'expired'">
+          AND ut.revoked = 0 AND ut.expires_at &lt;= NOW()
+        </if>
         <if test="keyword != null and keyword != ''">
           AND u.username LIKE CONCAT('%', #{keyword}, '%')
         </if>
@@ -127,9 +135,16 @@
         SELECT COUNT(*)
         FROM user_tokens ut
         JOIN users u ON u.id = ut.user_id
-        WHERE ut.revoked = 0
-          AND ut.expires_at > NOW()
-          AND u.deleted_at IS NULL
+        WHERE u.deleted_at IS NULL
+        <if test="status == null or status == 'active'">
+          AND ut.revoked = 0 AND ut.expires_at > NOW()
+        </if>
+        <if test="status == 'revoked'">
+          AND ut.revoked = 1
+        </if>
+        <if test="status == 'expired'">
+          AND ut.revoked = 0 AND ut.expires_at &lt;= NOW()
+        </if>
         <if test="keyword != null and keyword != ''">
           AND u.username LIKE CONCAT('%', #{keyword}, '%')
         </if>

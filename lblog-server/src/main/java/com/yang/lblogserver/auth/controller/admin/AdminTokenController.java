@@ -42,15 +42,16 @@ public class AdminTokenController {
         this.configService = configService;
     }
 
-    @Operation(summary = "活跃会话列表", description = "分页返回所有未过期、未吊销的活跃会话")
+    @Operation(summary = "会话列表", description = "分页返回会话，支持按状态筛选：active(活跃)/revoked(已吊销)/expired(已过期)")
     @GetMapping("/sessions")
     public ApiResponse<PageResult<SessionVO>> listSessions(
             @RequestParam(defaultValue = "1") @Min(1) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int pageSize,
-            @RequestParam(required = false) String keyword) {
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "active") String status) {
         int offset = (page - 1) * pageSize;
-        List<UserToken> tokens = userTokenMapper.selectActiveSessions(keyword, offset, pageSize);
-        int total = userTokenMapper.countActiveSessions(keyword);
+        List<UserToken> tokens = userTokenMapper.selectActiveSessions(keyword, status, offset, pageSize);
+        int total = userTokenMapper.countActiveSessions(keyword, status);
 
         List<SessionVO> list = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
@@ -64,7 +65,8 @@ public class AdminTokenController {
             vo.setTokenPreview(maskHash(t.getTokenHash()));
             vo.setCreatedAt(t.getCreatedAt() != null ? t.getCreatedAt().format(FMT) : null);
             vo.setExpiresAt(t.getExpiresAt() != null ? t.getExpiresAt().format(FMT) : null);
-            if (t.getExpiresAt() != null) {
+            vo.setRevoked(t.getRevoked() != null && t.getRevoked());
+            if (t.getExpiresAt() != null && !vo.isRevoked()) {
                 long minutesToExpire = ChronoUnit.MINUTES.between(now, t.getExpiresAt());
                 vo.setExpiringSoon(minutesToExpire < EXPIRING_THRESHOLD_MINUTES);
             }

@@ -28,10 +28,12 @@ public interface UserTokenMapper {
     int deleteExpired();
 
     List<UserToken> selectActiveSessions(@Param("keyword") String keyword,
+                                         @Param("status") String status,
                                          @Param("offset") int offset,
                                          @Param("limit") int limit);
 
-    int countActiveSessions(@Param("keyword") String keyword);
+    int countActiveSessions(@Param("keyword") String keyword,
+                            @Param("status") String status);
 
     int deleteExpiredTokens();
 
