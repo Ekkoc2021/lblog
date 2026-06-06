@@ -182,14 +182,19 @@ public class PdfService {
         return bookmarkMapper.selectByPdfUser(pdfId, userId);
     }
 
-    public PdfBookmark addBookmark(Long pdfId, Long userId, int pageNum, String label) {
+    public PdfBookmark addBookmark(Long pdfId, Long userId, int pageNum, String label, String note) {
         PdfBookmark bm = new PdfBookmark();
         bm.setPdfId(pdfId);
         bm.setUserId(userId);
         bm.setPageNum(pageNum);
         bm.setLabel(label);
+        bm.setNote(note);
         bookmarkMapper.insert(bm);
         return bm;
+    }
+
+    public void updateBookmark(Long id, String label, String note, Long userId) {
+        bookmarkMapper.update(id, label, note, userId);
     }
 
     public void deleteBookmark(Long id) {

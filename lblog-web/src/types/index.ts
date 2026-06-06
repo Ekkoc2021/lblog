@@ -524,6 +524,7 @@ export interface PdfBookmark {
   userId: number;
   pageNum: number;
   label: string;
+  note?: string;
   createdAt: string;
 }
 

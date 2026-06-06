@@ -948,10 +948,17 @@ export async function getPdfBookmarks(pdfId: number): Promise<ApiResponse<PdfBoo
 }
 
 // 添加书签
-export async function addPdfBookmark(pdfId: number, pageNum: number, label: string): Promise<ApiResponse<PdfBookmark>> {
+export async function addPdfBookmark(pdfId: number, pageNum: number, label: string, note?: string): Promise<ApiResponse<PdfBookmark>> {
   return request<PdfBookmark>(`/api/v1/pdf/${pdfId}/bookmarks`, {
     method: 'POST',
-    body: JSON.stringify({ pageNum, label }),
+    body: JSON.stringify({ pageNum, label, note }),
+  });
+}
+
+export async function updatePdfBookmark(pdfId: number, id: number, label: string, note?: string): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/pdf/${pdfId}/bookmarks/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ pageNum: 0, label, note }),
   });
 }
 

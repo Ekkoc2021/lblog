@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Tabs, Button } from 'antd';
 import { FolderOutlined, BookOutlined, UploadOutlined, SaveOutlined } from '@ant-design/icons';
-import type { PdfFile } from '../../types';
+import type { PdfFile, PdfBookmark } from '../../types';
 import FolderTree from './FolderTree';
 import BookmarkPanel from './BookmarkPanel';
 
@@ -12,10 +12,11 @@ interface Props {
   onSaveAnnotations?: () => void;
   currentPage: number;
   onJumpToPage: (page: number) => void;
+  onEditNote?: (bm: PdfBookmark) => void;
   refreshKey: number;
 }
 
-const PdfSidebar: React.FC<Props> = ({ selectedFile, onSelectFile, onUploadClick, onSaveAnnotations, currentPage, onJumpToPage, refreshKey }) => {
+const PdfSidebar: React.FC<Props> = ({ selectedFile, onSelectFile, onUploadClick, onSaveAnnotations, currentPage, onJumpToPage, onEditNote, refreshKey }) => {
   const [activeTab, setActiveTab] = useState<string>('files');
 
   return (
@@ -38,7 +39,7 @@ const PdfSidebar: React.FC<Props> = ({ selectedFile, onSelectFile, onUploadClick
             key: 'bookmarks',
             label: <span><BookOutlined /> 书签</span>,
             children: selectedFile ? (
-              <BookmarkPanel pdfId={selectedFile.id} currentPage={currentPage} onJumpToPage={onJumpToPage} />
+              <BookmarkPanel pdfId={selectedFile.id} currentPage={currentPage} onJumpToPage={onJumpToPage} onEditNote={onEditNote} refreshKey={refreshKey} />
             ) : (
               <div style={{ padding: 16, color: 'var(--color-text-tertiary)', fontSize: 13 }}>请先选择 PDF</div>
             ),

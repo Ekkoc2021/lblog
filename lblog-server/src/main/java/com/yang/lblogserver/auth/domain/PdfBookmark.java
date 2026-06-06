@@ -9,5 +9,6 @@ public class PdfBookmark {
     private Long userId;
     private Integer pageNum;
     private String label;
+    private String note;
     private Date createdAt;
 }

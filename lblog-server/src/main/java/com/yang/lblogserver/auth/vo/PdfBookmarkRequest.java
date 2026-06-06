@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotNull;
 public class PdfBookmarkRequest {
     @NotNull @Schema(description = "页码") private Integer pageNum;
     @NotBlank @Schema(description = "书签名") private String label;
+    @Schema(description = "笔记") private String note;
     public Integer getPageNum() { return pageNum; } public void setPageNum(Integer pageNum) { this.pageNum = pageNum; }
     public String getLabel() { return label; } public void setLabel(String label) { this.label = label; }
+    public String getNote() { return note; } public void setNote(String note) { this.note = note; }
 }
