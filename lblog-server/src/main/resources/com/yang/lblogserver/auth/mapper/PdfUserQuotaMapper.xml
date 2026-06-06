@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.auth.mapper.PdfUserQuotaMapper">
+
+    <resultMap id="BaseResultMap" type="com.yang.lblogserver.auth.domain.PdfUserQuota">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="quotaBytes" column="quota_bytes" />
+        <result property="allowUpload" column="allow_upload" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT id, user_id, quota_bytes, allow_upload, created_at, updated_at
+        FROM pdf_user_quota
+        WHERE user_id = #{userId}
+    </select>
+
+    <insert id="insertDefault">
+        INSERT INTO pdf_user_quota (user_id) VALUES (#{userId})
+    </insert>
+
+    <update id="updateQuota">
+        INSERT INTO pdf_user_quota (user_id, quota_bytes) VALUES (#{userId}, #{quotaBytes})
+        ON DUPLICATE KEY UPDATE quota_bytes = #{quotaBytes}
+    </update>
+
+    <update id="updateAllowUpload">
+        INSERT INTO pdf_user_quota (user_id, allow_upload) VALUES (#{userId}, #{allowUpload})
+        ON DUPLICATE KEY UPDATE allow_upload = #{allowUpload}
+    </update>
+
+    <select id="selectUserStats" resultType="java.util.HashMap">
+        SELECT
+            u.id          AS userId,
+            u.username    AS username,
+            u.nickname    AS nickname,
+            COALESCE(q.quota_bytes, 524288000)  AS quotaBytes,
+            COALESCE(q.allow_upload, 0)         AS allowUpload,
+            COALESCE(f.fileCount, 0)            AS fileCount,
+            COALESCE(f.totalSize, 0)            AS totalSize
+        FROM users u
+        LEFT JOIN pdf_user_quota q ON q.user_id = u.id
+        LEFT JOIN (
+            SELECT user_id,
+                   COUNT(*)       AS fileCount,
+                   SUM(file_size) AS totalSize
+            FROM pdf_files
+            GROUP BY user_id
+        ) f ON f.user_id = u.id
+        WHERE COALESCE(f.fileCount, 0) > 0 OR q.user_id IS NOT NULL
+        ORDER BY COALESCE(f.totalSize, 0) DESC
+    </select>
+
+</mapper>

@@ -13,4 +13,5 @@ public interface PdfFileMapper {
     int update(@Param("id") Long id, @Param("originalName") String originalName, @Param("folderId") Long folderId);
     int delete(@Param("id") Long id);
     int updateTotalPages(@Param("id") Long id, @Param("totalPages") Integer totalPages);
+    long sumSizeByUser(@Param("userId") Long userId);
 }

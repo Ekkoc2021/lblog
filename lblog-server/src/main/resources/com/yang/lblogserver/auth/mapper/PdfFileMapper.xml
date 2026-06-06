@@ -70,4 +70,8 @@
         UPDATE pdf_files SET total_pages = #{totalPages} WHERE id = #{id}
     </update>
 
+    <select id="sumSizeByUser" resultType="long">
+        SELECT COALESCE(SUM(file_size), 0) FROM pdf_files WHERE user_id = #{userId}
+    </select>
+
 </mapper>

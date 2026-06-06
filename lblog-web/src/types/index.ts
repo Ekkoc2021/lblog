@@ -536,3 +536,19 @@ export interface PdfProgress {
   scrollTop: number;
   updatedAt: string;
 }
+
+export interface PdfUserStats {
+  totalSize: number;
+  quotaBytes: number;
+  allowUpload: number;
+}
+
+export interface PdfUserQuotaItem {
+  userId: number;
+  username: string;
+  nickname: string;
+  quotaBytes: number;
+  allowUpload: number;
+  fileCount: number;
+  totalSize: number;
+}

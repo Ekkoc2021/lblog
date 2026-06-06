@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "PDF 阅读器", description = "文件管理与文件夹")
 @Validated
@@ -93,7 +94,7 @@ public class PdfController {
     @Operation(summary = "删除文件")
     @DeleteMapping("/files/{id}")
     public ApiResponse<?> delete(@PathVariable Long id) {
-        pdfService.deleteFile(id);
+        pdfService.deleteFile(id, getCurrentUserId());
         return ApiResponse.success(null);
     }
 
@@ -131,5 +132,11 @@ public class PdfController {
     public ApiResponse<?> deleteFolder(@PathVariable Long id) {
         pdfService.deleteFolder(id);
         return ApiResponse.success(null);
+    }
+
+    @Operation(summary = "用户 PDF 用量统计")
+    @GetMapping("/stats")
+    public ApiResponse<Map<String, Object>> stats() {
+        return ApiResponse.success(pdfService.getUserStats(getCurrentUserId()));
     }
 }

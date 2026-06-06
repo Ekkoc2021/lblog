@@ -37,6 +37,7 @@ import CommentManage from './pages/admin/CommentManage';
 import PromptManage from './pages/admin/PromptManage';
 import SessionManage from './pages/admin/SessionManage';
 import ApplicationManage from './pages/admin/ApplicationManage';
+import PdfQuotaManage from './pages/admin/PdfQuotaManage';
 import PdfReaderPage from './pages/PdfReaderPage';
 
 const AppContent: React.FC = () => {
@@ -92,6 +93,7 @@ return (
               <Route path="/admin/prompts" element={<PromptManage />} />
               <Route path="/admin/sessions" element={<SessionManage />} />
               <Route path="/admin/applications" element={<ApplicationManage />} />
+              <Route path="/admin/pdf-quotas" element={<PdfQuotaManage />} />
               <Route path="/author" element={<AdminLayout />}>
                 <Route index element={<PostList />} />
                 <Route path="posts" element={<PostList />} />

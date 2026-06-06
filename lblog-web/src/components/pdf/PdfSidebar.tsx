@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Tabs, Button } from 'antd';
+import { useState, useEffect } from 'react';
+import { Tabs, Button, Progress } from 'antd';
 import { FolderOutlined, BookOutlined, UploadOutlined, SaveOutlined } from '@ant-design/icons';
-import type { PdfFile, PdfBookmark } from '../../types';
+import type { PdfFile, PdfBookmark, PdfUserStats } from '../../types';
+import { getPdfStats } from '../../services/api';
 import FolderTree from './FolderTree';
 import BookmarkPanel from './BookmarkPanel';
 
@@ -16,8 +17,21 @@ interface Props {
   refreshKey: number;
 }
 
+function formatBytes(bytes: number): string {
+  if (bytes < 1048576) return `${(bytes / 1024).toFixed(0)} KB`;
+  if (bytes < 1073741824) return `${(bytes / 1048576).toFixed(1)} MB`;
+  return `${(bytes / 1073741824).toFixed(2)} GB`;
+}
+
 const PdfSidebar: React.FC<Props> = ({ selectedFile, onSelectFile, onUploadClick, onSaveAnnotations, currentPage, onJumpToPage, onEditNote, refreshKey }) => {
   const [activeTab, setActiveTab] = useState<string>('files');
+  const [stats, setStats] = useState<PdfUserStats | null>(null);
+
+  useEffect(() => {
+    getPdfStats().then(res => setStats(res.data)).catch(() => {});
+  }, [refreshKey]);
+
+  const usagePct = stats && stats.quotaBytes > 0 ? Math.round(stats.totalSize / stats.quotaBytes * 100) : 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -47,6 +61,20 @@ const PdfSidebar: React.FC<Props> = ({ selectedFile, onSelectFile, onUploadClick
           },
         ]}
       />
+      {stats && (
+        <div style={{
+          padding: '8px 12px', borderTop: '1px solid var(--color-border, #e8e8e8)',
+          background: 'var(--color-bg)', flexShrink: 0
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 3 }}>
+            <span style={{ color: 'var(--color-text-tertiary)' }}>已用 {formatBytes(stats.totalSize)}</span>
+            <span style={{ color: 'var(--color-text-tertiary)' }}>{usagePct}%</span>
+          </div>
+          <Progress percent={usagePct} size="small" showInfo={false}
+            strokeColor={usagePct > 80 ? '#ff4d4f' : usagePct > 60 ? '#faad14' : '#1677ff'}
+            trailColor="var(--color-bg-tag)" />
+        </div>
+      )}
     </div>
   );
 };
