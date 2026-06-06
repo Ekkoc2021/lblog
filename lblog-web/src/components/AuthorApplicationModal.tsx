@@ -3,6 +3,7 @@ import { Modal, Input, Button, message, Descriptions, Tag } from 'antd';
 import { getMyApplication, submitApplication, resubmitApplication } from '../services/api';
 import type { AuthorApplication } from '../types';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const { TextArea } = Input;
 
@@ -20,6 +21,7 @@ interface Props {
 
 const AuthorApplicationModal: React.FC<Props> = ({ open, onClose }) => {
   const navigate = useNavigate();
+  const { user, refreshUser } = useAuth();
   const [app, setApp] = useState<AuthorApplication | null>(null);
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,6 +36,10 @@ const AuthorApplicationModal: React.FC<Props> = ({ open, onClose }) => {
           setApp(data);
           if (data && (data.status === 2 || data.status === 3)) {
             setReason(data.reason);
+          }
+          // 角色被收回时，旧申请已失效，允许重新申请
+          if (data && data.status === 1 && user?.role === 'user') {
+            setApp(null);
           }
         })
         .catch(() => message.error('获取申请状态失败'))
@@ -64,7 +70,8 @@ const AuthorApplicationModal: React.FC<Props> = ({ open, onClose }) => {
     }
   };
 
-  const goToAuthorCenter = () => {
+  const goToAuthorCenter = async () => {
+    await refreshUser();
     onClose();
     navigate('/author/posts');
   };

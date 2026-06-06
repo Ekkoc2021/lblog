@@ -35,13 +35,10 @@ public class AuthorApplicationService {
     public AuthorApplication submit(Long userId, String reason) {
         AuthorApplication existing = applicationMapper.selectByUserId(userId);
         if (existing != null) {
-            if (existing.getStatus() == 1) {
-                throw new IllegalStateException("您已是作者，无需重复申请");
-            }
             if (existing.getStatus() == 0) {
                 throw new IllegalStateException("您已有待审核的申请，请耐心等待");
             }
-            // status 2 (拒绝) or 3 (需补充) — update existing record
+            // status 1(通过后被降级) / 2(拒绝) / 3(需补充) — 更新已有记录重新提交
             applicationMapper.updateReason(existing.getId(), reason, 0);
             return applicationMapper.selectById(existing.getId());
         }
