@@ -53,7 +53,7 @@
         UPDATE author_applications
         SET reason = #{reason}, status = #{status},
             feedback = NULL, reviewed_by = NULL, reviewed_at = NULL,
-            updated_at = NOW()
+            created_at = NOW(), updated_at = NOW()
         WHERE id = #{id}
     </update>
 
