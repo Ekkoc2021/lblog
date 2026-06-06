@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { Layout, message, Input, Button, theme } from 'antd';
-import { MinusOutlined, BookOutlined } from '@ant-design/icons';
+import { MinusOutlined, CloseOutlined, BookOutlined } from '@ant-design/icons';
 import type { PdfFile, PdfBookmark } from '../types';
 import { updatePdfBookmark } from '../services/api';
 import PdfSidebar from '../components/pdf/PdfSidebar';
