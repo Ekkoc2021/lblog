@@ -122,7 +122,19 @@ public class AuthController {
         return null;
     }
 
-    @Operation(summary = "用户登录", description = "多层防御：IP 级限流 → 全局熔断 → 用户名级限流")
+    /**
+     * 用户登录。
+     *
+     * <p>三层防御体系（由宽到严）：</p>
+     * <ol>
+     *   <li><b>全局熔断</b>：5 秒内全站失败超过 50 次 → 封锁登录 1 小时。用于识别大规模攻击。</li>
+     *   <li><b>IP 级限流</b>：同一 IP 2 分钟内失败超过 15 次 → 封锁该 IP 30 分钟。用于阻击单点暴力破解。</li>
+     *   <li><b>用户名级限流</b>：同一用户名 5 分钟内失败超过 5 次 → 封锁 5 分钟。用于保护已知账号。</li>
+     * </ol>
+     * <p>三层任意一层触发均返回 HTTP 429，信息不区分具体原因（防枚举）。</p>
+     * <p>登录成功后 IP 和用户名级的失败计数均清零，允许正常用户立即登录。</p>
+     */
+    @Operation(summary = "用户登录", description = "三层防御：全局熔断 → IP 级限流 → 用户名级限流")
     @PostMapping("/login")
     public ApiResponse<TokenPairVO> login(@RequestBody LoginRequest request,
                                           HttpServletRequest servletRequest,
@@ -130,27 +142,32 @@ public class AuthController {
         String username = request.getUsername();
         String ip = loginProtectionService.getClientIp(servletRequest);
 
-        // 1) 全局熔断检查
+        // 第 1 层：全局熔断（5s > 50 次 → 封锁 1h）
         if (loginProtectionService.isGloballyBlocked()) {
             return ApiResponse.error(429, "登录服务暂时不可用，请 1 小时后再试");
         }
 
-        // 2) IP 级封锁检查
+        // 第 2 层：IP 级封锁（2min > 15 次 → 封锁 30min）
         if (loginProtectionService.isIpBlocked(ip)) {
             return ApiResponse.error(429, "登录失败次数过多，请 30 分钟后再试");
         }
 
-        // 3) 用户名级封锁检查
+        // 第 3 层：用户名级封锁（5min > 5 次 → 封锁 5min）
         if (loginAttemptService.isBlocked(username)) {
             return ApiResponse.error(429, "登录失败次数过多，请 5 分钟后再试");
         }
 
         try {
+            // Spring Security 认证（BCrypt 校验）
             Authentication authenticate = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, request.getPassword()));
             LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
+
+            // 登录成功 → 清零失败计数器
             loginAttemptService.resetAttempts(username);
             loginProtectionService.clearIp(ip);
+
+            // 更新登录信息 + 签发双 token
             usersMapper.updateLoginInfo(loginUser.getUserId());
             TokenPairVO tokenPair = tokenService.issueTokenPair(loginUser.getUserId());
             setAccessCookie(response, tokenPair.getAccessToken());
@@ -160,12 +177,14 @@ public class AuthController {
             recordFailure(username, ip);
             return ApiResponse.error(403, "账号已被禁用，请联系管理员");
         } catch (BadCredentialsException e) {
+            // BadCredentialsException 可能是密码错误也可能是用户名不存在（Spring Security 统一返回）
+            // 不透露剩余重试次数，防止攻击者通过次数差异枚举用户
             recordFailure(username, ip);
-            int remain = Math.max(0, 5 - loginAttemptService.getAttemptCount(username));
-            return ApiResponse.error(401, "用户名或密码错误，剩余 " + remain + " 次机会");
+            return ApiResponse.error(401, "用户名或密码错误");
         }
     }
 
+    /** 记录登录失败：同时计入 IP 级和用户名级计数器，并检查全局熔断阈值 */
     private void recordFailure(String username, String ip) {
         loginProtectionService.recordIpFailure(ip);
         loginProtectionService.checkGlobalRate();

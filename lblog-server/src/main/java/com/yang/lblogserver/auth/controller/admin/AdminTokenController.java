@@ -22,6 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Tag(name = "管理端", description = "会话管理和 Token 配置")
 @Validated
@@ -42,6 +43,8 @@ public class AdminTokenController {
         this.configService = configService;
     }
 
+    private static final Set<String> VALID_STATUSES = Set.of("active", "revoked", "expired");
+
     @Operation(summary = "会话列表", description = "分页返回会话，支持按状态筛选：active(活跃)/revoked(已吊销)/expired(已过期)")
     @GetMapping("/sessions")
     public ApiResponse<PageResult<SessionVO>> listSessions(
@@ -49,6 +52,9 @@ public class AdminTokenController {
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int pageSize,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "active") String status) {
+        if (!VALID_STATUSES.contains(status)) {
+            status = "active";
+        }
         int offset = (page - 1) * pageSize;
         List<UserToken> tokens = userTokenMapper.selectActiveSessions(keyword, status, offset, pageSize);
         int total = userTokenMapper.countActiveSessions(keyword, status);
