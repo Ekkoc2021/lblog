@@ -29,6 +29,7 @@ const ApplicationManage: React.FC = () => {
   const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<number | undefined>(undefined);
+  const [searchValue, setSearchValue] = useState('');
   const [keyword, setKeyword] = useState('');
 
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
@@ -157,9 +158,9 @@ const ApplicationManage: React.FC = () => {
             style={{ width: 240 }}
             placeholder="搜索用户名/昵称"
             allowClear
-            value={keyword}
-            onChange={e => setKeyword(e.target.value)}
-            onSearch={() => { setPage(1); fetchData(); }}
+            value={searchValue}
+            onChange={e => setSearchValue(e.target.value)}
+            onSearch={(v) => { setKeyword(v); setPage(1); }}
           />
           <Button icon={<ReloadOutlined />} onClick={fetchData}>刷新</Button>
         </div>
