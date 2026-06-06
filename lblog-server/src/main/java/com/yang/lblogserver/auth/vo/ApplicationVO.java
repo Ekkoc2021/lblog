@@ -5,16 +5,38 @@ import java.util.Date;
 
 @Schema(description = "申请记录视图")
 public class ApplicationVO {
+
+    @Schema(description = "申请ID")
     private Long id;
+
+    @Schema(description = "用户ID")
     private Long userId;
+
+    @Schema(description = "用户名")
     private String username;
+
+    @Schema(description = "用户昵称")
     private String nickname;
+
+    @Schema(description = "申请理由/自我介绍")
     private String reason;
+
+    @Schema(description = "审核状态：0=待审核 1=通过 2=拒绝 3=需补充")
     private Integer status;
+
+    @Schema(description = "审核反馈")
     private String feedback;
+
+    @Schema(description = "审核人ID")
     private Long reviewedBy;
+
+    @Schema(description = "审核时间")
     private Date reviewedAt;
+
+    @Schema(description = "申请时间")
     private Date createdAt;
+
+    @Schema(description = "更新时间")
     private Date updatedAt;
 
     public Long getId() { return id; }
