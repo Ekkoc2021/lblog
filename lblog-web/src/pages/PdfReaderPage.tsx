@@ -58,28 +58,8 @@ const PdfReaderPage: React.FC = () => {
         <span style={{ flex: 1 }} />
       </div>
 
-      <Layout style={{ flex: 1, overflow: 'hidden', background: 'var(--color-bg)', position: 'relative' }}>
-        {sidebarCollapsed && (
-          <div onClick={() => setSidebarCollapsed(false)}
-            style={{
-              position: 'absolute', left: 0, top: 0, bottom: 0, width: 22, zIndex: 99,
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'var(--color-bg-elevated)',
-              borderRight: '1px solid var(--color-border, #d9d9d9)',
-              borderTopRightRadius: 8, borderBottomRightRadius: 8,
-              boxShadow: '2px 0 8px rgba(0,0,0,0.06)',
-              color: 'var(--color-text-tertiary)',
-              fontSize: 12,
-            }}
-            title="展开侧边栏"
-          >
-            <span style={{ writingMode: 'vertical-rl', letterSpacing: 2 }}>
-              书架
-            </span>
-          </div>
-        )}
-        <Sider width={300} collapsedWidth={0} collapsed={sidebarCollapsed}
+      <Layout style={{ flex: 1, overflow: 'hidden', background: 'var(--color-bg)' }}>
+        <Sider width={sidebarCollapsed ? 0 : 300} collapsedWidth={0} collapsed={sidebarCollapsed}
           style={{ background: 'var(--color-bg-elevated)', borderRight: '1px solid var(--color-border, #e8e8e8)', overflow: 'auto' }}>
           <PdfSidebar
             selectedFile={selectedFile}
@@ -88,12 +68,42 @@ const PdfReaderPage: React.FC = () => {
             onSaveAnnotations={handleSave}
             currentPage={currentPage}
             onJumpToPage={handleJumpToPage}
-            onCollapse={() => setSidebarCollapsed(v => !v)}
             refreshKey={refreshKey}
           />
         </Sider>
 
-        <Content style={{ position: 'relative', overflow: 'hidden' }}>
+        {/* 分割线——照抄 DrawPage：收起/展开 */}
+        <div
+          onClick={() => setSidebarCollapsed(v => !v)}
+          onMouseEnter={e => { e.currentTarget.style.background = sidebarCollapsed ? '#d6e4ff' : '#e5e5ea' }}
+          onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+          style={{
+            width: 14,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            alignSelf: 'stretch',
+            transition: 'background 0.15s',
+            position: 'relative',
+            userSelect: 'none',
+          }}
+          title={sidebarCollapsed ? '展开侧边栏' : '收起侧边栏'}
+        >
+          <div style={{
+            width: 3,
+            height: sidebarCollapsed ? 28 : 40,
+            borderRadius: 2,
+            background: sidebarCollapsed ? '#1677ff' : '#d9d9d9',
+            transition: 'background 0.2s, height 0.2s',
+          }} />
+          {sidebarCollapsed && (
+            <span style={{ position: 'absolute', color: '#1677ff', fontSize: 10 }}>▶</span>
+          )}
+        </div>
+
+        <Content style={{ position: 'relative', overflow: 'hidden', flex: 1 }}>
           {selectedFile ? (
             <PdfViewer
               ref={viewerRef}
