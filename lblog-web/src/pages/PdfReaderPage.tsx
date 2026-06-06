@@ -60,16 +60,15 @@ const PdfReaderPage: React.FC = () => {
 
       <Layout style={{ flex: 1, overflow: 'hidden', background: 'var(--color-bg)', position: 'relative' }}>
         {sidebarCollapsed && (
-          <button onClick={() => setSidebarCollapsed(false)}
+          <div onClick={() => setSidebarCollapsed(false)}
             style={{
-              position: 'absolute', left: 8, top: 12, zIndex: 100,
-              border: '1px solid var(--color-border, #d9d9d9)', borderRadius: 4,
-              background: 'var(--color-bg-elevated)', cursor: 'pointer',
-              fontSize: 16, padding: '4px 8px', color: 'var(--color-text-secondary)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-            }}>
-            ☰
-          </button>
+              position: 'absolute', left: 0, top: 0, bottom: 0, width: 5, zIndex: 99,
+              cursor: 'pointer',
+              background: 'var(--color-border, #d9d9d9)',
+              borderRight: '1px solid var(--color-border, #d9d9d9)',
+            }}
+            title="展开侧边栏"
+          />
         )}
         <Sider width={300} collapsedWidth={0} collapsed={sidebarCollapsed}
           style={{ background: 'var(--color-bg-elevated)', borderRight: '1px solid var(--color-border, #e8e8e8)', overflow: 'auto' }}>
