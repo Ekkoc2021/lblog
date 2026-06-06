@@ -121,7 +121,7 @@ const DrawFloatingButton: React.FC<DrawFloatingButtonProps> = ({ onOpenDraw, onO
           background: '#fff',
           borderRadius: '0 0 10px 10px',
           overflow: 'hidden',
-          maxHeight: hover ? 160 : 0,
+          maxHeight: hover ? 220 : 0,
           opacity: hover ? 1 : 0,
           transition: hover
             ? 'max-height 0.2s ease 0.2s, opacity 0.15s ease 0.2s'

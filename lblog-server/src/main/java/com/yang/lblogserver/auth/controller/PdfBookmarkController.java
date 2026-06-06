@@ -59,7 +59,7 @@ public class PdfBookmarkController {
     @Operation(summary = "删除书签")
     @DeleteMapping("/{pdfId}/bookmarks/{id}")
     public ApiResponse<?> delete(@PathVariable Long pdfId, @PathVariable Long id) {
-        pdfService.deleteBookmark(id);
+        pdfService.deleteBookmark(id, getCurrentUserId());
         return ApiResponse.success(null);
     }
 }

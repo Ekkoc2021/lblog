@@ -197,8 +197,8 @@ public class PdfService {
         bookmarkMapper.update(id, label, note, userId);
     }
 
-    public void deleteBookmark(Long id) {
-        bookmarkMapper.delete(id);
+    public void deleteBookmark(Long id, Long userId) {
+        bookmarkMapper.delete(id, userId);
     }
 
     // ---- Progress ----
