@@ -58,7 +58,19 @@ const PdfReaderPage: React.FC = () => {
         <span style={{ flex: 1 }} />
       </div>
 
-      <Layout style={{ flex: 1, overflow: 'hidden', background: 'var(--color-bg)' }}>
+      <Layout style={{ flex: 1, overflow: 'hidden', background: 'var(--color-bg)', position: 'relative' }}>
+        {sidebarCollapsed && (
+          <button onClick={() => setSidebarCollapsed(false)}
+            style={{
+              position: 'absolute', left: 8, top: 12, zIndex: 100,
+              border: '1px solid var(--color-border, #d9d9d9)', borderRadius: 4,
+              background: 'var(--color-bg-elevated)', cursor: 'pointer',
+              fontSize: 16, padding: '4px 8px', color: 'var(--color-text-secondary)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}>
+            ☰
+          </button>
+        )}
         <Sider width={300} collapsedWidth={0} collapsed={sidebarCollapsed}
           style={{ background: 'var(--color-bg-elevated)', borderRight: '1px solid var(--color-border, #e8e8e8)', overflow: 'auto' }}>
           <PdfSidebar
