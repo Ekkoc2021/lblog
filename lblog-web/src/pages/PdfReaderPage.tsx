@@ -1,7 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { Layout, message, Input, Button, theme } from 'antd';
-import { ArrowLeftOutlined, CloseOutlined, BookOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { CloseOutlined, BookOutlined } from '@ant-design/icons';
 import type { PdfFile, PdfBookmark } from '../types';
 import { updatePdfBookmark } from '../services/api';
 import PdfSidebar from '../components/pdf/PdfSidebar';
@@ -12,8 +11,7 @@ const { TextArea } = Input;
 
 const { Sider, Content } = Layout;
 
-const PdfReaderPage: React.FC = () => {
-  const navigate = useNavigate();
+const PdfReaderPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const viewerRef = useRef<PdfViewerHandle>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedFile, setSelectedFile] = useState<PdfFile | null>(null);
@@ -92,8 +90,8 @@ const PdfReaderPage: React.FC = () => {
         borderBottom: '1px solid var(--color-border, #e8e8e8)',
         background: 'var(--color-bg-card)', gap: 12, flexShrink: 0
       }}>
-        <ArrowLeftOutlined style={{ cursor: 'pointer', fontSize: 16, color: 'var(--color-text-secondary)' }}
-          onClick={() => navigate('/')} />
+        <CloseOutlined style={{ cursor: 'pointer', fontSize: 16, color: 'var(--color-text-secondary)' }}
+          onClick={onClose} />
         <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>PDF 阅读</span>
         {selectedFile && (
           <span style={{ color: 'var(--color-text-secondary)', fontSize: 13 }}>
