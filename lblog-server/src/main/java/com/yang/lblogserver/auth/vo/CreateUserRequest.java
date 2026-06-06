@@ -26,6 +26,7 @@ public class CreateUserRequest {
     private String email;
 
     @Schema(description = "角色ID列表")
+    @jakarta.validation.constraints.NotEmpty(message = "角色不能为空")
     private List<Long> roleIds;
 
     public String getUsername() { return username; }

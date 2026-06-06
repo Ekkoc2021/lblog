@@ -20,7 +20,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import com.yang.lblogserver.auth.security.model.LoginUser;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -91,9 +94,15 @@ public class AdminUserController {
     @PostMapping("/users")
     public ApiResponse<?> createUser(@Valid @RequestBody CreateUserRequest request) {
         // 检查用户名是否重复
-        Users existing = usersMapper.findByUsername(request.getUsername());
-        if (existing != null) {
+        if (usersMapper.findByUsername(request.getUsername()) != null) {
             return ApiResponse.error(400, "用户名已存在");
+        }
+
+        // 检查邮箱是否重复
+        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
+            if (usersMapper.findByEmail(request.getEmail()) != null) {
+                return ApiResponse.error(400, "该邮箱已被其他用户占用");
+            }
         }
 
         // 创建用户
@@ -102,21 +111,23 @@ public class AdminUserController {
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setNickname(request.getNickname());
         user.setEmail(request.getEmail());
+        user.setRole(resolveRole(request.getRoleIds()));
         user.setStatus(1);
         usersMapper.insertUser(user);
 
-        // 插入角色关联
-        if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
-            List<UserRoles> roleList = request.getRoleIds().stream()
-                    .map(roleId -> {
-                        UserRoles ur = new UserRoles();
-                        ur.setUserId(user.getId());
-                        ur.setRoleId(roleId);
-                        return ur;
-                    })
-                    .collect(Collectors.toList());
-            userRolesMapper.insertBatch(roleList);
-        }
+        // 插入角色关联（未选时默认用户角色）
+        List<Long> roleIds = (request.getRoleIds() != null && !request.getRoleIds().isEmpty())
+                ? request.getRoleIds()
+                : List.of(3L);
+        List<UserRoles> roleList = roleIds.stream()
+                .map(roleId -> {
+                    UserRoles ur = new UserRoles();
+                    ur.setUserId(user.getId());
+                    ur.setRoleId(roleId);
+                    return ur;
+                })
+                .collect(Collectors.toList());
+        userRolesMapper.insertBatch(roleList);
 
         return ApiResponse.success(new IdResponse(user.getId()));
     }
@@ -127,6 +138,15 @@ public class AdminUserController {
         Users user = usersMapper.selectById(id);
         if (user == null) {
             return ApiResponse.error(404, "用户不存在");
+        }
+
+        // 检查邮箱是否重复（排除自身）
+        String email = request.getEmail() != null ? request.getEmail() : user.getEmail();
+        if (email != null && !email.isEmpty()) {
+            Users emailOwner = usersMapper.findByEmailExcludeId(email, id);
+            if (emailOwner != null) {
+                return ApiResponse.error(400, "该邮箱已被其他用户占用");
+            }
         }
 
         // 先删后插角色
@@ -147,19 +167,12 @@ public class AdminUserController {
 
         // 更新用户基本信息
         String nickname = request.getNickname() != null ? request.getNickname() : user.getNickname();
-        String email = request.getEmail() != null ? request.getEmail() : user.getEmail();
         Integer status = request.getStatus() != null ? request.getStatus() : user.getStatus();
 
-        // 同步 users.role 字段（取最高优先级：admin > author > user）
+        // 同步 users.role 字段
         String role = null;
         if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
-            if (request.getRoleIds().contains(1L)) {
-                role = "admin";
-            } else if (request.getRoleIds().contains(2L)) {
-                role = "author";
-            } else if (request.getRoleIds().contains(3L)) {
-                role = "user";
-            }
+            role = resolveRole(request.getRoleIds());
         }
         usersMapper.updateUser(id, nickname, email, status, role);
 
@@ -191,6 +204,21 @@ public class AdminUserController {
         if (user == null) {
             return ApiResponse.error(404, "用户不存在");
         }
+
+        // 防止删除自己
+        Long currentUserId = getCurrentUserId();
+        if (currentUserId != null && currentUserId.equals(id)) {
+            return ApiResponse.error(400, "不能删除自己的账号");
+        }
+
+        // 防止删除最后一个管理员
+        if ("admin".equals(user.getRole())) {
+            int adminCount = usersMapper.countAdminUsers();
+            if (adminCount <= 1) {
+                return ApiResponse.error(400, "不能删除最后一个管理员");
+            }
+        }
+
         // 撤销所有 token
         userTokenMapper.revokeAllByUserId(id);
         // 清除角色
@@ -274,6 +302,27 @@ public class AdminUserController {
         }
 
         return ApiResponse.success(null);
+    }
+
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof LoginUser) {
+            return ((LoginUser) authentication.getPrincipal()).getUserId();
+        }
+        return null;
+    }
+
+    /**
+     * 从角色ID列表解析 role 字段值（取最高优先级：admin > author > user）
+     */
+    private String resolveRole(List<Long> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return "user";
+        }
+        if (roleIds.contains(1L)) return "admin";
+        if (roleIds.contains(2L)) return "author";
+        if (roleIds.contains(3L)) return "user";
+        return "user";
     }
 
     /**
