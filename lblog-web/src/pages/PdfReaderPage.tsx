@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { Layout, message, Input, Button, theme } from 'antd';
-import { CloseOutlined, BookOutlined } from '@ant-design/icons';
+import { MinusOutlined, BookOutlined } from '@ant-design/icons';
 import type { PdfFile, PdfBookmark } from '../types';
 import { updatePdfBookmark } from '../services/api';
 import PdfSidebar from '../components/pdf/PdfSidebar';
@@ -90,7 +90,7 @@ const PdfReaderPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         borderBottom: '1px solid var(--color-border, #e8e8e8)',
         background: 'var(--color-bg-card)', gap: 12, flexShrink: 0
       }}>
-        <CloseOutlined style={{ cursor: 'pointer', fontSize: 16, color: 'var(--color-text-secondary)' }}
+        <MinusOutlined style={{ cursor: 'pointer', fontSize: 16, color: 'var(--color-text-secondary)' }}
           onClick={onClose} />
         <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>PDF 阅读</span>
         {selectedFile && (

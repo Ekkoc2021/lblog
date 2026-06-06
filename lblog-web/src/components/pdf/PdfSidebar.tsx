@@ -26,6 +26,7 @@ const PdfSidebar: React.FC<Props> = ({ selectedFile, onSelectFile, onUploadClick
         <Button size="small" icon={<SaveOutlined />} onClick={onSaveAnnotations}>保存</Button>
       </div>
       <Tabs activeKey={activeTab} onChange={setActiveTab} size="small"
+        tabBarStyle={{ paddingLeft: 12 }}
         style={{ flex: 1, overflow: 'auto' }}
         items={[
           {
