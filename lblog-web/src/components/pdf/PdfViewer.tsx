@@ -78,7 +78,7 @@ const PdfViewer = forwardRef<PdfViewerHandle, Props>(({ file, onPageChange, onSa
 
   return (
     <iframe ref={iframeRef}
-      src={`${import.meta.env.BASE_URL}pdfjs/web/viewer.html?file=${encodeURIComponent(url)}&disableAutoFetch=true`}
+      src={`${import.meta.env.BASE_URL}pdfjs/web/viewer.html?file=${encodeURIComponent(url)}`}
       style={{ width: '100%', height: '100%', border: 'none' }}
       title="PDF Viewer" />
   );
