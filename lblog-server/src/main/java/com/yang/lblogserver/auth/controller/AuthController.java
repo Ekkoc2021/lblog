@@ -11,6 +11,7 @@ import com.yang.lblogserver.auth.mapper.UserRolesMapper;
 import com.yang.lblogserver.auth.mapper.UsersMapper;
 import com.yang.lblogserver.auth.security.model.LoginUser;
 import com.yang.lblogserver.auth.service.LoginAttemptService;
+import com.yang.lblogserver.auth.service.LoginProtectionService;
 import com.yang.lblogserver.auth.service.RegisterProtectionService;
 import com.yang.lblogserver.auth.service.RoleService;
 import com.yang.lblogserver.auth.service.TokenService;
@@ -49,6 +50,7 @@ public class AuthController {
     private final SiteConfigCacheService siteConfigCacheService;
     private final PasswordEncoder passwordEncoder;
     private final LoginAttemptService loginAttemptService;
+    private final LoginProtectionService loginProtectionService;
     private final RegisterProtectionService registerProtectionService;
     private final RoleService roleService;
 
@@ -58,6 +60,7 @@ public class AuthController {
                           SiteConfigCacheService siteConfigCacheService,
                           PasswordEncoder passwordEncoder,
                           LoginAttemptService loginAttemptService,
+                          LoginProtectionService loginProtectionService,
                           RegisterProtectionService registerProtectionService,
                           RoleService roleService) {
         this.authenticationManager = authenticationManager;
@@ -69,6 +72,7 @@ public class AuthController {
         this.siteConfigCacheService = siteConfigCacheService;
         this.passwordEncoder = passwordEncoder;
         this.loginAttemptService = loginAttemptService;
+        this.loginProtectionService = loginProtectionService;
         this.registerProtectionService = registerProtectionService;
         this.roleService = roleService;
     }
@@ -118,12 +122,25 @@ public class AuthController {
         return null;
     }
 
-    @Operation(summary = "用户登录", description = "5 分钟内连续失败 5 次将被临时封锁")
+    @Operation(summary = "用户登录", description = "多层防御：IP 级限流 → 全局熔断 → 用户名级限流")
     @PostMapping("/login")
     public ApiResponse<TokenPairVO> login(@RequestBody LoginRequest request,
+                                          HttpServletRequest servletRequest,
                                           HttpServletResponse response) {
         String username = request.getUsername();
+        String ip = loginProtectionService.getClientIp(servletRequest);
 
+        // 1) 全局熔断检查
+        if (loginProtectionService.isGloballyBlocked()) {
+            return ApiResponse.error(429, "登录服务暂时不可用，请 1 小时后再试");
+        }
+
+        // 2) IP 级封锁检查
+        if (loginProtectionService.isIpBlocked(ip)) {
+            return ApiResponse.error(429, "登录失败次数过多，请 30 分钟后再试");
+        }
+
+        // 3) 用户名级封锁检查
         if (loginAttemptService.isBlocked(username)) {
             return ApiResponse.error(429, "登录失败次数过多，请 5 分钟后再试");
         }
@@ -133,19 +150,26 @@ public class AuthController {
                     new UsernamePasswordAuthenticationToken(username, request.getPassword()));
             LoginUser loginUser = (LoginUser) authenticate.getPrincipal();
             loginAttemptService.resetAttempts(username);
+            loginProtectionService.clearIp(ip);
             usersMapper.updateLoginInfo(loginUser.getUserId());
             TokenPairVO tokenPair = tokenService.issueTokenPair(loginUser.getUserId());
             setAccessCookie(response, tokenPair.getAccessToken());
             setRefreshCookie(response, tokenPair.getRefreshToken());
             return ApiResponse.success(tokenPair);
         } catch (DisabledException e) {
-            loginAttemptService.recordFailedAttempt(username);
+            recordFailure(username, ip);
             return ApiResponse.error(403, "账号已被禁用，请联系管理员");
         } catch (BadCredentialsException e) {
-            loginAttemptService.recordFailedAttempt(username);
+            recordFailure(username, ip);
             int remain = Math.max(0, 5 - loginAttemptService.getAttemptCount(username));
             return ApiResponse.error(401, "用户名或密码错误，剩余 " + remain + " 次机会");
         }
+    }
+
+    private void recordFailure(String username, String ip) {
+        loginProtectionService.recordIpFailure(ip);
+        loginProtectionService.checkGlobalRate();
+        loginAttemptService.recordFailedAttempt(username);
     }
 
     @Operation(summary = "用户注册", description = "同一 IP 30 分钟仅可注册 1 次")
