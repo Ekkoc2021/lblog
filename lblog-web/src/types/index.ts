@@ -524,6 +524,7 @@ export interface PdfBookmark {
   userId: number;
   pageNum: number;
   label: string;
+  note?: string;
   createdAt: string;
 }
 
@@ -534,4 +535,20 @@ export interface PdfProgress {
   pageNum: number;
   scrollTop: number;
   updatedAt: string;
+}
+
+export interface PdfUserStats {
+  totalSize: number;
+  quotaBytes: number;
+  allowUpload: number;
+}
+
+export interface PdfUserQuotaItem {
+  userId: number;
+  username: string;
+  nickname: string;
+  quotaBytes: number;
+  allowUpload: number;
+  fileCount: number;
+  totalSize: number;
 }

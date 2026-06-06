@@ -20,20 +20,25 @@ public class PdfService {
     private final PdfAnnotationMapper annotationMapper;
     private final PdfBookmarkMapper bookmarkMapper;
     private final PdfProgressMapper progressMapper;
+    private final PdfUserQuotaMapper quotaMapper;
+    private final PdfQuotaHelper quotaHelper;
     private final PdfStorage pdfStorage;
 
     public PdfService(PdfFileMapper fileMapper, PdfFolderMapper folderMapper,
                       PdfAnnotationMapper annotationMapper, PdfBookmarkMapper bookmarkMapper,
-                      PdfProgressMapper progressMapper, PdfStorage pdfStorage) {
+                      PdfProgressMapper progressMapper, PdfUserQuotaMapper quotaMapper,
+                      PdfQuotaHelper quotaHelper, PdfStorage pdfStorage) {
         this.fileMapper = fileMapper;
         this.folderMapper = folderMapper;
         this.annotationMapper = annotationMapper;
         this.bookmarkMapper = bookmarkMapper;
         this.progressMapper = progressMapper;
+        this.quotaMapper = quotaMapper;
+        this.quotaHelper = quotaHelper;
         this.pdfStorage = pdfStorage;
     }
 
-    /** Upload PDF with validation */
+    /** Upload PDF with validation + quota check */
     @Transactional
     public PdfFile upload(Long userId, MultipartFile file, Long folderId) throws IOException {
         String contentType = file.getContentType();
@@ -42,6 +47,22 @@ public class PdfService {
         }
         if (file.isEmpty()) {
             throw new IllegalArgumentException("文件为空");
+        }
+
+        // 配额检查
+        PdfUserQuota quota = quotaMapper.selectByUserId(userId);
+        if (quota == null) {
+            quotaHelper.ensureDefaultQuota(userId);
+            throw new IllegalArgumentException("请先申请 PDF 上传权限");
+        }
+        if (quota.getAllowUpload() == null || quota.getAllowUpload() == 0) {
+            throw new IllegalArgumentException("PDF 上传权限未开启，请联系管理员");
+        }
+        long currentTotal = fileMapper.sumSizeByUser(userId);
+        if (currentTotal + file.getSize() > quota.getQuotaBytes()) {
+            throw new IllegalArgumentException(String.format(
+                "PDF 存储空间已满 (已用 %.1f MB / 配额 %.1f MB)",
+                currentTotal / 1048576.0, quota.getQuotaBytes() / 1048576.0));
         }
         String originalName = file.getOriginalFilename();
         String storedName = UUID.randomUUID().toString() + ".pdf";
@@ -59,7 +80,7 @@ public class PdfService {
         return pdfFile;
     }
 
-    /** Update PDF total pages (called after PDF.js reads page count) */
+    /** Update PDF total pages (called from bridge, no user context) */
     public void updateTotalPages(Long fileId, int totalPages) {
         fileMapper.updateTotalPages(fileId, totalPages);
     }
@@ -84,21 +105,20 @@ public class PdfService {
         return f;
     }
 
-    /** Rename or move file */
+    /** Rename or move file (ownership verified by controller) */
     public void updateFile(Long id, String originalName, Long folderId) {
         fileMapper.update(id, originalName, folderId);
     }
 
     /** Delete file: physical + cascade annotations/bookmarks/progress */
     @Transactional
-    public void deleteFile(Long id) {
+    public void deleteFile(Long id, Long userId) {
         PdfFile f = fileMapper.selectById(id);
-        if (f != null) {
-            try { pdfStorage.delete(f.getFilePath()); } catch (Exception ignored) {}
-            annotationMapper.deleteByPdfId(id);
-            bookmarkMapper.deleteByPdfId(id);
-            fileMapper.delete(id);
-        }
+        if (f == null || !f.getUserId().equals(userId)) throw new IllegalArgumentException("文件不存在");
+        try { pdfStorage.delete(f.getFilePath()); } catch (Exception ignored) {}
+        annotationMapper.deleteByPdfId(id);
+        bookmarkMapper.deleteByPdfId(id);
+        fileMapper.delete(id);
     }
 
     /** Build folder tree for user */
@@ -182,18 +202,23 @@ public class PdfService {
         return bookmarkMapper.selectByPdfUser(pdfId, userId);
     }
 
-    public PdfBookmark addBookmark(Long pdfId, Long userId, int pageNum, String label) {
+    public PdfBookmark addBookmark(Long pdfId, Long userId, int pageNum, String label, String note) {
         PdfBookmark bm = new PdfBookmark();
         bm.setPdfId(pdfId);
         bm.setUserId(userId);
         bm.setPageNum(pageNum);
         bm.setLabel(label);
+        bm.setNote(note);
         bookmarkMapper.insert(bm);
         return bm;
     }
 
-    public void deleteBookmark(Long id) {
-        bookmarkMapper.delete(id);
+    public void updateBookmark(Long id, String label, String note, Long userId) {
+        bookmarkMapper.update(id, label, note, userId);
+    }
+
+    public void deleteBookmark(Long id, Long userId) {
+        bookmarkMapper.delete(id, userId);
     }
 
     // ---- Progress ----
@@ -217,5 +242,33 @@ public class PdfService {
         p.setPageNum(pageNum);
         p.setScrollTop(scrollTop != null ? scrollTop : 0f);
         progressMapper.upsert(p);
+    }
+
+    // ---- Quota ----
+
+    /** 当前用户用量统计 */
+    public Map<String, Object> getUserStats(Long userId) {
+        PdfUserQuota q = quotaMapper.selectByUserId(userId);
+        long totalSize = fileMapper.sumSizeByUser(userId);
+        Map<String, Object> stats = new LinkedHashMap<>();
+        stats.put("totalSize", totalSize);
+        stats.put("quotaBytes", q != null ? q.getQuotaBytes() : 524288000L);
+        stats.put("allowUpload", q != null ? q.getAllowUpload() : 0);
+        return stats;
+    }
+
+    /** 管理员：所有用户用量列表 */
+    public List<Map<String, Object>> getUserStatsList() {
+        return quotaMapper.selectUserStats();
+    }
+
+    /** 管理员：设置用户配额 */
+    public void setUserQuota(Long userId, Long quotaBytes) {
+        quotaMapper.updateQuota(userId, quotaBytes);
+    }
+
+    /** 管理员：设置用户上传开关 */
+    public void setUserAllowUpload(Long userId, Integer allowUpload) {
+        quotaMapper.updateAllowUpload(userId, allowUpload);
     }
 }

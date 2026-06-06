@@ -45,13 +45,21 @@ public class PdfBookmarkController {
     public ApiResponse<PdfBookmark> add(@PathVariable Long pdfId,
                                          @Valid @RequestBody PdfBookmarkRequest request) {
         return ApiResponse.success(pdfService.addBookmark(pdfId, getCurrentUserId(),
-                request.getPageNum(), request.getLabel()));
+                request.getPageNum(), request.getLabel(), request.getNote()));
+    }
+
+    @Operation(summary = "编辑书签（名称+笔记）")
+    @PutMapping("/{pdfId}/bookmarks/{id}")
+    public ApiResponse<?> update(@PathVariable Long pdfId, @PathVariable Long id,
+                                  @Valid @RequestBody PdfBookmarkRequest request) {
+        pdfService.updateBookmark(id, request.getLabel(), request.getNote(), getCurrentUserId());
+        return ApiResponse.success(null);
     }
 
     @Operation(summary = "删除书签")
     @DeleteMapping("/{pdfId}/bookmarks/{id}")
     public ApiResponse<?> delete(@PathVariable Long pdfId, @PathVariable Long id) {
-        pdfService.deleteBookmark(id);
+        pdfService.deleteBookmark(id, getCurrentUserId());
         return ApiResponse.success(null);
     }
 }

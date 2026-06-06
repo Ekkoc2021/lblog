@@ -31,6 +31,10 @@ const PdfUploadModal: React.FC<Props> = ({ open, onClose, onSuccess }) => {
       message.error('仅支持 PDF 格式');
       return false;
     }
+    if (!selectedFolder) {
+      message.warning('请先选择目标文件夹');
+      return false;
+    }
     setUploading(true);
     setProgress(0);
     try {
@@ -59,10 +63,15 @@ const PdfUploadModal: React.FC<Props> = ({ open, onClose, onSuccess }) => {
       {uploading && <Progress percent={progress} status="active" style={{ marginTop: 16 }} />}
       <div style={{ marginTop: 16 }}>
         <Text type="secondary">目标文件夹：</Text>
-        <Select style={{ width: '100%', marginTop: 8 }} placeholder="根目录（可选）" allowClear
+        <Select style={{ width: '100%', marginTop: 8 }} placeholder="请选择文件夹"
           value={selectedFolder} onChange={setSelectedFolder}
           options={folders.map(f => ({ value: f.id, label: f.name }))}
         />
+        {folders.length === 0 && (
+          <div style={{ color: '#faad14', fontSize: 12, marginTop: 4 }}>
+            请先在书架中创建文件夹
+          </div>
+        )}
       </div>
     </Modal>
   );

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ConfigProvider, theme } from 'antd';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SiteDataProvider } from './contexts/SiteDataContext';
@@ -37,6 +37,7 @@ import CommentManage from './pages/admin/CommentManage';
 import PromptManage from './pages/admin/PromptManage';
 import SessionManage from './pages/admin/SessionManage';
 import ApplicationManage from './pages/admin/ApplicationManage';
+import PdfQuotaManage from './pages/admin/PdfQuotaManage';
 import PdfReaderPage from './pages/PdfReaderPage';
 
 const AppContent: React.FC = () => {
@@ -47,7 +48,6 @@ const AppContent: React.FC = () => {
   const [showJournalPanel, setShowJournalPanel] = useState(false);
   const [showPdfReader, setShowPdfReader] = useState(false);
   const [toolboxPos, setToolboxPos] = useState({ left: 0, top: 0 });
-  const navigate = useNavigate();
 
   const themeConfig = {
     algorithm: currentTheme === 'dark' ? theme.darkAlgorithm : undefined,
@@ -93,7 +93,7 @@ return (
               <Route path="/admin/prompts" element={<PromptManage />} />
               <Route path="/admin/sessions" element={<SessionManage />} />
               <Route path="/admin/applications" element={<ApplicationManage />} />
-              <Route path="/reader" element={<PdfReaderPage />} />
+              <Route path="/admin/pdf-quotas" element={<PdfQuotaManage />} />
               <Route path="/author" element={<AdminLayout />}>
                 <Route index element={<PostList />} />
                 <Route path="posts" element={<PostList />} />
@@ -109,7 +109,7 @@ return (
           </MainLayout>
 
           {/* 写作工具箱：仅登录用户可见 */}
-          <ToolboxButton showDrawPage={showDrawPage} onOpenDraw={() => setShowDrawPage(true)} onOpenTodo={() => setShowTodoPanel(v => !v)} onOpenHashbook={() => setShowHashbookPanel(v => !v)} onOpenJournal={() => setShowJournalPanel(v => !v)} onOpenPdf={() => { setShowPdfReader(true); navigate('/reader'); }} onPositionChange={setToolboxPos} />
+          <ToolboxButton showDrawPage={showDrawPage} onOpenDraw={() => setShowDrawPage(true)} onOpenTodo={() => setShowTodoPanel(v => !v)} onOpenHashbook={() => setShowHashbookPanel(v => !v)} onOpenJournal={() => setShowJournalPanel(v => !v)} onOpenPdf={() => setShowPdfReader(true)} onPositionChange={setToolboxPos} />
 
           {/* AI 绘图面板 —— 从按钮位置缩放展开 */}
           <div style={{
@@ -127,6 +127,24 @@ return (
             borderRadius: showDrawPage ? 0 : '50%',
           }}>
             <DrawPage onClose={() => setShowDrawPage(false)} />
+          </div>
+
+          {/* PDF 阅读器 —— 从按钮位置缩放展开 */}
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 999,
+            transformOrigin: `${toolboxPos.left + 18}px ${toolboxPos.top + 18}px`,
+            transform: showPdfReader ? 'scale(1)' : 'scale(0)',
+            opacity: showPdfReader ? 1 : 0,
+            transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease',
+            pointerEvents: showPdfReader ? 'auto' : 'none',
+            borderRadius: showPdfReader ? 0 : '50%',
+          }}>
+            <PdfReaderPage onClose={() => setShowPdfReader(false)} />
           </div>
 
           {/* Todo 面板 */}

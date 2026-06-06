@@ -503,13 +503,78 @@ window.parent.postMessage({type:'bridge-loaded'},'*');
 
 ---
 
-## 13. 集成清单
+## 13. 保存/恢复完整流程
+
+### 13.1 保存（save-annotations 消息）
+
+```
+用户点击保存按钮
+  → PdfReaderPage.handleSave()
+    → viewerRef.current.save()
+      → postMessage({type:'save-annotations'}) 到 iframe
+        → bridge: 遍历 annotationStorage
+          → 每个条目 val.serialize(false)
+            → toPlain() 转 TypedArray → 普通数组
+            → s.pageIndex = val.pageIndex （0-based）
+            → 收集到 [{key, value}] 数组
+          → postMessage({type:'pdf-annotations', data: JSON})
+            → PdfViewer 收到 → savePdfAnnotation(id, 0, data)
+              → PUT /api/v1/pdf/{id}/annotations/page/0
+```
+
+**关键代码：** `annotationStorage` 条目 → `editor.serialize(false)` → `toPlain()`。不是 `serializable` 全局属性，不是 `serialize(true)`。
+
+### 13.2 恢复（restore-annotations 消息）
+
+```
+PdfViewer 收到 bridge-hooked
+  → GET /api/v1/pdf/{id}/annotations?page=0
+    → postMessage({type:'restore-annotations', data: [...]}) 到 iframe
+      → bridge: 
+        1. 提取所有唯一 pageIndex 值
+        2. 对每个 pageIndex，导航到对应页（viewer.currentPageNumber = pageIndex + 1）
+           等待 300ms 让页面渲染
+        3. 回到原始页面
+        4. 遍历每条数据：
+           a. outlines 对象→数组转换
+           b. TypedArray 还原（Float32Array）
+           c. layer.deserialize(val) → 创建编辑器
+           d. editor.render()（如果无 div）
+           e. Freetext 坐标修正（annotationType===3）
+           f. layer.add(editor)
+           g. annotationStorage.setValue(key, editor)
+        5. viewer.update()
+        6. 短暂激活 annotationEditorMode=3 再切回 0
+```
+
+**关键点：** 恢复前必须先导航到每个标注所在页面，强制 PDF.js 懒加载这些页面。否则 `viewer._pages[pi]` 为 null，无法访问 `annotationEditorLayer`。
+
+### 13.3 页面懒加载问题
+
+PDF.js 使用懒加载，只有当前可见页及其附近的页才会被渲染。恢复标注时，如果标注所在的页面没有渲染过，`viewer._pages[pageIndex]` 为 null。
+
+**修复：** 恢复前遍历所有标注的唯一 pageIndex，设置 `viewer.currentPageNumber` 到每一页，等待 300ms 让页面渲染，再切换回去。
+
+```js
+// 强制加载所有有标注的页面
+var savedPage = viewer.currentPageNumber;
+var pages = [...new Set(data.map(d => d.value.pageIndex || 0))];
+for (var p of pages) {
+    viewer.currentPageNumber = p + 1;
+    await new Promise(r => setTimeout(r, 300));
+}
+viewer.currentPageNumber = savedPage;
+```
+
+---
+
+## 14. 集成清单
 
 在一个全新项目中集成 PDF.js 标注存取功能，需要：
 
 1. **部署 PDF.js：** 下载发布包 → `public/pdfjs/`（保持 `web/` + `build/` 结构）
-2. **修改 viewer.html：** CSP 加 `'unsafe-inline'` + 在 `</head>` 前插入 bridge 脚本
-3. **写 PdfViewer.tsx：** iframe + 3 个 postMessage 事件处理（bridge-hooked / pdf-page-change / pdf-annotations）
+2. **修改 viewer.html：** CSP 加 `'unsafe-inline'` + 在 `</head>` 前插入 bridge 脚本（完整脚本见 §11）
+3. **写 PdfViewer.tsx：** iframe + 4 个 postMessage 事件处理（bridge-hooked / pdf-page-change / pdf-annotations / save-complete）
 4. **写后端 API：** 标注存取接口（GET + PUT /{pdfId}/annotations/page/0）
 5. **数据库：** `pdf_annotations` 表（pdf_id + page_num + user_id + data JSON）
-6. **验证：** 打开 PDF → 用三种标注工具 → 刷新 → 标注仍在
+6. **验证：** 打开 PDF → 用三种标注工具 → 点保存 → 刷新 → 标注仍在（所有页面）

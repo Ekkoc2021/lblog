@@ -8,6 +8,7 @@ import java.util.List;
 public interface PdfBookmarkMapper {
     int insert(PdfBookmark bm);
     List<PdfBookmark> selectByPdfUser(@Param("pdfId") Long pdfId, @Param("userId") Long userId);
-    int delete(@Param("id") Long id);
+    int update(@Param("id") Long id, @Param("label") String label, @Param("note") String note, @Param("userId") Long userId);
+    int delete(@Param("id") Long id, @Param("userId") Long userId);
     int deleteByPdfId(@Param("pdfId") Long pdfId);
 }

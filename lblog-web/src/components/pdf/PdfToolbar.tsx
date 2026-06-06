@@ -30,7 +30,7 @@ const PdfToolbar: React.FC<Props> = ({ activeTool, onToolChange, color, onColorC
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', padding: '6px 12px', gap: 8,
-      borderBottom: '1px solid var(--color-border, #e8e8e8)', background: 'var(--color-bg-elevated)' }}>
+      borderBottom: '1px solid var(--color-border, #e8e8e8)', background: 'var(--color-bg-card)' }}>
       <Space size={4}>
         {tools.map(t => (
           <Button key={t.key} type={activeTool === t.key ? 'primary' : 'text'} size="small"

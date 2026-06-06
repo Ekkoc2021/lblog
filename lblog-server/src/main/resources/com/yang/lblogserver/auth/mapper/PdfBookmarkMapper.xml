@@ -10,17 +10,24 @@
         <result property="userId" column="user_id" />
         <result property="pageNum" column="page_num" />
         <result property="label" column="label" />
+        <result property="note" column="note" />
         <result property="createdAt" column="created_at" />
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, pdf_id, user_id, page_num, label, created_at
+        id, pdf_id, user_id, page_num, label, note, created_at
     </sql>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-        INSERT INTO pdf_bookmarks (pdf_id, user_id, page_num, label, created_at)
-        VALUES (#{pdfId}, #{userId}, #{pageNum}, #{label}, NOW())
+        INSERT INTO pdf_bookmarks (pdf_id, user_id, page_num, label, note, created_at)
+        VALUES (#{pdfId}, #{userId}, #{pageNum}, #{label}, #{note}, NOW())
     </insert>
+
+    <update id="update">
+        UPDATE pdf_bookmarks
+        SET label = #{label}, note = #{note}
+        WHERE id = #{id} AND user_id = #{userId}
+    </update>
 
     <select id="selectByPdfUser" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
@@ -31,7 +38,7 @@
     </select>
 
     <delete id="delete">
-        DELETE FROM pdf_bookmarks WHERE id = #{id}
+        DELETE FROM pdf_bookmarks WHERE id = #{id} AND user_id = #{userId}
     </delete>
 
     <delete id="deleteByPdfId">

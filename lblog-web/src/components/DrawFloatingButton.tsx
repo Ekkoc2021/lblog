@@ -1,3 +1,20 @@
+/**
+ * 悬浮工具箱 — 页面右下角可拖拽的蓝色按钮，hover 展开工具列表。
+ *
+ * ============================================================
+ * 添加新工具的流程（务必全部完成，缺一不可）
+ * ============================================================
+ * 1. 从 lucide-react 导入图标
+ * 2. 在 DrawFloatingButtonProps 中新增 onOpenXxx 回调
+ * 3. 在 tools 数组中追加一条 { id, label, icon, action }
+ * 4. ⚠️ 调整下方工具列表的 maxHeight（当前 220，line ~124）
+ *    - 每个按钮约 32px（padding 6*2 + 内容 ~20px）
+ *    - 再加分隔线 1px + 容器 padding 10px = 固定开销 ~11px
+ *    - 计算公式: tools.length × 32 + 12，向上取整
+ *    - 不调的话最后一个工具会被截断
+ * 5. 在 App.tsx 中传递 onOpenXxx prop
+ * ============================================================
+ */
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Wrench, PencilRuler, CheckSquare, Key, BookOpen, FileText } from 'lucide-react'
 
@@ -116,12 +133,12 @@ const DrawFloatingButton: React.FC<DrawFloatingButtonProps> = ({ onOpenDraw, onO
           <Wrench size={14} style={{ flexShrink: 0 }} />
         </div>
 
-        {/* 工具列表 */}
+        {/* 工具列表 — maxHeight 控制展开高度，新增工具时需同步调整（≈ tools.length × 32 + 12） */}
         <div style={{
           background: '#fff',
           borderRadius: '0 0 10px 10px',
           overflow: 'hidden',
-          maxHeight: hover ? 160 : 0,
+          maxHeight: hover ? 220 : 0,
           opacity: hover ? 1 : 0,
           transition: hover
             ? 'max-height 0.2s ease 0.2s, opacity 0.15s ease 0.2s'

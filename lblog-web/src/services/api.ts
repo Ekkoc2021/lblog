@@ -1,4 +1,4 @@
-import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries, AdminComment, AdminPrompt, AdminPromptAudit, SessionInfo, BatchOpResult, TokenConfig, AuthorApplication, PdfFile, PdfFolder, PdfBookmark, PdfProgress } from '../types';
+import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries, AdminComment, AdminPrompt, AdminPromptAudit, SessionInfo, BatchOpResult, TokenConfig, AuthorApplication, PdfFile, PdfFolder, PdfBookmark, PdfProgress, PdfUserStats, PdfUserQuotaItem } from '../types';
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './tokenStore';
 
 // 刷新锁：多个请求同时 401 时只发一次刷新
@@ -948,10 +948,17 @@ export async function getPdfBookmarks(pdfId: number): Promise<ApiResponse<PdfBoo
 }
 
 // 添加书签
-export async function addPdfBookmark(pdfId: number, pageNum: number, label: string): Promise<ApiResponse<PdfBookmark>> {
+export async function addPdfBookmark(pdfId: number, pageNum: number, label: string, note?: string): Promise<ApiResponse<PdfBookmark>> {
   return request<PdfBookmark>(`/api/v1/pdf/${pdfId}/bookmarks`, {
     method: 'POST',
-    body: JSON.stringify({ pageNum, label }),
+    body: JSON.stringify({ pageNum, label, note }),
+  });
+}
+
+export async function updatePdfBookmark(pdfId: number, id: number, label: string, note?: string): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/pdf/${pdfId}/bookmarks/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ pageNum: 0, label, note }),
   });
 }
 
@@ -971,4 +978,22 @@ export async function savePdfProgress(pdfId: number, pageNum: number, scrollTop?
     method: 'PUT',
     body: JSON.stringify({ pageNum, scrollTop: scrollTop ?? 0 }),
   });
+}
+
+// PDF 用户用量统计
+export async function getPdfStats(): Promise<ApiResponse<PdfUserStats>> {
+  return request<PdfUserStats>('/api/v1/pdf/stats');
+}
+
+// 管理端 — PDF 配额列表
+export async function getAdminPdfQuotas(): Promise<ApiResponse<PdfUserQuotaItem[]>> {
+  return request<PdfUserQuotaItem[]>('/api/v1/admin/pdf-quotas');
+}
+
+export async function setAdminPdfQuota(userId: number, quotaBytes: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/pdf-quotas/${userId}/quota?quotaBytes=${quotaBytes}`, { method: 'PUT' });
+}
+
+export async function setAdminPdfAllowUpload(userId: number, allowUpload: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/pdf-quotas/${userId}/allow-upload?allowUpload=${allowUpload}`, { method: 'PUT' });
 }
