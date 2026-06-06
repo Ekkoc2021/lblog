@@ -16,6 +16,8 @@ public interface UsersMapper {
 
     Users findByEmail(@Param("email") String email);
 
+    Users findByEmailExcludeId(@Param("email") String email, @Param("excludeId") Long excludeId);
+
     Users selectById(@Param("id") Long id);
 
     int insertUser(Users user);
@@ -49,6 +51,8 @@ public interface UsersMapper {
                    @Param("role") String role);
 
     int countAll();
+
+    int countAdminUsers();
 
     int countPostsByUserId(@Param("userId") Long userId);
 }

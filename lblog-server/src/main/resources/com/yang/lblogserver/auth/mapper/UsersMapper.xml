@@ -36,11 +36,11 @@
         </foreach>
     </select>
 
-    <!-- TODO: 后续加上 is_delelte=0 软删除过滤 -->
     <select id="findByUsername" resultMap="BaseResultMap">
         SELECT <include refid="Base_Column_List"/>
         FROM users
         WHERE username = #{username}
+          AND deleted_at IS NULL
         LIMIT 1
     </select>
 
@@ -48,6 +48,16 @@
         SELECT <include refid="Base_Column_List"/>
         FROM users
         WHERE email = #{email}
+          AND deleted_at IS NULL
+        LIMIT 1
+    </select>
+
+    <select id="findByEmailExcludeId" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM users
+        WHERE email = #{email}
+          AND deleted_at IS NULL
+          AND id != #{excludeId}
         LIMIT 1
     </select>
 
@@ -55,6 +65,7 @@
         SELECT <include refid="Base_Column_List"/>
         FROM users
         WHERE id = #{id}
+          AND deleted_at IS NULL
         LIMIT 1
     </select>
 
@@ -144,6 +155,13 @@
 
     <select id="countAll" resultType="int">
         SELECT COUNT(*) FROM users
+    </select>
+
+    <select id="countAdminUsers" resultType="int">
+        SELECT COUNT(*) FROM users
+        WHERE role = 'admin'
+          AND deleted_at IS NULL
+          AND status = 1
     </select>
 
     <select id="countPostsByUserId" resultType="int">

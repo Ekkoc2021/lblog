@@ -453,7 +453,11 @@ const UserManage: React.FC = () => {
           >
             <Input placeholder="请输入邮箱" />
           </Form.Item>
-          <Form.Item name="roleIds" label="角色">
+          <Form.Item
+            name="roleIds"
+            label="角色"
+            rules={[{ required: true, message: '请选择角色' }]}
+          >
             <Select
               mode="multiple"
               placeholder="请选择角色"
