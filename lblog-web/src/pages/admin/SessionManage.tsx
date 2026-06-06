@@ -6,7 +6,7 @@ import {
 import {
   ReloadOutlined, LogoutOutlined, UserDeleteOutlined, DeleteOutlined
 } from '@ant-design/icons';
-import type { SessionInfo, TokenConfig } from '../../services/api';
+import type { SessionInfo, TokenConfig } from '../../types';
 import {
   getSessions, revokeSession, kickUser, cleanupTokens,
   getTokenConfig, updateTokenConfig,
