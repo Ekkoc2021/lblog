@@ -36,6 +36,7 @@ import UserManage from './pages/admin/UserManage';
 import CommentManage from './pages/admin/CommentManage';
 import PromptManage from './pages/admin/PromptManage';
 import SessionManage from './pages/admin/SessionManage';
+import ApplicationManage from './pages/admin/ApplicationManage';
 
 const AppContent: React.FC = () => {
   const { theme: currentTheme } = useTheme();
@@ -88,6 +89,7 @@ return (
               <Route path="/admin/comments" element={<CommentManage />} />
               <Route path="/admin/prompts" element={<PromptManage />} />
               <Route path="/admin/sessions" element={<SessionManage />} />
+              <Route path="/admin/applications" element={<ApplicationManage />} />
               <Route path="/author" element={<AdminLayout />}>
                 <Route index element={<PostList />} />
                 <Route path="posts" element={<PostList />} />
