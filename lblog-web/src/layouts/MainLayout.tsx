@@ -397,6 +397,27 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               </div>
             );
           })}
+          {user && (
+            <div
+              onClick={() => {
+                setDrawerOpen(false);
+                if (user.role === 'user') {
+                  setAppModalVisible(true);
+                } else {
+                  navigate('/author/posts');
+                }
+              }}
+              style={{
+                padding: '14px 24px',
+                cursor: 'pointer',
+                fontSize: 16,
+                color: 'var(--color-text-secondary)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              创作中心
+            </div>
+          )}
         </Drawer>
     </Layout>
     </>

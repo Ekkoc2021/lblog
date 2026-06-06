@@ -39,6 +39,7 @@ public class UserApplicationController {
     @PostMapping("/application")
     public ApiResponse<AuthorApplication> submit(@Valid @RequestBody ApplicationRequest request) {
         Long userId = getCurrentUserId();
+        if (userId == null) return ApiResponse.error(401, "未登录");
         try {
             AuthorApplication app = applicationService.submit(userId, request.getReason());
             return ApiResponse.success(app);

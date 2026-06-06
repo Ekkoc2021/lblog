@@ -1,12 +1,15 @@
 package com.yang.lblogserver.auth.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 @Schema(description = "审核请求")
 public class ApplicationReviewRequest {
 
     @NotNull(message = "审核状态不能为空")
+    @Min(1) @Max(3)
     @Schema(description = "审核结果：1=通过 2=拒绝 3=需补充")
     private Integer status;
 

@@ -16,8 +16,6 @@ public interface AuthorApplicationMapper {
 
     AuthorApplication selectById(@Param("id") Long id);
 
-    int updateReason(@Param("id") Long id, @Param("reason") String reason, @Param("status") Integer status);
-
     int updateReview(@Param("id") Long id, @Param("status") Integer status,
                      @Param("feedback") String feedback, @Param("reviewedBy") Long reviewedBy);
 
