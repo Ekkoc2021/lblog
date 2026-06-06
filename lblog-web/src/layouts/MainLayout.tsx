@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import LoginModal from '../components/LoginModal';
 import UserSettingsDrawer from '../components/UserSettingsDrawer';
+import AuthorApplicationModal from '../components/AuthorApplicationModal';
 
 const { Header, Content, Footer } = Layout;
 const { Search } = Input;
@@ -31,6 +32,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [loginModalVisible, setLoginModalVisible] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
+  const [appModalVisible, setAppModalVisible] = useState(false);
   const blurTimerRef = useRef<number | null>(null);
   const afterLoginRef = useRef<string | null>(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -295,7 +297,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                         onClick={() => {
                           setLoginModalVisible(false);
                           if (user?.role === 'user') {
-                            message.info('申请成为作者后才能使用创作中心');
+                            setAppModalVisible(true);
                             return;
                           }
                           navigate('/author/posts');
@@ -357,6 +359,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             afterLoginRef.current = null;
             if (target) navigate(target);
           }}
+        />
+        <AuthorApplicationModal
+          open={appModalVisible}
+          onClose={() => setAppModalVisible(false)}
         />
         <Drawer
           title={null}
