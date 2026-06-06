@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Modal, Input, Button, message, Descriptions, Tag } from 'antd';
-import { getMyApplication, submitApplication, resubmitApplication } from '../services/api';
+import { getMyApplication, submitApplication, resubmitApplication, getCurrentUser } from '../services/api';
 import type { AuthorApplication } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -21,7 +21,7 @@ interface Props {
 
 const AuthorApplicationModal: React.FC<Props> = ({ open, onClose }) => {
   const navigate = useNavigate();
-  const { user, refreshUser } = useAuth();
+  const { refreshUser } = useAuth();
   const [app, setApp] = useState<AuthorApplication | null>(null);
   const [reason, setReason] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,16 +30,26 @@ const AuthorApplicationModal: React.FC<Props> = ({ open, onClose }) => {
   useEffect(() => {
     if (open) {
       setLoading(true);
-      getMyApplication()
-        .then(res => {
-          const data = res.data;
+      Promise.all([getMyApplication(), getCurrentUser()])
+        .then(([appRes, userRes]) => {
+          const data = appRes.data;
+          const realRole = userRes.data?.role;
+          // 已申请通过且服务端角色已是 author → 直接进创作中心
+          if (data && data.status === 1 && realRole !== 'user') {
+            refreshUser();
+            onClose();
+            navigate('/author/posts');
+            return;
+          }
+          // 已申请通过但服务端角色被收回 → 允许重新申请
+          if (data && data.status === 1 && realRole === 'user') {
+            setApp(null);
+            setLoading(false);
+            return;
+          }
           setApp(data);
           if (data && (data.status === 2 || data.status === 3)) {
             setReason(data.reason);
-          }
-          // 角色被收回时，旧申请已失效，允许重新申请
-          if (data && data.status === 1 && user?.role === 'user') {
-            setApp(null);
           }
         })
         .catch(() => message.error('获取申请状态失败'))
