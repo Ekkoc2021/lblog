@@ -466,3 +466,19 @@ export const WEATHER_OPTIONS = [
   { emoji: '🌬️', label: '大风' },
   { emoji: '🌫️', label: '雾' },
 ] as const;
+
+// ---- 作者申请 ----
+
+export interface AuthorApplication {
+  id: number;
+  userId: number;
+  username: string;
+  nickname: string;
+  reason: string;
+  status: number;  // 0=待审核 1=通过 2=拒绝 3=需补充
+  feedback: string | null;
+  reviewedBy: number | null;
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
