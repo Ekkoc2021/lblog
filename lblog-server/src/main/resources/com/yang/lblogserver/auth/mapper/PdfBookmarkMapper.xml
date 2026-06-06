@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.auth.mapper.PdfBookmarkMapper">
+
+    <resultMap id="BaseResultMap" type="com.yang.lblogserver.auth.domain.PdfBookmark">
+        <id property="id" column="id" />
+        <result property="pdfId" column="pdf_id" />
+        <result property="userId" column="user_id" />
+        <result property="pageNum" column="page_num" />
+        <result property="label" column="label" />
+        <result property="note" column="note" />
+        <result property="createdAt" column="created_at" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, pdf_id, user_id, page_num, label, note, created_at
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO pdf_bookmarks (pdf_id, user_id, page_num, label, note, created_at)
+        VALUES (#{pdfId}, #{userId}, #{pageNum}, #{label}, #{note}, NOW())
+    </insert>
+
+    <update id="update">
+        UPDATE pdf_bookmarks
+        SET label = #{label}, note = #{note}
+        WHERE id = #{id} AND user_id = #{userId}
+    </update>
+
+    <select id="selectByPdfUser" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM pdf_bookmarks
+        WHERE pdf_id = #{pdfId}
+          AND user_id = #{userId}
+        ORDER BY page_num ASC, created_at ASC
+    </select>
+
+    <delete id="delete">
+        DELETE FROM pdf_bookmarks WHERE id = #{id} AND user_id = #{userId}
+    </delete>
+
+    <delete id="deleteByPdfId">
+        DELETE FROM pdf_bookmarks WHERE pdf_id = #{pdfId}
+    </delete>
+
+</mapper>

@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS pdf_user_quota (
+    id           BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id      BIGINT       NOT NULL UNIQUE,
+    quota_bytes  BIGINT       NOT NULL DEFAULT 524288000 COMMENT '配额(字节), 默认500MB',
+    allow_upload TINYINT(1)   NOT NULL DEFAULT 0 COMMENT '0=禁止 1=允许',
+    created_at   DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='PDF 用户配额';

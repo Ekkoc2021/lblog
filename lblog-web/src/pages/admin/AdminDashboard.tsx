@@ -1,5 +1,5 @@
 import { Card, Row, Col, Typography } from 'antd';
-import { SettingOutlined, PictureOutlined, UserOutlined, FileTextOutlined, FolderOutlined, TagsOutlined, BookOutlined, MessageOutlined, RobotOutlined, SafetyCertificateOutlined, FormOutlined } from '@ant-design/icons';
+import { SettingOutlined, PictureOutlined, UserOutlined, FileTextOutlined, FolderOutlined, TagsOutlined, BookOutlined, MessageOutlined, RobotOutlined, SafetyCertificateOutlined, FormOutlined, CloudOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 const { Title, Paragraph } = Typography;
@@ -81,6 +81,13 @@ const features = [
     description: '审核用户作者申请，通过后自动升级为作者角色',
     icon: <FormOutlined style={{ fontSize: 32, color: '#fa8c16' }} />,
     path: '/admin/applications',
+  },
+  {
+    key: 'pdf-quotas',
+    title: 'PDF 配额',
+    description: '管理用户 PDF 上传配额与开关，限制存储空间使用',
+    icon: <CloudOutlined style={{ fontSize: 32, color: '#1677ff' }} />,
+    path: '/admin/pdf-quotas',
   },
 ];
 

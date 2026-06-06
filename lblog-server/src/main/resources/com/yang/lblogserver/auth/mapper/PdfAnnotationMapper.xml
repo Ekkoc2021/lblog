@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.auth.mapper.PdfAnnotationMapper">
+
+    <resultMap id="BaseResultMap" type="com.yang.lblogserver.auth.domain.PdfAnnotation">
+        <id property="id" column="id" />
+        <result property="pdfId" column="pdf_id" />
+        <result property="pageNum" column="page_num" />
+        <result property="userId" column="user_id" />
+        <result property="data" column="data" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, pdf_id, page_num, user_id, data, created_at, updated_at
+    </sql>
+
+    <insert id="upsert">
+        INSERT INTO pdf_annotations (pdf_id, page_num, user_id, data, created_at, updated_at)
+        VALUES (#{pdfId}, #{pageNum}, #{userId}, #{data}, NOW(), NOW())
+        ON DUPLICATE KEY UPDATE data = VALUES(data), updated_at = NOW()
+    </insert>
+
+    <select id="selectByPdfPageUser" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM pdf_annotations
+        WHERE pdf_id = #{pdfId}
+          AND page_num = #{pageNum}
+          AND user_id = #{userId}
+        LIMIT 1
+    </select>
+
+    <delete id="deleteByPdfId">
+        DELETE FROM pdf_annotations WHERE pdf_id = #{pdfId}
+    </delete>
+
+</mapper>
