@@ -31,16 +31,11 @@ public class AuthorApplicationService {
         this.roleService = roleService;
     }
 
-    /** 提交申请（首次） */
+    /** 提交申请——每次创建新记录，保留历史 */
     public AuthorApplication submit(Long userId, String reason) {
-        AuthorApplication existing = applicationMapper.selectByUserId(userId);
-        if (existing != null) {
-            if (existing.getStatus() == 0) {
-                throw new IllegalStateException("您已有待审核的申请，请耐心等待");
-            }
-            // status 1(通过后被降级) / 2(拒绝) / 3(需补充) — 更新已有记录重新提交
-            applicationMapper.updateReason(existing.getId(), reason, 0);
-            return applicationMapper.selectById(existing.getId());
+        AuthorApplication latest = applicationMapper.selectByUserId(userId);
+        if (latest != null && latest.getStatus() == 0) {
+            throw new IllegalStateException("您已有待审核的申请，请耐心等待");
         }
 
         AuthorApplication app = new AuthorApplication();
@@ -51,21 +46,26 @@ public class AuthorApplicationService {
         return app;
     }
 
-    /** 查自己的申请 */
+    /** 查最新一条申请 */
     public AuthorApplication getByUserId(Long userId) {
         return applicationMapper.selectByUserId(userId);
     }
 
-    /** 补充材料后重新提交 */
+    /** 补充材料后重新提交——创建新记录 */
     public void resubmit(Long userId, String reason) {
-        AuthorApplication existing = applicationMapper.selectByUserId(userId);
-        if (existing == null) {
+        AuthorApplication latest = applicationMapper.selectByUserId(userId);
+        if (latest == null) {
             throw new IllegalStateException("未找到申请记录");
         }
-        if (existing.getStatus() != 2 && existing.getStatus() != 3) {
+        if (latest.getStatus() != 2 && latest.getStatus() != 3) {
             throw new IllegalStateException("当前状态不允许重新提交");
         }
-        applicationMapper.updateReason(existing.getId(), reason, 0);
+
+        AuthorApplication app = new AuthorApplication();
+        app.setUserId(userId);
+        app.setReason(reason);
+        app.setStatus(0);
+        applicationMapper.insert(app);
     }
 
     /** 管理端分页列表 */

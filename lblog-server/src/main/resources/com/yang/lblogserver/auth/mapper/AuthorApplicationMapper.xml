@@ -39,6 +39,7 @@
         SELECT id, user_id, reason, status, feedback, reviewed_by, reviewed_at, created_at, updated_at
         FROM author_applications
         WHERE user_id = #{userId}
+        ORDER BY id DESC
         LIMIT 1
     </select>
 
