@@ -27,6 +27,16 @@ public interface UserTokenMapper {
 
     int deleteExpired();
 
+    List<UserToken> selectActiveSessions(@Param("keyword") String keyword,
+                                         @Param("offset") int offset,
+                                         @Param("limit") int limit);
+
+    int countActiveSessions(@Param("keyword") String keyword);
+
+    int deleteExpiredTokens();
+
+    int revokeById(@Param("id") Long id);
+
     int countValidByUserId(@Param("userId") Long userId);
 
     int updateReplacedBy(@Param("tokenHash") String tokenHash, @Param("replacedBy") String replacedBy);

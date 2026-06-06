@@ -49,6 +49,16 @@ public class UserToken {
      */
     private String replacedBy;
 
+    /**
+     * JOIN 查询时的用户名（非持久化）
+     */
+    private transient String username;
+
+    /**
+     * JOIN 查询时的昵称（非持久化）
+     */
+    private transient String nickname;
+
     @Override
     public boolean equals(Object that) {
         if (this == that) {

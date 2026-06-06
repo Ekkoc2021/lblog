@@ -433,6 +433,28 @@ export const MOOD_OPTIONS = [
   { emoji: '📝', label: '记录', color: '#666' },
 ] as const;
 
+// Token 管理
+export interface SessionInfo {
+  id: number;
+  userId: number;
+  username: string;
+  nickname: string;
+  tokenType: string;
+  tokenPreview: string;
+  createdAt: string;
+  expiresAt: string;
+  expiringSoon: boolean;
+}
+
+export interface BatchOpResult {
+  count: number;
+}
+
+export interface TokenConfig {
+  accessTtl: number;
+  refreshTtl: number;
+}
+
 export const WEATHER_OPTIONS = [
   { emoji: '☀️', label: '晴' },
   { emoji: '⛅', label: '多云' },

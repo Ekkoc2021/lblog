@@ -1,4 +1,4 @@
-import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries, AdminComment, AdminPrompt, AdminPromptAudit } from '../types';
+import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries, AdminComment, AdminPrompt, AdminPromptAudit, SessionInfo, BatchOpResult, TokenConfig } from '../types';
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './tokenStore';
 
 // 刷新锁：多个请求同时 401 时只发一次刷新
@@ -784,4 +784,37 @@ export async function reloadPromptCache(): Promise<ApiResponse<null>> {
 
 export async function seedPrompts(module: string): Promise<ApiResponse<string>> {
   return request<string>(`/api/v1/admin/ai/prompts/seed?module=${encodeURIComponent(module)}`, { method: 'POST' });
+}
+
+// ---- Token 管理 ----
+
+export async function getSessions(params?: {
+  page?: number;
+  pageSize?: number;
+  keyword?: string;
+}): Promise<ApiResponse<PageResult<SessionInfo>>> {
+  return request<PageResult<SessionInfo>>(`/api/v1/admin/sessions${buildQuery(params as Record<string, string | number | undefined>)}`);
+}
+
+export async function revokeSession(id: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/sessions/${id}`, { method: 'DELETE' });
+}
+
+export async function kickUser(userId: number): Promise<ApiResponse<BatchOpResult>> {
+  return request<BatchOpResult>(`/api/v1/admin/sessions/user/${userId}`, { method: 'DELETE' });
+}
+
+export async function cleanupTokens(): Promise<ApiResponse<BatchOpResult>> {
+  return request<BatchOpResult>('/api/v1/admin/sessions/cleanup', { method: 'DELETE' });
+}
+
+export async function getTokenConfig(): Promise<ApiResponse<TokenConfig>> {
+  return request<TokenConfig>('/api/v1/admin/token-config');
+}
+
+export async function updateTokenConfig(data: TokenConfig): Promise<ApiResponse<null>> {
+  return request<null>('/api/v1/admin/token-config', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
 }

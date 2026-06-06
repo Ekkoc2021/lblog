@@ -1,5 +1,5 @@
 import { Card, Row, Col, Typography } from 'antd';
-import { SettingOutlined, PictureOutlined, UserOutlined, FileTextOutlined, FolderOutlined, TagsOutlined, BookOutlined, MessageOutlined, RobotOutlined } from '@ant-design/icons';
+import { SettingOutlined, PictureOutlined, UserOutlined, FileTextOutlined, FolderOutlined, TagsOutlined, BookOutlined, MessageOutlined, RobotOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 const { Title, Paragraph } = Typography;
@@ -67,6 +67,13 @@ const features = [
     description: '管理各 AI 模块的系统提示词，支持版本控制和审计',
     icon: <RobotOutlined style={{ fontSize: 32, color: '#13c2c2' }} />,
     path: '/admin/prompts',
+  },
+  {
+    key: 'sessions',
+    title: '会话管理',
+    description: '管理在线会话，踢人下线，配置 Token 过期时间',
+    icon: <SafetyCertificateOutlined style={{ fontSize: 32, color: '#eb2f96' }} />,
+    path: '/admin/sessions',
   },
 ];
 

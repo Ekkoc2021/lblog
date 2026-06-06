@@ -1,5 +1,6 @@
 package com.yang.lblogserver.auth.security.util;
 
+import com.yang.lblogserver.site.service.SiteConfigCacheService;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,20 +16,20 @@ import java.util.Base64;
 @Component
 public class TokenGenerator {
 
-    @Value("${lblog.token.access-token-expire-minutes:120}")
-    private long accessTokenExpireMinutes;
+    private static final long DEFAULT_ACCESS_TTL = 7200;
+    private static final long DEFAULT_REFRESH_TTL = 604800;
 
-    @Value("${lblog.token.refresh-token-expire-days:7}")
-    private long refreshTokenExpireDays;
+    private final SiteConfigCacheService configService;
 
     @Value("${lblog.token.token-byte-size:32}")
     private int tokenByteSize;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
-    /**
-     * Generate a pair of access and refresh tokens with their hashes and expiration times.
-     */
+    public TokenGenerator(SiteConfigCacheService configService) {
+        this.configService = configService;
+    }
+
     public TokenPairRaw generate() {
         String rawAccessToken = generateRandomToken();
         String rawRefreshToken = generateRandomToken();
@@ -36,8 +37,11 @@ public class TokenGenerator {
         String accessHash = hash(rawAccessToken);
         String refreshHash = hash(rawRefreshToken);
 
-        LocalDateTime accessExpiresAt = LocalDateTime.now().plusMinutes(accessTokenExpireMinutes);
-        LocalDateTime refreshExpiresAt = LocalDateTime.now().plusDays(refreshTokenExpireDays);
+        long accessTtl = getConfigLong("token_access_ttl", DEFAULT_ACCESS_TTL);
+        long refreshTtl = getConfigLong("token_refresh_ttl", DEFAULT_REFRESH_TTL);
+
+        LocalDateTime accessExpiresAt = LocalDateTime.now().plusSeconds(accessTtl);
+        LocalDateTime refreshExpiresAt = LocalDateTime.now().plusSeconds(refreshTtl);
 
         return new TokenPairRaw()
                 .setRawAccessToken(rawAccessToken)
@@ -48,9 +52,6 @@ public class TokenGenerator {
                 .setRefreshExpiresAt(refreshExpiresAt);
     }
 
-    /**
-     * Compute SHA-256 hex digest for a raw token string.
-     */
     public String hash(String rawToken) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -61,24 +62,27 @@ public class TokenGenerator {
         }
     }
 
-    /**
-     * Generate a random token string: tokenByteSize random bytes, Base64 URL-safe encoded (no padding).
-     */
     private String generateRandomToken() {
         byte[] randomBytes = new byte[tokenByteSize];
         secureRandom.nextBytes(randomBytes);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
 
-    /**
-     * Convert a byte array to a lowercase hex string.
-     */
     private String bytesToHex(byte[] bytes) {
         StringBuilder hexString = new StringBuilder();
         for (byte b : bytes) {
             hexString.append(String.format("%02x", b & 0xff));
         }
         return hexString.toString();
+    }
+
+    private long getConfigLong(String key, long defaultValue) {
+        String val = configService.getConfigValue(key);
+        if (val != null) {
+            try { return Long.parseLong(val); }
+            catch (NumberFormatException e) { /* fall through */ }
+        }
+        return defaultValue;
     }
 
     @Data

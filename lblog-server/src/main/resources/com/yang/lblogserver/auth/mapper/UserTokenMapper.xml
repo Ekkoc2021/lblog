@@ -15,6 +15,17 @@
             <result property="replacedBy" column="replaced_by" />
     </resultMap>
 
+    <resultMap id="SessionResultMap" type="com.yang.lblogserver.auth.domain.UserToken">
+            <id property="id" column="id" />
+            <result property="userId" column="user_id" />
+            <result property="tokenHash" column="token_hash" />
+            <result property="tokenType" column="token_type" />
+            <result property="createdAt" column="created_at" />
+            <result property="expiresAt" column="expires_at" />
+            <result property="username" column="username" />
+            <result property="nickname" column="nickname" />
+    </resultMap>
+
     <sql id="Base_Column_List">
         id,user_id,token_hash,token_type,expires_at,
         created_at,revoked,replaced_by
@@ -96,5 +107,40 @@
           AND revoked = 0
           AND expires_at > NOW()
     </select>
+
+    <select id="selectActiveSessions" resultMap="SessionResultMap">
+        SELECT ut.id, ut.user_id, u.username, u.nickname,
+               ut.token_type, ut.token_hash, ut.created_at, ut.expires_at
+        FROM user_tokens ut
+        JOIN users u ON u.id = ut.user_id
+        WHERE ut.revoked = 0
+          AND ut.expires_at > NOW()
+          AND u.deleted_at IS NULL
+        <if test="keyword != null and keyword != ''">
+          AND u.username LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+        ORDER BY ut.created_at DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countActiveSessions" resultType="int">
+        SELECT COUNT(*)
+        FROM user_tokens ut
+        JOIN users u ON u.id = ut.user_id
+        WHERE ut.revoked = 0
+          AND ut.expires_at > NOW()
+          AND u.deleted_at IS NULL
+        <if test="keyword != null and keyword != ''">
+          AND u.username LIKE CONCAT('%', #{keyword}, '%')
+        </if>
+    </select>
+
+    <delete id="deleteExpiredTokens">
+        DELETE FROM user_tokens WHERE expires_at &lt; NOW()
+    </delete>
+
+    <update id="revokeById">
+        UPDATE user_tokens SET revoked = 1 WHERE id = #{id} AND revoked = 0
+    </update>
 
 </mapper>

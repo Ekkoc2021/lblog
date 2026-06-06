@@ -14,6 +14,9 @@ public final class DefaultConfig {
         ALL.put("ai_draw_chat_enabled", "true");
         ALL.put("image_cleanup_days", "0");
         ALL.put("reasoning_inject", "true");
+        // Token 过期时间
+        ALL.put("token_access_ttl", "7200");   // ACCESS 2h
+        ALL.put("token_refresh_ttl", "604800"); // REFRESH 7d
         // 推荐排序
         ALL.put("rank.recommend.weight.like", "2.0");
         ALL.put("rank.recommend.weight.comment", "3.0");
