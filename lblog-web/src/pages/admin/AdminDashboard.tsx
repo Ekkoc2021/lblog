@@ -1,5 +1,5 @@
 import { Card, Row, Col, Typography } from 'antd';
-import { SettingOutlined, PictureOutlined, UserOutlined, FileTextOutlined, FolderOutlined, TagsOutlined, BookOutlined, MessageOutlined, RobotOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import { SettingOutlined, PictureOutlined, UserOutlined, FileTextOutlined, FolderOutlined, TagsOutlined, BookOutlined, MessageOutlined, RobotOutlined, SafetyCertificateOutlined, FormOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 
 const { Title, Paragraph } = Typography;
@@ -74,6 +74,13 @@ const features = [
     description: '管理在线会话，踢人下线，配置 Token 过期时间',
     icon: <SafetyCertificateOutlined style={{ fontSize: 32, color: '#eb2f96' }} />,
     path: '/admin/sessions',
+  },
+  {
+    key: 'applications',
+    title: '作者申请',
+    description: '审核用户作者申请，通过后自动升级为作者角色',
+    icon: <FormOutlined style={{ fontSize: 32, color: '#fa8c16' }} />,
+    path: '/admin/applications',
   },
 ];
 

@@ -1,4 +1,4 @@
-import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries, AdminComment, AdminPrompt, AdminPromptAudit, SessionInfo, BatchOpResult, TokenConfig } from '../types';
+import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries, AdminComment, AdminPrompt, AdminPromptAudit, SessionInfo, BatchOpResult, TokenConfig, AuthorApplication } from '../types';
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './tokenStore';
 
 // 刷新锁：多个请求同时 401 时只发一次刷新
@@ -817,5 +817,41 @@ export async function updateTokenConfig(data: TokenConfig): Promise<ApiResponse<
   return request<null>('/api/v1/admin/token-config', {
     method: 'PUT',
     body: JSON.stringify(data),
+  });
+}
+
+// ---- 作者申请 ----
+
+export async function submitApplication(reason: string): Promise<ApiResponse<AuthorApplication>> {
+  return request<AuthorApplication>('/api/v1/user/application', {
+    method: 'POST',
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export async function getMyApplication(): Promise<ApiResponse<AuthorApplication | null>> {
+  return request<AuthorApplication | null>('/api/v1/user/application');
+}
+
+export async function resubmitApplication(reason: string): Promise<ApiResponse<null>> {
+  return request<null>('/api/v1/user/application', {
+    method: 'PUT',
+    body: JSON.stringify({ reason }),
+  });
+}
+
+export async function getApplications(params?: {
+  page?: number;
+  pageSize?: number;
+  status?: number;
+  keyword?: string;
+}): Promise<ApiResponse<PageResult<AuthorApplication>>> {
+  return request<PageResult<AuthorApplication>>(`/api/v1/admin/applications${buildQuery(params as Record<string, string | number | undefined>)}`);
+}
+
+export async function reviewApplication(id: number, status: number, feedback?: string): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/admin/applications/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ status, feedback }),
   });
 }

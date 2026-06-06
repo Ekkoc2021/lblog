@@ -55,4 +55,6 @@ public interface UsersMapper {
     int countAdminUsers();
 
     int countPostsByUserId(@Param("userId") Long userId);
+
+    int updateRole(@Param("id") Long id, @Param("role") String role);
 }

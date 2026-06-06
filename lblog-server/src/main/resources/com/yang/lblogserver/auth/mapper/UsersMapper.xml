@@ -172,4 +172,8 @@
           AND status = 1
     </select>
 
+    <update id="updateRole">
+        UPDATE users SET role = #{role} WHERE id = #{id}
+    </update>
+
 </mapper>
