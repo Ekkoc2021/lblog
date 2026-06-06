@@ -57,7 +57,9 @@ public class AdminApplicationController {
             applicationService.review(id, request.getStatus(), request.getFeedback(), reviewerId);
             return ApiResponse.success(null);
         } catch (IllegalArgumentException e) {
-            return ApiResponse.error(404, e.getMessage());
+            // "申请记录不存在" → 404, validation errors → 400
+            int code = e.getMessage() != null && e.getMessage().contains("不存在") ? 404 : 400;
+            return ApiResponse.error(code, e.getMessage());
         } catch (IllegalStateException e) {
             return ApiResponse.error(400, e.getMessage());
         }

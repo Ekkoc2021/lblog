@@ -41,6 +41,9 @@ public class AuthorApplicationService {
             if (existing.getStatus() == 0) {
                 throw new IllegalStateException("您已有待审核的申请，请耐心等待");
             }
+            // status 2 (拒绝) or 3 (需补充) — update existing record
+            applicationMapper.updateReason(existing.getId(), reason, 0);
+            return applicationMapper.selectById(existing.getId());
         }
 
         AuthorApplication app = new AuthorApplication();
@@ -93,7 +96,10 @@ public class AuthorApplicationService {
             throw new IllegalArgumentException("拒绝或要求补充时必须填写反馈意见");
         }
 
-        applicationMapper.updateReview(applicationId, status, feedback, reviewerId);
+        int rows = applicationMapper.updateReview(applicationId, status, feedback, reviewerId);
+        if (rows == 0) {
+            throw new IllegalStateException("该申请已被其他管理员审核");
+        }
 
         // 通过时自动升级为作者
         if (status == 1) {

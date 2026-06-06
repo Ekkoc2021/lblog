@@ -51,7 +51,9 @@
 
     <update id="updateReason">
         UPDATE author_applications
-        SET reason = #{reason}, status = #{status}, updated_at = NOW()
+        SET reason = #{reason}, status = #{status},
+            feedback = NULL, reviewed_by = NULL, reviewed_at = NULL,
+            updated_at = NOW()
         WHERE id = #{id}
     </update>
 
@@ -59,7 +61,7 @@
         UPDATE author_applications
         SET status = #{status}, feedback = #{feedback}, reviewed_by = #{reviewedBy},
             reviewed_at = NOW(), updated_at = NOW()
-        WHERE id = #{id}
+        WHERE id = #{id} AND status = 0
     </update>
 
     <sql id="List_Column">
