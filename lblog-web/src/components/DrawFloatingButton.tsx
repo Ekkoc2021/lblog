@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Wrench, PencilRuler, CheckSquare, Key, BookOpen } from 'lucide-react'
+import { Wrench, PencilRuler, CheckSquare, Key, BookOpen, FileText } from 'lucide-react'
 
 interface ToolItem {
   id: string
@@ -13,11 +13,12 @@ interface DrawFloatingButtonProps {
   onOpenTodo: () => void
   onOpenHashbook: () => void
   onOpenJournal: () => void
+  onOpenPdf: () => void
   onPositionChange?: (pos: { left: number; top: number }) => void
   hidden?: boolean
 }
 
-const DrawFloatingButton: React.FC<DrawFloatingButtonProps> = ({ onOpenDraw, onOpenTodo, onOpenHashbook, onOpenJournal, onPositionChange, hidden }) => {
+const DrawFloatingButton: React.FC<DrawFloatingButtonProps> = ({ onOpenDraw, onOpenTodo, onOpenHashbook, onOpenJournal, onOpenPdf, onPositionChange, hidden }) => {
   const [hover, setHover] = useState(false)
   const [pos, setPos] = useState({ left: 0, top: 0 })
   const dragging = useRef(false)
@@ -30,6 +31,7 @@ const DrawFloatingButton: React.FC<DrawFloatingButtonProps> = ({ onOpenDraw, onO
     { id: 'todo', label: '代办事项', icon: <CheckSquare size={14} />, action: () => { setHover(false); onOpenTodo() } },
     { id: 'hashbook', label: '密码管家', icon: <Key size={14} />, action: () => { setHover(false); onOpenHashbook() } },
     { id: 'journal', label: '日记本', icon: <BookOpen size={14} />, action: () => { setHover(false); onOpenJournal() } },
+    { id: 'pdf', label: 'PDF 阅读', icon: <FileText size={14} />, action: () => { setHover(false); onOpenPdf() } },
   ]
 
   useEffect(() => {

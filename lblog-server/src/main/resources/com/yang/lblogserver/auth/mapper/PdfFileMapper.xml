@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yang.lblogserver.auth.mapper.PdfFileMapper">
+
+    <resultMap id="BaseResultMap" type="com.yang.lblogserver.auth.domain.PdfFile">
+        <id property="id" column="id" />
+        <result property="userId" column="user_id" />
+        <result property="folderId" column="folder_id" />
+        <result property="filename" column="filename" />
+        <result property="originalName" column="original_name" />
+        <result property="fileSize" column="file_size" />
+        <result property="filePath" column="file_path" />
+        <result property="totalPages" column="total_pages" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <resultMap id="FileVOMap" type="com.yang.lblogserver.auth.vo.PdfFileVO">
+        <id property="id" column="id" />
+        <result property="folderId" column="folder_id" />
+        <result property="originalName" column="original_name" />
+        <result property="fileSize" column="file_size" />
+        <result property="totalPages" column="total_pages" />
+        <result property="createdAt" column="created_at" />
+        <result property="updatedAt" column="updated_at" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, folder_id, filename, original_name, file_size, file_path, total_pages, created_at, updated_at
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO pdf_files (user_id, folder_id, filename, original_name, file_size, file_path, total_pages, created_at, updated_at)
+        VALUES (#{userId}, #{folderId}, #{filename}, #{originalName}, #{fileSize}, #{filePath}, #{totalPages}, NOW(), NOW())
+    </insert>
+
+    <select id="selectById" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM pdf_files
+        WHERE id = #{id}
+    </select>
+
+    <select id="selectByUserAndFolder" resultMap="FileVOMap">
+        SELECT id, folder_id, original_name, file_size, total_pages, created_at, updated_at
+        FROM pdf_files
+        WHERE user_id = #{userId}
+        <if test="folderId != null">
+            AND folder_id = #{folderId}
+        </if>
+        <if test="folderId == null">
+            AND folder_id IS NULL
+        </if>
+        ORDER BY created_at DESC
+    </select>
+
+    <update id="update">
+        UPDATE pdf_files
+        SET original_name = #{originalName},
+            folder_id = #{folderId}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM pdf_files WHERE id = #{id}
+    </delete>
+
+    <update id="updateTotalPages">
+        UPDATE pdf_files SET total_pages = #{totalPages} WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import { ConfigProvider, theme } from 'antd';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SiteDataProvider } from './contexts/SiteDataContext';
@@ -37,6 +37,7 @@ import CommentManage from './pages/admin/CommentManage';
 import PromptManage from './pages/admin/PromptManage';
 import SessionManage from './pages/admin/SessionManage';
 import ApplicationManage from './pages/admin/ApplicationManage';
+import PdfReaderPage from './pages/PdfReaderPage';
 
 const AppContent: React.FC = () => {
   const { theme: currentTheme } = useTheme();
@@ -44,7 +45,9 @@ const AppContent: React.FC = () => {
   const [showTodoPanel, setShowTodoPanel] = useState(false);
   const [showHashbookPanel, setShowHashbookPanel] = useState(false);
   const [showJournalPanel, setShowJournalPanel] = useState(false);
+  const [showPdfReader, setShowPdfReader] = useState(false);
   const [toolboxPos, setToolboxPos] = useState({ left: 0, top: 0 });
+  const navigate = useNavigate();
 
   const themeConfig = {
     algorithm: currentTheme === 'dark' ? theme.darkAlgorithm : undefined,
@@ -90,6 +93,7 @@ return (
               <Route path="/admin/prompts" element={<PromptManage />} />
               <Route path="/admin/sessions" element={<SessionManage />} />
               <Route path="/admin/applications" element={<ApplicationManage />} />
+              <Route path="/reader" element={<PdfReaderPage />} />
               <Route path="/author" element={<AdminLayout />}>
                 <Route index element={<PostList />} />
                 <Route path="posts" element={<PostList />} />
@@ -105,7 +109,7 @@ return (
           </MainLayout>
 
           {/* 写作工具箱：仅登录用户可见 */}
-          <ToolboxButton showDrawPage={showDrawPage} onOpenDraw={() => setShowDrawPage(true)} onOpenTodo={() => setShowTodoPanel(v => !v)} onOpenHashbook={() => setShowHashbookPanel(v => !v)} onOpenJournal={() => setShowJournalPanel(v => !v)} onPositionChange={setToolboxPos} />
+          <ToolboxButton showDrawPage={showDrawPage} onOpenDraw={() => setShowDrawPage(true)} onOpenTodo={() => setShowTodoPanel(v => !v)} onOpenHashbook={() => setShowHashbookPanel(v => !v)} onOpenJournal={() => setShowJournalPanel(v => !v)} onOpenPdf={() => { setShowPdfReader(true); navigate('/reader'); }} onPositionChange={setToolboxPos} />
 
           {/* AI 绘图面板 —— 从按钮位置缩放展开 */}
           <div style={{
@@ -165,13 +169,13 @@ function DiagramAuthGuard() {
 }
 
 /** 工具箱包装器：仅在登录且角色为 admin/author 时显示 */
-function ToolboxButton({ showDrawPage, onOpenDraw, onOpenTodo, onOpenHashbook, onOpenJournal, onPositionChange }: {
-  showDrawPage: boolean; onOpenDraw: () => void; onOpenTodo: () => void; onOpenHashbook: () => void; onOpenJournal: () => void; onPositionChange: (pos: { left: number; top: number }) => void
+function ToolboxButton({ showDrawPage, onOpenDraw, onOpenTodo, onOpenHashbook, onOpenJournal, onOpenPdf, onPositionChange }: {
+  showDrawPage: boolean; onOpenDraw: () => void; onOpenTodo: () => void; onOpenHashbook: () => void; onOpenJournal: () => void; onOpenPdf: () => void; onPositionChange: (pos: { left: number; top: number }) => void
 }) {
   const { isAuthenticated, user } = useAuth();
   if (!isAuthenticated || !user) return null;
   if (user.role !== 'admin' && user.role !== 'author') return null;
-  return <DrawFloatingButton onOpenDraw={onOpenDraw} onOpenTodo={onOpenTodo} onOpenHashbook={onOpenHashbook} onOpenJournal={onOpenJournal} onPositionChange={onPositionChange} hidden={showDrawPage} />;
+  return <DrawFloatingButton onOpenDraw={onOpenDraw} onOpenTodo={onOpenTodo} onOpenHashbook={onOpenHashbook} onOpenJournal={onOpenJournal} onOpenPdf={onOpenPdf} onPositionChange={onPositionChange} hidden={showDrawPage} />;
 }
 
 function App() {

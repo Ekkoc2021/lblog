@@ -1,4 +1,4 @@
-import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries, AdminComment, AdminPrompt, AdminPromptAudit, SessionInfo, BatchOpResult, TokenConfig, AuthorApplication } from '../types';
+import type { Post, Category, Tag, Series, PageResult, ApiResponse, PostDetail, LikeResponse, LikeStatus, CreatePostRequest, UpdatePostRequest, CreateCategoryRequest, CreateTagRequest, CreateSeriesRequest, TokenPairVO, ChangePasswordRequest, RegisterRequest, Comment, CreateCommentRequest, SiteConfig, AdminCategory, AdminTag, AdminSeries, AdminComment, AdminPrompt, AdminPromptAudit, SessionInfo, BatchOpResult, TokenConfig, AuthorApplication, PdfFile, PdfFolder, PdfBookmark, PdfProgress } from '../types';
 import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './tokenStore';
 
 // 刷新锁：多个请求同时 401 时只发一次刷新
@@ -853,5 +853,122 @@ export async function reviewApplication(id: number, status: number, feedback?: s
   return request<null>(`/api/v1/admin/applications/${id}`, {
     method: 'PUT',
     body: JSON.stringify({ status, feedback }),
+  });
+}
+
+// ---- PDF 阅读器 ----
+
+// 上传 PDF
+export async function uploadPdf(file: File, folderId?: number | null): Promise<ApiResponse<PdfFile>> {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (folderId) formData.append('folderId', String(folderId));
+  return request<PdfFile>('/api/v1/pdf/upload', {
+    method: 'POST',
+    body: formData,
+  });
+}
+
+// 文件列表
+export async function getPdfFiles(folderId?: number | null): Promise<ApiResponse<PdfFile[]>> {
+  const params = folderId != null ? `?folderId=${folderId}` : '';
+  return request<PdfFile[]>(`/api/v1/pdf/files${params}`);
+}
+
+// 文件详情
+export async function getPdfFile(id: number): Promise<ApiResponse<PdfFile>> {
+  return request<PdfFile>(`/api/v1/pdf/files/${id}`);
+}
+
+// 更新文件（重命名/移动）
+export async function updatePdfFile(id: number, originalName?: string, folderId?: number | null): Promise<ApiResponse<null>> {
+  const params = new URLSearchParams();
+  if (originalName) params.append('originalName', originalName);
+  if (folderId !== undefined) params.append('folderId', String(folderId));
+  return request<null>(`/api/v1/pdf/files/${id}?${params.toString()}`, { method: 'PUT' });
+}
+
+// 删除文件
+export async function deletePdfFile(id: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/pdf/files/${id}`, { method: 'DELETE' });
+}
+
+// 下载 URL（直接返回路径，用于 PDF.js 加载）
+export function getPdfDownloadUrl(id: number): string {
+  return `/api/v1/pdf/files/${id}/download`;
+}
+
+// 更新总页数
+export async function updatePdfTotalPages(id: number, totalPages: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/pdf/files/${id}/total-pages?totalPages=${totalPages}`, { method: 'PUT' });
+}
+
+// 文件夹树
+export async function getPdfFolders(): Promise<ApiResponse<PdfFolder[]>> {
+  return request<PdfFolder[]>('/api/v1/pdf/folders');
+}
+
+// 创建文件夹
+export async function createPdfFolder(name: string, parentId?: number | null): Promise<ApiResponse<PdfFolder>> {
+  const params = new URLSearchParams();
+  params.append('name', name);
+  if (parentId) params.append('parentId', String(parentId));
+  return request<PdfFolder>(`/api/v1/pdf/folders?${params.toString()}`, { method: 'POST' });
+}
+
+// 更新文件夹
+export async function updatePdfFolder(id: number, name: string, parentId?: number | null): Promise<ApiResponse<null>> {
+  const params = new URLSearchParams();
+  params.append('name', name);
+  if (parentId !== undefined && parentId !== null) params.append('parentId', String(parentId));
+  return request<null>(`/api/v1/pdf/folders/${id}?${params.toString()}`, { method: 'PUT' });
+}
+
+// 删除文件夹
+export async function deletePdfFolder(id: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/pdf/folders/${id}`, { method: 'DELETE' });
+}
+
+// 获取某页标注
+export async function getPdfAnnotation(pdfId: number, page: number): Promise<ApiResponse<string>> {
+  return request<string>(`/api/v1/pdf/${pdfId}/annotations?page=${page}`);
+}
+
+// 保存某页标注
+export async function savePdfAnnotation(pdfId: number, pageNum: number, data: string): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/pdf/${pdfId}/annotations/page/${pageNum}`, {
+    method: 'PUT',
+    body: JSON.stringify({ data }),
+  });
+}
+
+// 书签列表
+export async function getPdfBookmarks(pdfId: number): Promise<ApiResponse<PdfBookmark[]>> {
+  return request<PdfBookmark[]>(`/api/v1/pdf/${pdfId}/bookmarks`);
+}
+
+// 添加书签
+export async function addPdfBookmark(pdfId: number, pageNum: number, label: string): Promise<ApiResponse<PdfBookmark>> {
+  return request<PdfBookmark>(`/api/v1/pdf/${pdfId}/bookmarks`, {
+    method: 'POST',
+    body: JSON.stringify({ pageNum, label }),
+  });
+}
+
+// 删除书签
+export async function deletePdfBookmark(pdfId: number, id: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/pdf/${pdfId}/bookmarks/${id}`, { method: 'DELETE' });
+}
+
+// 获取阅读进度
+export async function getPdfProgress(pdfId: number): Promise<ApiResponse<PdfProgress>> {
+  return request<PdfProgress>(`/api/v1/pdf/${pdfId}/progress`);
+}
+
+// 更新阅读进度
+export async function savePdfProgress(pdfId: number, pageNum: number, scrollTop?: number): Promise<ApiResponse<null>> {
+  return request<null>(`/api/v1/pdf/${pdfId}/progress`, {
+    method: 'PUT',
+    body: JSON.stringify({ pageNum, scrollTop: scrollTop ?? 0 }),
   });
 }

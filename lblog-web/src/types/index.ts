@@ -482,3 +482,56 @@ export interface AuthorApplication {
   createdAt: string;
   updatedAt: string;
 }
+
+// ---- PDF 阅读器 ----
+
+export interface PdfFile {
+  id: number;
+  userId: number;
+  folderId: number | null;
+  filename: string;
+  originalName: string;
+  fileSize: number;
+  totalPages: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PdfFolder {
+  id: number;
+  userId: number;
+  parentId: number | null;
+  name: string;
+  sortOrder: number;
+  children: PdfFolder[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PdfAnnotation {
+  id: number;
+  pdfId: number;
+  pageNum: number;
+  userId: number;
+  data: string;          // JSON string from DokFlow
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PdfBookmark {
+  id: number;
+  pdfId: number;
+  userId: number;
+  pageNum: number;
+  label: string;
+  createdAt: string;
+}
+
+export interface PdfProgress {
+  id: number;
+  pdfId: number;
+  userId: number;
+  pageNum: number;
+  scrollTop: number;
+  updatedAt: string;
+}

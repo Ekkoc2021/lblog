@@ -1,0 +1,67 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - strong [ref=e8] [cursor=pointer]: LBlog
+        - generic [ref=e9] [cursor=pointer]: 首页
+      - generic [ref=e10]:
+        - button "bulb" [ref=e11] [cursor=pointer]:
+          - img "bulb" [ref=e13]:
+            - img [ref=e14]
+        - generic [ref=e17]:
+          - searchbox "搜索文章" [ref=e19]
+          - button "search" [ref=e21] [cursor=pointer]:
+            - img "search" [ref=e23]:
+              - img [ref=e24]
+        - button "user 登录" [ref=e26] [cursor=pointer]:
+          - img "user" [ref=e28]:
+            - img [ref=e29]
+          - generic [ref=e31]: 登录
+    - main [ref=e32]:
+      - generic [ref=e34]:
+        - generic [ref=e35]:
+          - img "arrow-left" [ref=e36] [cursor=pointer]:
+            - img [ref=e37]
+          - generic [ref=e39]: PDF 阅读
+        - generic [ref=e40]:
+          - complementary [ref=e41]:
+            - generic [ref=e43]:
+              - button "upload 上传" [ref=e45] [cursor=pointer]:
+                - img "upload" [ref=e47]:
+                  - img [ref=e48]
+                - generic [ref=e50]: 上传
+              - generic [ref=e51]:
+                - tablist [ref=e52]:
+                  - generic [ref=e54]:
+                    - tab "folder 书架" [selected] [ref=e56] [cursor=pointer]:
+                      - generic [ref=e57]:
+                        - img "folder" [ref=e58]:
+                          - img [ref=e59]
+                        - text: 书架
+                    - tab "book 书签" [ref=e62] [cursor=pointer]:
+                      - generic [ref=e63]:
+                        - img "book" [ref=e64]:
+                          - img [ref=e65]
+                        - text: 书签
+                - tabpanel "folder 书架" [ref=e69]:
+                  - generic [ref=e70]:
+                    - generic [ref=e72] [cursor=pointer]: 📁 全部文件
+                    - generic [ref=e74]: 暂无 PDF 文件
+          - main [ref=e75]:
+            - generic [ref=e76]: 从左侧书架选择 PDF 开始阅读
+    - contentinfo [ref=e77]: LBlog ©2026 Powered by React + Ant Design
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - button "打开"
+          - button "保存"
+          - textbox "输入图表名称": 无标题图表
+        - generic:
+          - button "−"
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - iframe
+            - generic: Draw.io panel is loading...

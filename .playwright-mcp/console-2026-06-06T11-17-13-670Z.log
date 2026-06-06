@@ -1,0 +1,60 @@
+[    2478ms] [LOG] [Bridge] Annotations 2 (editors:0 docStorage:2) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:149
+[    2872ms] [DEBUG] [vite] connecting... @ http://localhost:5173/@vite/client:826
+[    3180ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:5173/node_modules/.vite/deps/client-BSgB15i-.js?v=a7a6b06a:14337
+[    3324ms] [ERROR] Warning: [antd: Drawer] `width` is deprecated. Please use `size` instead. @ http://localhost:5173/@vite/client:509
+[    3325ms] [ERROR] Warning: [antd: Modal] `destroyOnClose` is deprecated. Please use `destroyOnHidden` instead. @ http://localhost:5173/@vite/client:509
+[    3448ms] [DEBUG] [vite] connected. @ http://localhost:5173/@vite/client:930
+[   16198ms] [LOG] [Bridge] Script loaded inline @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:50
+[   16199ms] [LOG] [PDF] postMessage: bridge-loaded @ http://localhost:5173/src/components/pdf/PdfViewer.tsx?t=1780743746449:22
+[   16245ms] [VERBOSE] [DOM] Password field is not contained in a form: (More info: https://goo.gl/9p2vKq) %o @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:0
+[   16626ms] [LOG] PDF d0f0da07a0da38dd52a483edd7fc225b [1.4 calibre 2.79.1 [https://calibre-ebook.com] / calibre 2.79.1 [https://calibre-ebook.com]] (PDF.js: 6.0.227 [241dbabbf]) @ http://localhost:5173/pdfjs/web/viewer.mjs:19330
+[   16713ms] [LOG] [Bridge] Hooked @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:60
+[   16717ms] [LOG] [PDF] postMessage: bridge-hooked @ http://localhost:5173/src/components/pdf/PdfViewer.tsx?t=1780743746449:22
+[   16717ms] [LOG] [PDF] Bridge hooked, fetching saved annotations... @ http://localhost:5173/src/components/pdf/PdfViewer.tsx?t=1780743746449:25
+[   19714ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   22716ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   25721ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   28727ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   31724ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   34717ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   37723ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   40724ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   43728ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   46761ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   49725ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   52726ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   55718ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   58727ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   61718ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   64724ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   67719ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   70728ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   73722ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   73766ms] [LOG] [PDF] postMessage: pdf-page-change @ http://localhost:5173/src/components/pdf/PdfViewer.tsx?t=1780743746449:22
+[   76717ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   79727ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   82716ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   84523ms] [LOG] [PDF] postMessage: pdf-page-change @ http://localhost:5173/src/components/pdf/PdfViewer.tsx?t=1780743746449:22
+[   84839ms] [LOG] [PDF] postMessage: pdf-page-change @ http://localhost:5173/src/components/pdf/PdfViewer.tsx?t=1780743746449:22
+[   85720ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   88714ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   88944ms] [LOG] [PDF] postMessage: pdf-page-change @ http://localhost:5173/src/components/pdf/PdfViewer.tsx?t=1780743746449:22
+[   91724ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   94715ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[   97725ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[  100719ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[  102211ms] [LOG] [PDF] postMessage: pdf-page-change @ http://localhost:5173/src/components/pdf/PdfViewer.tsx?t=1780743746449:22
+[  103714ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[  106714ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[  109714ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[  112723ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[  115714ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[  118716ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[  121720ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[  124719ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[  127722ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[  130725ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[  133714ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[  136721ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[  139723ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
+[  142727ms] [LOG] [Bridge] Annotations 0 (editors:0) types: {} @ http://localhost:5173/pdfjs/web/viewer.html?file=%2Fapi%2Fv1%2Fpdf%2Ffiles%2F1%2Fdownload&disableAutoFetch=true:124
