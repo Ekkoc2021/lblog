@@ -6,6 +6,7 @@ import { updatePdfBookmark } from '../services/api';
 import PdfSidebar from '../components/pdf/PdfSidebar';
 import PdfViewer, { type PdfViewerHandle } from '../components/pdf/PdfViewer';
 import PdfUploadModal from '../components/pdf/PdfUploadModal';
+import NewBookModal from '../components/pdf/NewBookModal';
 
 const { TextArea } = Input;
 
@@ -16,6 +17,7 @@ const PdfReaderPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedFile, setSelectedFile] = useState<PdfFile | null>(null);
   const [uploadVisible, setUploadVisible] = useState(false);
+  const [newBookVisible, setNewBookVisible] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const { token: themeToken } = theme.useToken();
@@ -55,6 +57,12 @@ const PdfReaderPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   const handleUploadSuccess = useCallback(() => {
     setUploadVisible(false);
     setRefreshKey(k => k + 1);
+  }, []);
+
+  const handleBookCreated = useCallback((file: PdfFile, action: 'upload' | 'local') => {
+    setNewBookVisible(false);
+    setRefreshKey(k => k + 1);
+    setSelectedFile(file);
   }, []);
 
   const handleSave = useCallback(() => {
@@ -108,6 +116,7 @@ const PdfReaderPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             selectedFile={selectedFile}
             onSelectFile={handleSelectFile}
             onUploadClick={() => setUploadVisible(true)}
+            onNewBookClick={() => setNewBookVisible(true)}
             onSaveAnnotations={handleSave}
             currentPage={currentPage}
             onJumpToPage={handleJumpToPage}
@@ -154,6 +163,7 @@ const PdfReaderPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               file={selectedFile}
               onPageChange={setCurrentPage}
               onSaveComplete={handleSaveComplete}
+              onUploadRequest={() => setUploadVisible(true)}
             />
           ) : (
             <div style={{
@@ -170,6 +180,12 @@ const PdfReaderPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         open={uploadVisible}
         onClose={() => setUploadVisible(false)}
         onSuccess={handleUploadSuccess}
+      />
+
+      <NewBookModal
+        open={newBookVisible}
+        onClose={() => setNewBookVisible(false)}
+        onCreated={handleBookCreated}
       />
 
       {/* Floating Note Editor */}

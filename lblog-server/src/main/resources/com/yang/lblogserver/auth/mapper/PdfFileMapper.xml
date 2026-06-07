@@ -13,6 +13,7 @@
         <result property="fileSize" column="file_size" />
         <result property="filePath" column="file_path" />
         <result property="totalPages" column="total_pages" />
+        <result property="sourceType" column="source_type" />
         <result property="createdAt" column="created_at" />
         <result property="updatedAt" column="updated_at" />
     </resultMap>
@@ -23,17 +24,18 @@
         <result property="originalName" column="original_name" />
         <result property="fileSize" column="file_size" />
         <result property="totalPages" column="total_pages" />
+        <result property="sourceType" column="source_type" />
         <result property="createdAt" column="created_at" />
         <result property="updatedAt" column="updated_at" />
     </resultMap>
 
     <sql id="Base_Column_List">
-        id, user_id, folder_id, filename, original_name, file_size, file_path, total_pages, created_at, updated_at
+        id, user_id, folder_id, filename, original_name, file_size, file_path, total_pages, source_type, created_at, updated_at
     </sql>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
-        INSERT INTO pdf_files (user_id, folder_id, filename, original_name, file_size, file_path, total_pages, created_at, updated_at)
-        VALUES (#{userId}, #{folderId}, #{filename}, #{originalName}, #{fileSize}, #{filePath}, #{totalPages}, NOW(), NOW())
+        INSERT INTO pdf_files (user_id, folder_id, filename, original_name, file_size, file_path, total_pages, source_type, created_at, updated_at)
+        VALUES (#{userId}, #{folderId}, #{filename}, #{originalName}, #{fileSize}, #{filePath}, #{totalPages}, #{sourceType}, NOW(), NOW())
     </insert>
 
     <select id="selectById" resultMap="BaseResultMap">
@@ -43,7 +45,7 @@
     </select>
 
     <select id="selectByUserAndFolder" resultMap="FileVOMap">
-        SELECT id, folder_id, original_name, file_size, total_pages, created_at, updated_at
+        SELECT id, folder_id, original_name, file_size, total_pages, source_type, created_at, updated_at
         FROM pdf_files
         WHERE user_id = #{userId}
         <if test="folderId != null">
@@ -59,6 +61,16 @@
         UPDATE pdf_files
         SET original_name = #{originalName},
             folder_id = #{folderId}
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateFileWithSource">
+        UPDATE pdf_files
+        SET original_name = #{originalName},
+            filename = #{filename},
+            file_size = #{fileSize},
+            file_path = #{filePath},
+            source_type = 'UPLOAD'
         WHERE id = #{id}
     </update>
 

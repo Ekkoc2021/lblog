@@ -48,10 +48,33 @@ public class PdfController {
     @Operation(summary = "上传 PDF")
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<PdfFile> upload(@RequestParam("file") MultipartFile file,
-                                        @RequestParam(required = false) Long folderId) {
+                                        @RequestParam(required = false) Long folderId,
+                                        @RequestParam(required = false) String sourceType) {
         Long userId = getCurrentUserId();
         try {
-            return ApiResponse.success(pdfService.upload(userId, file, folderId));
+            return ApiResponse.success(pdfService.upload(userId, file, folderId, sourceType));
+        } catch (IllegalArgumentException e) {
+            return ApiResponse.error(400, e.getMessage());
+        } catch (Exception e) {
+            return ApiResponse.error(500, "上传失败");
+        }
+    }
+
+    @Operation(summary = "创建书记录（不上传文件）")
+    @PostMapping("/files/metadata")
+    public ApiResponse<PdfFile> createMetadata(@RequestParam String name,
+                                                @RequestParam(required = false) Long folderId) {
+        Long userId = getCurrentUserId();
+        return ApiResponse.success(pdfService.createMetadata(userId, name, folderId));
+    }
+
+    @Operation(summary = "为已有书籍上传文件（LOCAL→UPLOAD）")
+    @PostMapping(value = "/files/{id}/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<PdfFile> uploadToExisting(@PathVariable Long id,
+                                                  @RequestParam("file") MultipartFile file) {
+        Long userId = getCurrentUserId();
+        try {
+            return ApiResponse.success(pdfService.uploadToExisting(id, userId, file));
         } catch (IllegalArgumentException e) {
             return ApiResponse.error(400, e.getMessage());
         } catch (Exception e) {
