@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { Layout, message, Input, Button, theme } from 'antd';
-import { MinusOutlined, CloseOutlined, BookOutlined } from '@ant-design/icons';
+import { MinusOutlined, CloseOutlined, BookOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { PdfFile, PdfBookmark } from '../types';
 import { updatePdfBookmark } from '../services/api';
 import PdfSidebar from '../components/pdf/PdfSidebar';
@@ -90,6 +90,12 @@ const PdfReaderPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     viewerRef.current?.jumpToPage(page);
   }, []);
 
+  const handleRefresh = useCallback(() => {
+    setSelectedFile(null);
+    setRefreshKey(k => k + 1);
+    message.success('PDF 书架已刷新');
+  }, []);
+
   return (
     <Layout style={{ height: '100vh', background: 'var(--color-bg)' }}>
       {/* Top Bar */}
@@ -107,6 +113,8 @@ const PdfReaderPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           </span>
         )}
         <span style={{ flex: 1 }} />
+        <ReloadOutlined style={{ cursor: 'pointer', fontSize: 16, color: 'var(--color-text-secondary)' }}
+          onClick={handleRefresh} title="刷新书架" />
       </div>
 
       <Layout style={{ flex: 1, overflow: 'hidden', background: 'var(--color-bg)' }}>
