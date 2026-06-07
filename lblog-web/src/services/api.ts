@@ -869,6 +869,24 @@ export async function uploadPdf(file: File, folderId?: number | null): Promise<A
   });
 }
 
+// 创建书记录（不上传文件）
+export async function createPdfMetadata(name: string, folderId?: number | null): Promise<ApiResponse<PdfFile>> {
+  const params = new URLSearchParams();
+  params.append('name', name);
+  if (folderId) params.append('folderId', String(folderId));
+  return request<PdfFile>(`/api/v1/pdf/files/metadata?${params.toString()}`, { method: 'POST' });
+}
+
+// 为已有书籍上传文件
+export async function uploadPdfToExisting(id: number, file: File): Promise<ApiResponse<PdfFile>> {
+  const formData = new FormData();
+  formData.append('file', file);
+  return request<PdfFile>(`/api/v1/pdf/files/${id}/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+}
+
 // 文件列表
 export async function getPdfFiles(folderId?: number | null): Promise<ApiResponse<PdfFile[]>> {
   const params = folderId != null ? `?folderId=${folderId}` : '';

@@ -40,7 +40,7 @@ public class PdfService {
 
     /** Upload PDF with validation + quota check */
     @Transactional
-    public PdfFile upload(Long userId, MultipartFile file, Long folderId) throws IOException {
+    public PdfFile upload(Long userId, MultipartFile file, Long folderId, String sourceType) throws IOException {
         String contentType = file.getContentType();
         if (contentType == null || !"application/pdf".equals(contentType)) {
             throw new IllegalArgumentException("仅支持 PDF 格式");
@@ -76,8 +76,58 @@ public class PdfService {
         pdfFile.setFileSize(file.getSize());
         pdfFile.setFilePath(result.getStoragePath());
         pdfFile.setTotalPages(0);
+        pdfFile.setSourceType(sourceType != null ? sourceType : "UPLOAD");
         fileMapper.insert(pdfFile);
         return pdfFile;
+    }
+
+    /** Create a book entry without uploading a file */
+    public PdfFile createMetadata(Long userId, String name, Long folderId) {
+        PdfFile pdfFile = new PdfFile();
+        pdfFile.setUserId(userId);
+        pdfFile.setFolderId(folderId);
+        pdfFile.setFilename("");
+        pdfFile.setOriginalName(name);
+        pdfFile.setFileSize(0L);
+        pdfFile.setFilePath("");
+        pdfFile.setTotalPages(0);
+        pdfFile.setSourceType("LOCAL");
+        fileMapper.insert(pdfFile);
+        return pdfFile;
+    }
+
+    /** Upload file to existing LOCAL book, converting it to UPLOAD */
+    @Transactional
+    public PdfFile uploadToExisting(Long id, Long userId, MultipartFile file) throws IOException {
+        PdfFile f = fileMapper.selectById(id);
+        if (f == null || !f.getUserId().equals(userId)) throw new IllegalArgumentException("文件不存在");
+
+        // Quota check (same as upload)
+        PdfUserQuota quota = quotaMapper.selectByUserId(userId);
+        if (quota == null) {
+            quotaHelper.ensureDefaultQuota(userId);
+            throw new IllegalArgumentException("请先申请 PDF 上传权限");
+        }
+        if (quota.getAllowUpload() == null || quota.getAllowUpload() == 0) {
+            throw new IllegalArgumentException("PDF 上传权限未开启，请联系管理员");
+        }
+        long currentTotal = fileMapper.sumSizeByUser(userId);
+        if (currentTotal + file.getSize() > quota.getQuotaBytes()) {
+            throw new IllegalArgumentException(String.format(
+                "PDF 存储空间已满 (已用 %.1f MB / 配额 %.1f MB)",
+                currentTotal / 1048576.0, quota.getQuotaBytes() / 1048576.0));
+        }
+
+        String storedName = UUID.randomUUID().toString() + ".pdf";
+        StorageResult result = pdfStorage.store(file.getInputStream(), storedName, file.getSize(), "application/pdf");
+
+        fileMapper.updateFileWithSource(id, file.getOriginalFilename(), storedName, file.getSize(), result.getStoragePath());
+        f.setOriginalName(file.getOriginalFilename());
+        f.setFilename(storedName);
+        f.setFileSize(file.getSize());
+        f.setFilePath(result.getStoragePath());
+        f.setSourceType("UPLOAD");
+        return f;
     }
 
     /** Update PDF total pages (called from bridge, no user context) */

@@ -10,6 +10,7 @@ interface Props {
   selectedFile: PdfFile | null;
   onSelectFile: (file: PdfFile) => void;
   onUploadClick: () => void;
+  onNewBookClick: () => void;
   onSaveAnnotations?: () => void;
   currentPage: number;
   onJumpToPage: (page: number) => void;
@@ -23,7 +24,7 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1073741824).toFixed(2)} GB`;
 }
 
-const PdfSidebar: React.FC<Props> = ({ selectedFile, onSelectFile, onUploadClick, onSaveAnnotations, currentPage, onJumpToPage, onEditNote, refreshKey }) => {
+const PdfSidebar: React.FC<Props> = ({ selectedFile, onSelectFile, onUploadClick, onNewBookClick, onSaveAnnotations, currentPage, onJumpToPage, onEditNote, refreshKey }) => {
   const [activeTab, setActiveTab] = useState<string>('files');
   const [stats, setStats] = useState<PdfUserStats | null>(null);
 
@@ -36,7 +37,8 @@ const PdfSidebar: React.FC<Props> = ({ selectedFile, onSelectFile, onUploadClick
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ padding: '8px 12px', display: 'flex', gap: 8, alignItems: 'center' }}>
-        <Button type="primary" size="small" icon={<UploadOutlined />} onClick={onUploadClick}>上传</Button>
+        <Button type="primary" size="small" onClick={onNewBookClick}>新建</Button>
+        <Button size="small" icon={<UploadOutlined />} onClick={onUploadClick}>上传</Button>
         <Button size="small" icon={<SaveOutlined />} onClick={onSaveAnnotations}>保存</Button>
       </div>
       <Tabs activeKey={activeTab} onChange={setActiveTab} size="small"
