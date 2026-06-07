@@ -149,12 +149,12 @@ const FolderTree: React.FC<Props> = ({ selectedFile, onSelectFile, refreshKey })
                       background: selectedFile?.id === pf.id ? 'var(--color-primary-bg, #e6f7ff)' : 'transparent',
                       color: 'var(--color-text)',
                     }}>
-                      <FilePdfOutlined style={{ color: '#ff4d4f', fontSize: 14, flexShrink: 0 }} />
+                      <FilePdfOutlined style={{ color: pf.sourceType === 'LOCAL' ? '#faad14' : '#ff4d4f', fontSize: 14, flexShrink: 0 }} />
                       <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {pf.originalName}
                       </div>
                       <span style={{ fontSize: 10, color: 'var(--color-text-tertiary)', flexShrink: 0 }}>
-                        {formatSize(pf.fileSize)}
+                        {pf.sourceType === 'LOCAL' ? '本地' : formatSize(pf.fileSize)}
                       </span>
                       <EditOutlined style={{ fontSize: 10, color: 'var(--color-text-tertiary)', flexShrink: 0 }}
                         onClick={e => handleRenameFile(e, pf)} />

@@ -12,6 +12,7 @@ public class PdfFile {
     private Long fileSize;
     private String filePath;
     private Integer totalPages;
+    private String sourceType;
     private Date createdAt;
     private Date updatedAt;
 }

@@ -493,6 +493,7 @@ export interface PdfFile {
   originalName: string;
   fileSize: number;
   totalPages: number;
+  sourceType?: string;  // 'UPLOAD' | 'LOCAL'
   createdAt: string;
   updatedAt: string;
 }

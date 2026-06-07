@@ -53,28 +53,54 @@ See https://github.com/adobe-type-tools/cmap-resources
     function init(){
       var app=window.PDFViewerApplication;
       if(!app||!app.pdfViewer||!app.eventBus){if(++poll<50)setTimeout(init,200);return;}
+      if(!app.pdfDocument){setTimeout(init,200);return;}
       window.parent.postMessage({type:'bridge-hooked'},'*');
 
       window.addEventListener('message',function(evt){
+        // Detect TypedArray subtype
+        function isTypedArray(o){
+          return o instanceof Float32Array||o instanceof Float64Array||o instanceof Int32Array||o instanceof Uint8Array;
+        }
         function toPlain(o){
-          if(o instanceof Float32Array||o instanceof Float64Array||o instanceof Int32Array||o instanceof Uint8Array)return Array.from(o);
+          // InkDrawOutline: extends Float32Array but has extra {points,bezier} holding
+          // sub-TypedArrays. The points/bezier are always TypedArrays (not plain arrays).
+          // Container objects like `paths` also have a `points` but it's a plain array.
+          // Only enter this branch when points/bezier IS a TypedArray.
+          if(o&&typeof o=='object'&&(isTypedArray(o.points)||isTypedArray(o.bezier))){
+            var r={};
+            if(o.points)r.points=toPlain(o.points);
+            if(o.bezier)r.bezier=toPlain(o.bezier);
+            return r;
+          }
+          if(isTypedArray(o))return Array.from(o);
           if(Array.isArray(o))return o.map(toPlain);
-          if(o&&typeof o=='object'&&o.constructor===Object){var r={};for(var k in o)r[k]=toPlain(o[k]);return r;}
+          if(o&&typeof o=='object'){
+            var r={};
+            for(var k in o)r[k]=toPlain(o[k]);
+            return r;
+          }
           return o;
         }
         // === SAVE ===
         if(evt.data.type=='save-annotations'&&app.pdfDocument){
-          var storage=app.pdfDocument.annotationStorage;
-          var saveData=[];
-          for(var entry of storage){
-            var val=entry[1];
-            if(val&&typeof val.serialize=='function'){
-              var s=toPlain(val.serialize(false));
-              s.pageIndex=val.pageIndex;
-              saveData.push({key:entry[0],value:s});
+          // Force commit: switch to NONE mode, wait for async commit, then collect.
+          // InkEditor stays active until a mode switch triggers internal commitOrRemove().
+          // PDF.js 6.0.227 hides UIManager internally — we must use mode toggle + setTimeout.
+          var currentMode=app.pdfViewer.annotationEditorMode;
+          app.pdfViewer.annotationEditorMode={mode:0};
+          setTimeout(function(){
+            var saveData=[];
+            var storage=app.pdfDocument.annotationStorage;
+            for(var entry of storage){
+              var val=entry[1];
+              if(val&&typeof val.serialize=='function'){
+                var s=toPlain(val.serialize(false));
+                s.pageIndex=val.pageIndex;
+                saveData.push({key:entry[0],value:s});
+              }
             }
-          }
-          window.parent.postMessage({type:'pdf-annotations',data:JSON.stringify(saveData)},'*');
+            window.parent.postMessage({type:'pdf-annotations',data:JSON.stringify(saveData)},'*');
+          },100);
         }
         // === JUMP TO PAGE ===
         if(evt.data.type=='jump-to-page'&&app.pdfViewer){
@@ -98,10 +124,27 @@ See https://github.com/adobe-type-tools/cmap-resources
             try{
               var val=data[i].value,key=data[i].key;
               if(!val||typeof val!=='object')continue;
+              // fingerprint: capture data structure after JSON round-trip
+              var rfp={type:val.annotationType,page:val.pageIndex};
+              if(val.paths&&val.paths.lines){rfp.inkLines=val.paths.lines.length;
+                for(var li=0;li<val.paths.lines.length;li++){
+                  var l=val.paths.lines[li];
+                  rfp['L'+li+'_pts']=l&&l.points?l.points.length:'?';
+                  rfp['L'+li+'_ptype']=l&&l.points?'is'+l.points.constructor.name:'no';
+                }
+              }
+              if(val.outlines){
+                if(Array.isArray(val.outlines)) rfp.olFmt='array['+val.outlines.length+']';
+                else{var ok=Object.keys(val.outlines); rfp.olFmt='object{'+ok.join(',')+'}';}
+              }
+              if(val.annotationType===3) rfp.rect=val.rect;
               var pi=val.pageIndex||0;
               var page=viewer._pages[pi];
-              if(!page||!page.annotationEditorLayer)continue;
+              if(!page)continue;
+              if(!page.annotationEditorLayer){try{page._renderAnnotationEditorLayer();}catch(e){}}
+              if(!page.annotationEditorLayer)continue;
               var layer=page.annotationEditorLayer.annotationEditorLayer;if(!layer)continue;
+              if(val.outlines&&typeof val.outlines==='object'&&!Array.isArray(val.outlines)){var okeys=Object.keys(val.outlines);if(okeys.every(function(k){return /^\d+$/.test(k);})){var arr=[];for(var k in val.outlines){if(Object.prototype.hasOwnProperty.call(val.outlines,k))arr.push(val.outlines[k]);}val.outlines=arr;}}
               if(val.paths){try{
                 if(val.paths.lines&&Array.isArray(val.paths.lines)){
                   val.paths.lines=val.paths.lines.map(function(line){
