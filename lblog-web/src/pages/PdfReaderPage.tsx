@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { Layout, message, Input, Button, theme } from 'antd';
+import { Layout, message, Modal, Input, Button, theme } from 'antd';
 import { MinusOutlined, CloseOutlined, BookOutlined, ReloadOutlined } from '@ant-design/icons';
 import type { PdfFile, PdfBookmark } from '../types';
 import { updatePdfBookmark } from '../services/api';
@@ -84,6 +84,30 @@ const PdfReaderPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       setNoteEditor(null);
       setRefreshKey(k => k + 1);
     } catch { message.error('保存失败'); }
+  }, [noteEditor, selectedFile]);
+
+  const handleNoteClose = useCallback(() => {
+    if (!noteEditor) return;
+    const changed = noteEditor.label !== noteEditor.bm.label
+      || noteEditor.note !== (noteEditor.bm.note || '');
+    if (!changed) { setNoteEditor(null); return; }
+    Modal.confirm({
+      title: '有未保存的内容',
+      content: '书签的名称或笔记已修改，是否保存？',
+      okText: '保存',
+      cancelText: '不保存',
+      maskClosable: false,
+      onOk: async () => {
+        if (!selectedFile) return;
+        try {
+          await updatePdfBookmark(selectedFile.id, noteEditor.bm.id,
+            noteEditor.label.trim(), noteEditor.note.trim() || undefined);
+          setNoteEditor(null);
+          setRefreshKey(k => k + 1);
+        } catch { message.error('保存失败'); }
+      },
+      onCancel: () => { setNoteEditor(null); },
+    });
   }, [noteEditor, selectedFile]);
 
   const handleJumpToPage = useCallback((page: number) => {
@@ -225,7 +249,7 @@ const PdfReaderPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             </span>
             <Button type="primary" size="small" onClick={handleNoteSave}>保存</Button>
             <Button type="text" size="small" icon={<CloseOutlined />}
-              onClick={() => setNoteEditor(null)} />
+              onClick={handleNoteClose} />
           </div>
 
           {/* Body */}
