@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS pdf_bookmarks (
     user_id         BIGINT       NOT NULL,
     page_num        INT          NOT NULL,
     label           VARCHAR(100) NOT NULL,
+    note            TEXT         NULL     COMMENT '书签笔记',
     created_at      DATETIME     DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_pdf_user (pdf_id, user_id),
     CONSTRAINT fk_bm_file FOREIGN KEY (pdf_id) REFERENCES pdf_files(id) ON DELETE CASCADE
