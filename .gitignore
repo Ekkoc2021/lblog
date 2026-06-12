@@ -3,6 +3,10 @@ next-ai-draw-io/
 CLAUDE.md*
 lblog-server/[0-9]-*/
 lblog-server/ai/
+!lblog-server/ai/README.md
 lblog-web/[0-9]*/
 lblog-web/docs/
+!lblog-web/docs/api-series-posts.md
+!lblog-web/docs/gstack-usage.md
 docs/
+!docs/README.md
