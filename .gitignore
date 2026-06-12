@@ -1,5 +1,9 @@
+.mcp.json
+lblog-server/.mcp.json
 next-ai-draw-io/
-.claude/settings.local.json
+.claude/
+lblog-server/.claude/
+lblog-web/.claude/
 CLAUDE.md*
 [0-9]-*/
 lblog-server/[0-9]-*/
