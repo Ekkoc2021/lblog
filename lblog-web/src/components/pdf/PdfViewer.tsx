@@ -25,7 +25,7 @@ const PdfViewer = forwardRef<PdfViewerHandle, Props>(
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const needsFile = file.sourceType === 'LOCAL' || (!file.fileSize && !file.filePath);
+    const needsFile = file.sourceType === 'LOCAL' || !file.fileSize;
 
     const url = localBlobUrl || (needsFile ? null : getPdfDownloadUrl(file.id));
 

@@ -2,24 +2,25 @@
  * AES-256-GCM 加解密工具，用于密码本。
  * 密钥通过 PBKDF2 从用户密文派生，salt 随机生成。
  * 密文格式：base64(salt):base64(iv):base64(ciphertext)
+ *
+ * 优先使用原生 crypto.subtle（HTTPS/localhost），
+ * HTTP 下自动降级到 @noble/ciphers + @noble/hashes 纯 JS 实现。
  */
 
-const ALGORITHM = 'AES-GCM';
+import { pbkdf2 } from '@noble/hashes/pbkdf2.js';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { gcm } from '@noble/ciphers/aes.js';
+
 const KEY_LENGTH = 256;
 const SALT_LENGTH = 16;
 const IV_LENGTH = 12;
 const PBKDF2_ITERATIONS = 200_000;
 
-function requireCrypto(): SubtleCrypto {
-  if (!crypto?.subtle) {
-    throw new Error('密码本需要 HTTPS 或 localhost 才能加解密，当前页面不支持，请使用 HTTPS 访问。');
-  }
-  return crypto.subtle;
-}
+const hasSubtle = !!(typeof crypto !== 'undefined' && crypto?.subtle);
 
-function base64ToBytes(b64: string): Uint8Array {
+function base64ToBytes(b64: string): Uint8Array<ArrayBuffer> {
   const bin = atob(b64);
-  const bytes = new Uint8Array(bin.length);
+  const bytes = new Uint8Array(new ArrayBuffer(bin.length));
   for (let i = 0; i < bin.length; i++) {
     bytes[i] = bin.charCodeAt(i);
   }
@@ -34,48 +35,80 @@ function bytesToBase64(bytes: Uint8Array): string {
   return btoa(bin);
 }
 
-async function deriveKey(secret: string, salt: Uint8Array): Promise<CryptoKey> {
-  const subtle = requireCrypto();
-  const enc = new TextEncoder();
-  const keyMaterial = await subtle.importKey(
-    'raw', enc.encode(secret), 'PBKDF2', false, ['deriveKey']
-  );
-  return subtle.deriveKey(
-    { name: 'PBKDF2', salt: new Uint8Array(salt), iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
-    keyMaterial,
-    { name: ALGORITHM, length: KEY_LENGTH },
-    false,
-    ['encrypt', 'decrypt']
-  );
+function randomBytes(len: number): Uint8Array<ArrayBuffer> {
+  return crypto.getRandomValues(new Uint8Array(new ArrayBuffer(len)));
 }
 
-export async function encrypt(plaintext: string, secret: string): Promise<string> {
-  const salt = new Uint8Array(crypto.getRandomValues(new Uint8Array(SALT_LENGTH)));
-  const iv = new Uint8Array(crypto.getRandomValues(new Uint8Array(IV_LENGTH)));
-  const key = await deriveKey(secret, salt);
+// --- Native (crypto.subtle) ---
+
+async function nativeEncrypt(plaintext: string, secret: string): Promise<string> {
+  const salt = randomBytes(SALT_LENGTH);
+  const iv = randomBytes(IV_LENGTH);
   const enc = new TextEncoder();
-  const subtle = requireCrypto();
-  const ciphertext = await subtle.encrypt(
-    { name: ALGORITHM, iv },
-    key,
-    enc.encode(plaintext)
+  const keyMaterial = await crypto.subtle!.importKey('raw', enc.encode(secret), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle!.deriveKey(
+    { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: KEY_LENGTH },
+    false,
+    ['encrypt'],
   );
+  const ciphertext = await crypto.subtle!.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(plaintext));
   return `${bytesToBase64(salt)}:${bytesToBase64(iv)}:${bytesToBase64(new Uint8Array(ciphertext))}`;
 }
 
-export async function decrypt(ciphertext: string, secret: string): Promise<string> {
+async function nativeDecrypt(ciphertext: string, secret: string): Promise<string> {
   const parts = ciphertext.split(':');
   if (parts.length !== 3) throw new Error('无效的密文格式');
   const salt = base64ToBytes(parts[0]);
   const iv = base64ToBytes(parts[1]);
   const data = base64ToBytes(parts[2]);
-  const key = await deriveKey(secret, salt);
+  const enc = new TextEncoder();
   const dec = new TextDecoder();
-  const subtle = requireCrypto();
-  const plaintext = await subtle.decrypt(
-    { name: ALGORITHM, iv: new Uint8Array(iv) },
-    key,
-    new Uint8Array(data)
+  const keyMaterial = await crypto.subtle!.importKey('raw', enc.encode(secret), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle!.deriveKey(
+    { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: KEY_LENGTH },
+    false,
+    ['decrypt'],
   );
+  const plaintext = await crypto.subtle!.decrypt({ name: 'AES-GCM', iv }, key, data);
   return dec.decode(plaintext);
 }
+
+// --- Noble fallback (pure JS, works on HTTP) ---
+
+function nobleEncrypt(plaintext: string, secret: string): string {
+  const salt = randomBytes(SALT_LENGTH);
+  const iv = randomBytes(IV_LENGTH);
+  const enc = new TextEncoder();
+  const key = pbkdf2(sha256, enc.encode(secret), salt, { c: PBKDF2_ITERATIONS, dkLen: 32 });
+  const cipher = gcm(key, iv);
+  const ciphertext = cipher.encrypt(enc.encode(plaintext));
+  return `${bytesToBase64(salt)}:${bytesToBase64(iv)}:${bytesToBase64(ciphertext)}`;
+}
+
+function nobleDecrypt(ciphertext: string, secret: string): string {
+  const parts = ciphertext.split(':');
+  if (parts.length !== 3) throw new Error('无效的密文格式');
+  const salt = base64ToBytes(parts[0]);
+  const iv = base64ToBytes(parts[1]);
+  const data = base64ToBytes(parts[2]);
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+  const key = pbkdf2(sha256, enc.encode(secret), salt, { c: PBKDF2_ITERATIONS, dkLen: 32 });
+  const cipher = gcm(key, iv);
+  const plaintext = cipher.decrypt(data);
+  return dec.decode(plaintext);
+}
+
+// --- Public API ---
+
+export const encrypt = hasSubtle
+  ? (plaintext: string, secret: string): Promise<string> => nativeEncrypt(plaintext, secret)
+  : (plaintext: string, secret: string): Promise<string> => Promise.resolve(nobleEncrypt(plaintext, secret));
+
+export const decrypt = hasSubtle
+  ? (ciphertext: string, secret: string): Promise<string> => nativeDecrypt(ciphertext, secret)
+  : (ciphertext: string, secret: string): Promise<string> => Promise.resolve(nobleDecrypt(ciphertext, secret));

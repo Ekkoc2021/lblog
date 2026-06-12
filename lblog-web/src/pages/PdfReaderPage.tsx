@@ -59,7 +59,7 @@ const PdfReaderPage: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     setRefreshKey(k => k + 1);
   }, []);
 
-  const handleBookCreated = useCallback((file: PdfFile, action: 'upload' | 'local') => {
+  const handleBookCreated = useCallback((file: PdfFile, _action: 'upload' | 'local') => {
     setNewBookVisible(false);
     setRefreshKey(k => k + 1);
     setSelectedFile(file);
