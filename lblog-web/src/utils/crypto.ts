@@ -10,6 +10,13 @@ const SALT_LENGTH = 16;
 const IV_LENGTH = 12;
 const PBKDF2_ITERATIONS = 200_000;
 
+function requireCrypto(): SubtleCrypto {
+  if (!crypto?.subtle) {
+    throw new Error('密码本需要 HTTPS 或 localhost 才能加解密，当前页面不支持，请使用 HTTPS 访问。');
+  }
+  return crypto.subtle;
+}
+
 function base64ToBytes(b64: string): Uint8Array {
   const bin = atob(b64);
   const bytes = new Uint8Array(bin.length);
@@ -28,11 +35,12 @@ function bytesToBase64(bytes: Uint8Array): string {
 }
 
 async function deriveKey(secret: string, salt: Uint8Array): Promise<CryptoKey> {
+  const subtle = requireCrypto();
   const enc = new TextEncoder();
-  const keyMaterial = await crypto.subtle.importKey(
+  const keyMaterial = await subtle.importKey(
     'raw', enc.encode(secret), 'PBKDF2', false, ['deriveKey']
   );
-  return crypto.subtle.deriveKey(
+  return subtle.deriveKey(
     { name: 'PBKDF2', salt: new Uint8Array(salt), iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
     keyMaterial,
     { name: ALGORITHM, length: KEY_LENGTH },
@@ -46,7 +54,8 @@ export async function encrypt(plaintext: string, secret: string): Promise<string
   const iv = new Uint8Array(crypto.getRandomValues(new Uint8Array(IV_LENGTH)));
   const key = await deriveKey(secret, salt);
   const enc = new TextEncoder();
-  const ciphertext = await crypto.subtle.encrypt(
+  const subtle = requireCrypto();
+  const ciphertext = await subtle.encrypt(
     { name: ALGORITHM, iv },
     key,
     enc.encode(plaintext)
@@ -62,7 +71,8 @@ export async function decrypt(ciphertext: string, secret: string): Promise<strin
   const data = base64ToBytes(parts[2]);
   const key = await deriveKey(secret, salt);
   const dec = new TextDecoder();
-  const plaintext = await crypto.subtle.decrypt(
+  const subtle = requireCrypto();
+  const plaintext = await subtle.decrypt(
     { name: ALGORITHM, iv: new Uint8Array(iv) },
     key,
     new Uint8Array(data)
