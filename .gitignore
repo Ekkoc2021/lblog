@@ -2,3 +2,7 @@ next-ai-draw-io/
 .claude/settings.local.json
 CLAUDE.md*
 lblog-server/[0-9]-*/
+lblog-server/ai/
+lblog-web/[0-9]*/
+lblog-web/docs/
+docs/
