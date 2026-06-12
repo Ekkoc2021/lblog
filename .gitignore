@@ -1,5 +1,6 @@
 .mcp.json
 lblog-server/.mcp.json
+lblog-web/.mcp.json
 next-ai-draw-io/
 .claude/
 lblog-server/.claude/
