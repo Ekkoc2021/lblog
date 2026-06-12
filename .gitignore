@@ -1,6 +1,7 @@
 next-ai-draw-io/
 .claude/settings.local.json
 CLAUDE.md*
+[0-9]-*/
 lblog-server/[0-9]-*/
 lblog-server/ai/
 !lblog-server/ai/README.md
@@ -10,3 +11,7 @@ lblog-web/docs/
 !lblog-web/docs/gstack-usage.md
 docs/
 !docs/README.md
+test_prompt.js
+v1.0.sql
+lblog-web/_fix_pages.cjs
+lblog-web/mobile-header.png
