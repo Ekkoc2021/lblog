@@ -162,6 +162,7 @@ const SessionManage: React.FC = () => {
       title: '状态', key: 'status', width: 100,
       render: (_: unknown, r: SessionInfo) => {
         if (r.revoked) return <Tag color="red">已吊销</Tag>;
+        if (new Date(r.expiresAt).getTime() < Date.now()) return <Tag color="red">已过期</Tag>;
         if (r.expiringSoon) return <Tag color="orange">即将过期</Tag>;
         return <Tag color="green">正常</Tag>;
       },

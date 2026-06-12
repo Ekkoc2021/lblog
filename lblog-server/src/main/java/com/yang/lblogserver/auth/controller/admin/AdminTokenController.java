@@ -74,7 +74,7 @@ public class AdminTokenController {
             vo.setRevoked(t.getRevoked() != null && t.getRevoked());
             if (t.getExpiresAt() != null && !vo.isRevoked()) {
                 long minutesToExpire = ChronoUnit.MINUTES.between(now, t.getExpiresAt());
-                vo.setExpiringSoon(minutesToExpire < EXPIRING_THRESHOLD_MINUTES);
+                vo.setExpiringSoon(minutesToExpire >= 0 && minutesToExpire < EXPIRING_THRESHOLD_MINUTES);
             }
             list.add(vo);
         }
